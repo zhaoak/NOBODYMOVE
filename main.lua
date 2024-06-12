@@ -52,5 +52,9 @@ function love.load() -- {{{
   obj.player.setup(world)
 end -- }}}
 
+-- catch resize
+love.resize = function (width,height)
+  obj.playfield.resize(width,height)
+end
 
 -- vim: foldmethod=marker
