@@ -1,57 +1,38 @@
 -- nobody move prototype
 
 
--- tables
-local obj = {}
-local world
+
+-- filewide vars
+local obj = {} -- all physics objects
+local world -- the physics world
+local cooldown = 0 -- player shoot cooldown (very tmp)
+
+-- import physics objects
+obj.playfield = require("playfield")
+obj.player = require("player")
 
 
-
-local function setup_world() -- {{{
-  obj.ground = {}
-  obj.ground.body = love.physics.newBody(world, 0,0, "static")
-  obj.ground.shape = love.physics.newEdgeShape(0,800, 1000,1000)
-  obj.ground.fixture = love.physics.newFixture(obj.ground.body, obj.ground.shape)
-
-  obj.ground.color = { 1,1,1, 1 }
-end -- }}}
 
 -- functions
-local function setup_spood() -- {{{
-  if obj.spood then obj.spood.body:destroy() end
-  obj.spood = {}
-
-  obj.spood.body = love.physics.newBody(world, 100,100, "dynamic")
-  obj.spood.shape = love.physics.newCircleShape(20)
-  obj.spood.fixture = love.physics.newFixture(obj.spood.body, obj.spood.shape)
-
-end -- }}}
-
+-- draw
 function love.draw() -- {{{
-  love.graphics.setColor(1,1,1)
-  love.graphics.line(obj.ground.body:getWorldPoints(obj.ground.shape:getPoints()))
-
-  love.graphics.setColor(0.5,1,1)
-  love.graphics.circle("fill", obj.spood.body:getX(), obj.spood.body:getY(), obj.spood.shape:getRadius())
+  obj.playfield.draw()
+  obj.player.draw()
 end  -- }}}
 
 -- step
-  local cooldown = 1
-function love.update(dt)
+function love.update(dt) -- {{{
+  -- reset spood
   if love.mouse.isDown(2) then
-    setup_spood()
+    obj.player.setup(world)
   end
 
-  if love.mouse.isDown(1) and cooldown < 0 then
-    cooldown = 1
-    local x = (love.mouse:getX() - obj.spood.body:getX()) * 10
-    local y = (love.mouse:getY() - obj.spood.body:getY()) * 10
-    -- love.mouse:getY()
-
-
-    obj.spood.body:applyLinearImpulse(-x, -y)
+  -- recoil the player away from the mouse
+  if love.mouse.isDown(1) and cooldown <= 0 then
+    cooldown = 0.4
+    obj.player.recoil(love.mouse:getX(), love.mouse:getY())
   end
-  cooldown = cooldown - dt
+  cooldown = cooldown - dt -- decrement the cooldown
 
   world:update(dt)
 end -- }}}
@@ -64,10 +45,11 @@ function love.load() -- {{{
 
   love.physics.setMeter(64)
 
+  -- create the physics world
   world = love.physics.newWorld(0,10*64, false)
 
-  setup_world()
-  setup_spood()
+  obj.playfield.setup(world)
+  obj.player.setup(world)
 end -- }}}
 
 
