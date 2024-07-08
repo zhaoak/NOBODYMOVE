@@ -12,18 +12,6 @@ local cooldown = 0 -- player shoot cooldown (very tmp)
 obj.playfield = require("playfield")
 obj.player = require("player")
 
--- create collider callbacks for physics objects
-local function bind_colliders(object)
-  -- reset the lists
-  phys.beginContact, phys.endContact, phys.preSolve, phys.postSolve = {}, {}, {}, {}
-  -- add each function to the list of handlers
-  if object.beginContact then phys.beginContact[#phys.beginContact] = object.beginContact end
-  if object.endContact then phys.endContact[#phys.endContact] = object.endContact end
-  if object.preSolve then phys.preSolve[#phys.preSolve] = object.preSolve end
-  if object.postSolve then phys.postSolve[#phys.postSolve] = object.postSolve end
-
-end
-
 
 -- functions
 -- draw
@@ -53,6 +41,14 @@ function love.update(dt) -- {{{
   if obj.player.mous then obj.player.mous:setTarget(love.mouse.getPosition()) end
   obj.player.update()
   world:update(dt)
+
+  if love.keyboard.isDown('a') then
+    obj.player.body:applyForce(-50, 0)
+  end
+
+  if love.keyboard.isDown('d') then
+    obj.player.body:applyForce(50, 0)
+  end
 end -- }}}
 
 -- init
@@ -76,18 +72,20 @@ love.resize = function (width,height)
   obj.playfield.resize(width,height)
 end
 
--- contact callbacks
-function beginContact (fixtureA, fixtureB, contact)
-  if fixtureA:getUserData() == "reach" or fixtureB:getUserData() == "reach" then
-    obj.player.contact = obj.player.contact + 1
-  end
+function beginContact(a, b, coll)
+  x, y = coll:getNormal()
+  print(a:getUserData().." colliding with "..b:getUserData()..", vector normal: "..x..", "..y)
 end
 
-function endContact (fixtureA, fixtureB, contact)
-  if fixtureA:getUserData() == "reach" or fixtureB:getUserData() == "reach" then
-    obj.player.contact = obj.player.contact - 1
-  end
+function endContact(a, b, coll)
+  print(a:getUserData().." and "..b:getUserData().." no longer colliding")
 end
 
+function preSolve(a, b, coll)
 
+end
+
+function postSolve(a, b, coll, normalimpulse, tangentimpulse)
+
+end
 -- vim: foldmethod=marker
