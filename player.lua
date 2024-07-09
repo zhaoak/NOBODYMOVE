@@ -17,6 +17,13 @@ M.setup = function (world) -- {{{
   -- a lil bounce
   M.hardbox.fixture:setRestitution(0.2)
 
+  -- variable tracking whether or not spood is currently walking
+  -- wasd input handling varies based on whether you're walking on surface or airborne
+  M.airborne = true
+
+  -- variable tracking whether spood should latch to walls or not
+  -- controlled by player via keyboard
+  M.shouldLatch = false
 
   M.reach.shape = love.physics.newCircleShape(20 * 4)
   M.reach.fixture = love.physics.newFixture(M.body, M.reach.shape, 0)
@@ -32,7 +39,7 @@ end -- }}}
 
 M.draw = function () -- {{{
   love.graphics.setColor(M.color)
-  if M.contact > 0 then
+  if not M.airborne then
     love.graphics.setColor(1,0,0)
   end
   love.graphics.circle("fill", M.body:getX(), M.body:getY(), M.hardbox.shape:getRadius())
@@ -58,7 +65,6 @@ M.update = function()
   if M.contact > 0 then
     for _,contact in ipairs(M.body:getContacts()) do
       local x,y = contact:getNormal()
-      -- M.body:applyForce(x*2,y*2)
     for _,fixture in ipairs(M.body:getFixtures()) do
       -- print(fixture:getUserData())
       end

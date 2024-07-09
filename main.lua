@@ -18,6 +18,10 @@ obj.player = require("player")
 function love.draw() -- {{{
   obj.playfield.draw()
   obj.player.draw()
+
+  -- various debug info
+  love.graphics.print("airborne: "..tostring(obj.player.airborne), 0, 0)
+  love.graphics.print("shouldLatch: "..tostring(obj.player.shouldLatch), 0, 20)
 end  -- }}}
 
 -- step
@@ -42,13 +46,23 @@ function love.update(dt) -- {{{
   obj.player.update()
   world:update(dt)
 
-  if love.keyboard.isDown('a') then
+  -- update latching state
+  if love.keyboard.isDown("space") then
+    obj.player.shouldLatch = true
+  else
+    obj.player.shouldLatch = false
+  end
+
+  -- air keeb controls
+  if love.keyboard.isDown('a') and obj.player.shouldLatch == false then
     obj.player.body:applyForce(-50, 0)
   end
 
-  if love.keyboard.isDown('d') then
+  if love.keyboard.isDown('d') and obj.player.shouldLatch == false then
     obj.player.body:applyForce(50, 0)
   end
+
+
 end -- }}}
 
 -- init
@@ -73,12 +87,26 @@ love.resize = function (width,height)
 end
 
 function beginContact(a, b, coll)
-  x, y = coll:getNormal()
+  local x, y = coll:getNormal()
   print(a:getUserData().." colliding with "..b:getUserData()..", vector normal: "..x..", "..y)
+
+  local obja = a:getUserData()
+  local objb = b:getUserData()
+
+  if ((obja == "reach" and objb == "border") or (obja == "border" and objb == "reach")) then
+    obj.player.airborne = false
+  end
 end
 
 function endContact(a, b, coll)
   print(a:getUserData().." and "..b:getUserData().." no longer colliding")
+
+  local obja = a:getUserData()
+  local objb = b:getUserData()
+
+  if ((obja == "reach" and objb == "border") or (obja == "border" and objb == "reach")) then
+    obj.player.airborne = true
+  end
 end
 
 function preSolve(a, b, coll)
