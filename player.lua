@@ -17,13 +17,17 @@ M.setup = function (world) -- {{{
   -- a lil bounce
   M.hardbox.fixture:setRestitution(0.2)
 
-  -- variable tracking whether or not spood is currently walking
+  -- variable tracking whether or not spood is currently walking or in air
   -- wasd input handling varies based on whether you're walking on surface or airborne
   M.airborne = true
 
   -- variable tracking whether spood should latch to walls or not
   -- controlled by player via keyboard
+  -- when latched, spooder can skitter along surface much faster than air control allows
   M.shouldLatch = false
+
+  -- standing distance is how far spooder should hold itself from the nearest wall when latched
+  M.standingDistance = 20 * 1.5
 
   M.reach.shape = love.physics.newCircleShape(20 * 4)
   M.reach.fixture = love.physics.newFixture(M.body, M.reach.shape, 0)
@@ -60,6 +64,43 @@ M.recoil = function (x, y) -- {{{
     -- convert the angle back into points at a fixed distance from the boll, and push
     M.body:applyLinearImpulse(-math.sin(angle)*700, -math.cos(angle)*700)
 end -- }}}
+
+M.latchToTerrain = function (cx1, cy1, cx2, cy2, contactObj)
+  -- cancel all velocity on latch, disable gravity too
+  M.body:setLinearVelocity(0, 0)
+  M.body:setGravityScale(0)
+
+  -- set position to standingDistance from collided-with object
+  -- do this by calculating distance from object using contact points between player and terrain
+  local interceptionMidpointX, interceptionMidpointY
+  if cx2 and cy2 then
+    -- if circle intersecting line at two points and not just one
+    interceptionMidpointX = (math.abs(cx2) - math.abs(cx1)) / 2
+    interceptionMidpointY = (math.abs(cy2) - math.abs(cy1)) / 2
+  else
+    interceptionMidpointX = cx1
+    interceptionMidpointY = cy1
+  end
+
+
+  print(tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
+  print(tostring(interceptionMidpointX)..", "..tostring(interceptionMidpointY).." -- "..tostring(contactObj))
+
+  local spoodCenterPosX, spoodCenterPosY = M.body:getWorldCenter()
+  if interceptionMidpointX > spoodCenterPosX then
+    M.body:setPosition(interceptionMidpointX - M.standingDistance, spoodCenterPosY)
+  end
+  if interceptionMidpointX < spoodCenterPosX then
+    M.body:setPosition(interceptionMidpointX + M.standingDistance, spoodCenterPosY)
+  end
+
+  if interceptionMidpointY > spoodCenterPosY then
+    M.body:setPosition(spoodCenterPosX, interceptionMidpointY - M.standingDistance)
+  end
+  if interceptionMidpointY < spoodCenterPosY then
+    M.body:setPosition(spoodCenterPosX, interceptionMidpointY + M.standingDistance)
+  end
+end
 
 M.update = function()
   if M.contact > 0 then

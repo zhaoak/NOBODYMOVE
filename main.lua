@@ -31,10 +31,6 @@ function love.update(dt) -- {{{
     obj.player.setup(world)
   end
 
-  if love.mouse.isDown(3) then
-    obj.mous = love.physics.newMouseJoint(obj.player.hardbox.body, love.mouse:getX(), love.mouse:getY())
-  end
-
   -- recoil the player away from the mouse
   if love.mouse.isDown(1) and cooldown <= 0 then
     cooldown = 0.4
@@ -42,9 +38,10 @@ function love.update(dt) -- {{{
   end
   cooldown = cooldown - dt -- decrement the cooldown
 
-  if obj.player.mous then obj.player.mous:setTarget(love.mouse.getPosition()) end
   obj.player.update()
   world:update(dt)
+
+  -- if stan
 
   -- update latching state
   if love.keyboard.isDown("space") then
@@ -88,6 +85,7 @@ end
 
 function beginContact(a, b, coll)
   local x, y = coll:getNormal()
+  local cx1, cy1, cx2, cy2 = coll:getPositions()
   print(a:getUserData().." colliding with "..b:getUserData()..", vector normal: "..x..", "..y)
 
   local obja = a:getUserData()
@@ -95,6 +93,12 @@ function beginContact(a, b, coll)
 
   if ((obja == "reach" and objb == "border") or (obja == "border" and objb == "reach")) then
     obj.player.airborne = false
+  end
+
+  -- if player is holding shouldLatch key when they collide with a border, latch to it
+  if obj.player.shouldLatch == true and obja == "border" and objb == "reach" then
+    print(tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
+    obj.player.latchToTerrain(cx1, cy1, cx2, cy2, coll)
   end
 end
 
