@@ -1,8 +1,5 @@
-local M = {reach={}, hardbox={}}
+local M = {reach={}, hardbox={}, latchbox={}}
 
--- hardbox is the physical collision box of the spooder
--- the reach is the max legs reach
--- in between is the target distance from the ground
 M.color = {0.5,1,1,1}
 
 M.setup = function (world) -- {{{
@@ -10,29 +7,45 @@ M.setup = function (world) -- {{{
   if M.body then M.body:destroy() end
 
   M.body = love.physics.newBody(world, 100,100, "dynamic")
+  -- hardbox is the physical collision box of the spooder
   M.hardbox.shape = love.physics.newCircleShape(20)
   M.hardbox.fixture = love.physics.newFixture(M.body, M.hardbox.shape)
   M.hardbox.fixture:setUserData("hardbox")
-
-  -- a lil bounce
+  -- a lil bounce, as a treat
   M.hardbox.fixture:setRestitution(0.2)
+
+  -- latchbox is the collision circle of hold on lemme work something out
+  M.latchbox.shape = love.physics.newCircleShape(25)
+  M.latchbox.fixture = love.physics.newFixture(M.body, M.latchbox.shape)
+  M.latchbox.fixture:setUserData("latchbox")
+  M.latchbox.fixture:setRestitution(0)
+
+  -- latchbox should start as a sensor
+  M.latchbox.fixture:setSensor(true)
+
+  M.reach.shape = love.physics.newCircleShape(20 * 4)
+  M.reach.fixture = love.physics.newFixture(M.body, M.reach.shape, 0)
+  M.reach.fixture:setUserData("reach")
+  M.reach.fixture:setRestitution(0)
 
   -- variable tracking whether or not spood is currently walking or in air
   -- wasd input handling varies based on whether you're walking on surface or airborne
   M.airborne = true
+
+  -- var tracking whether spood is currently walking on surface or not
+  M.latched = false
 
   -- variable tracking whether spood should latch to walls or not
   -- controlled by player via keyboard
   -- when latched, spooder can skitter along surface much faster than air control allows
   M.shouldLatch = false
 
+  -- tracks how many terrain objects spood is currently within range of
+  M.bodiesInRange = 0
+
   -- standing distance is how far spooder should hold itself from the nearest wall when latched
   M.standingDistance = 20 * 1.5
 
-  M.reach.shape = love.physics.newCircleShape(20 * 4)
-  M.reach.fixture = love.physics.newFixture(M.body, M.reach.shape, 0)
-  M.reach.fixture:setUserData("reach")
-  M.reach.fixture:setRestitution(0)
 
   -- the reach shape is just to detect when the spood can reach the wall
   M.reach.fixture:setSensor(true)
@@ -50,6 +63,7 @@ M.draw = function () -- {{{
 
   if arg[2] == 'debug' then
     love.graphics.circle("line", M.body:getX(), M.body:getY(), M.reach.shape:getRadius())
+    love.graphics.circle("line", M.body:getX(), M.body:getY(), M.latchbox.shape:getRadius())
   end
 end -- }}}
 
@@ -66,9 +80,11 @@ M.recoil = function (x, y) -- {{{
 end -- }}}
 
 M.latchToTerrain = function (cx1, cy1, cx2, cy2, contactObj)
+  print("LATCH")
   -- cancel all velocity on latch, disable gravity too
   M.body:setLinearVelocity(0, 0)
   M.body:setGravityScale(0)
+  M.latched = true
 
   -- set position to standingDistance from collided-with object
   -- do this by calculating distance from object using contact points between player and terrain

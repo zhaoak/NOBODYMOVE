@@ -7,6 +7,7 @@ local obj = {} -- all physics objects
 local phys = {} -- physics handlers
 local world -- the physics world
 local cooldown = 0 -- player shoot cooldown (very tmp)
+local nextFrameActions = {}
 
 -- import physics objects
 obj.playfield = require("playfield")
@@ -22,10 +23,22 @@ function love.draw() -- {{{
   -- various debug info
   love.graphics.print("airborne: "..tostring(obj.player.airborne), 0, 0)
   love.graphics.print("shouldLatch: "..tostring(obj.player.shouldLatch), 0, 20)
+  love.graphics.print("spood touching how many bodies??: "..tostring(obj.player.bodiesInRange), 0, 40)
 end  -- }}}
 
 -- step
 function love.update(dt) -- {{{
+  -- iterate thru spood collisions; if one is between 
+  local playerBodyContacts = obj.player.body:getContacts()
+  local cx1, cy1, cx2, cy2;
+  for k, v in ipairs(playerBodyContacts) do
+    local fixt1, fixt2 = v:getFixtures()
+    cx1, cy1, cx2, cy2 = v:getPositions()
+    print("reach is sensor? "..tostring(obj.player.reach.fixture:isSensor()))
+    print("playercollision! fixtures: "..fixt1:getUserData()..", "..fixt2:getUserData())
+    print("contact points: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
+  end
+
   -- reset spood
   if love.mouse.isDown(2) then
     obj.player.setup(world)
@@ -38,17 +51,16 @@ function love.update(dt) -- {{{
   end
   cooldown = cooldown - dt -- decrement the cooldown
 
-  obj.player.update()
-  world:update(dt)
-
-  -- if stan
-
-  -- update latching state
   if love.keyboard.isDown("space") then
     obj.player.shouldLatch = true
   else
-    obj.player.shouldLatch = false
+    obj.player.shouldLatch = false 
+    -- if within range of wall and not already latched, latch to it
+    if not obj.player.latched and obj.player.bodiesInRange > 0 then
+      -- obj.player.latchToTerrain(cx1, cy1, nil, nil, nil)
+    end
   end
+
 
   -- air keeb controls
   if love.keyboard.isDown('a') and obj.player.shouldLatch == false then
@@ -59,7 +71,9 @@ function love.update(dt) -- {{{
     obj.player.body:applyForce(50, 0)
   end
 
+  obj.player.update()
 
+  world:update(dt)
 end -- }}}
 
 -- init
@@ -71,7 +85,7 @@ function love.load() -- {{{
   love.physics.setMeter(64)
 
   -- create the physics world
-  world = love.physics.newWorld(0,10*64, false)
+  world = love.physics.newWorld(0,5*64, false)
   world:setCallbacks( beginContact, endContact, preSolve, postSolve )
 
   obj.playfield.setup(world)
@@ -84,6 +98,7 @@ love.resize = function (width,height)
 end
 
 function beginContact(a, b, coll)
+  -- print(tprint(obj.player.body:getContacts()))
   local x, y = coll:getNormal()
   local cx1, cy1, cx2, cy2 = coll:getPositions()
   print(a:getUserData().." colliding with "..b:getUserData()..", vector normal: "..x..", "..y)
@@ -92,32 +107,57 @@ function beginContact(a, b, coll)
   local objb = b:getUserData()
 
   if ((obja == "reach" and objb == "border") or (obja == "border" and objb == "reach")) then
-    obj.player.airborne = false
+    obj.player.bodiesInRange = obj.player.bodiesInRange + 1
   end
 
-  -- if player is holding shouldLatch key when they collide with a border, latch to it
-  if obj.player.shouldLatch == true and obja == "border" and objb == "reach" then
-    print(tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
-    obj.player.latchToTerrain(cx1, cy1, cx2, cy2, coll)
-  end
+  -- print(tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
 end
 
 function endContact(a, b, coll)
-  print(a:getUserData().." and "..b:getUserData().." no longer colliding")
+  -- print(a:getUserData().." and "..b:getUserData().." no longer colliding")
 
   local obja = a:getUserData()
   local objb = b:getUserData()
 
   if ((obja == "reach" and objb == "border") or (obja == "border" and objb == "reach")) then
     obj.player.airborne = true
+    obj.player.bodiesInRange = obj.player.bodiesInRange - 1
   end
 end
 
 function preSolve(a, b, coll)
-
+  local cx1, cy1, cx2, cy2 = coll:getPositions()
+  -- print("presolve: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
 end
 
 function postSolve(a, b, coll, normalimpulse, tangentimpulse)
-
+  -- local cx1, cy1, cx2, cy2 = coll:getPositions()
+  -- print("postsolve: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
 end
+
+function tprint (tbl, indent)
+  if not indent then indent = 0 end
+  local toprint = string.rep(" ", indent) .. "{\r\n"
+  indent = indent + 2 
+  for k, v in pairs(tbl) do
+    toprint = toprint .. string.rep(" ", indent)
+    if (type(k) == "number") then
+      toprint = toprint .. "[" .. k .. "] = "
+    elseif (type(k) == "string") then
+      toprint = toprint  .. k ..  "= "   
+    end
+    if (type(v) == "number") then
+      toprint = toprint .. v .. ",\r\n"
+    elseif (type(v) == "string") then
+      toprint = toprint .. "\"" .. v .. "\",\r\n"
+    elseif (type(v) == "table") then
+      toprint = toprint .. tprint(v, indent + 2) .. ",\r\n"
+    else
+      toprint = toprint .. "\"" .. tostring(v) .. "\",\r\n"
+    end
+  end
+  toprint = toprint .. string.rep(" ", indent-2) .. "}"
+  return toprint
+end
+
 -- vim: foldmethod=marker
