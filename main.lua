@@ -21,9 +21,14 @@ function love.draw() -- {{{
   obj.player.draw()
 
   -- various debug info
-  love.graphics.print("airborne: "..tostring(obj.player.airborne), 0, 0)
+  -- love.graphics.print("airborne: "..tostring(obj.player.airborne), 0, 0)
   love.graphics.print("shouldLatch: "..tostring(obj.player.shouldLatch), 0, 20)
   love.graphics.print("spood touching how many bodies??: "..tostring(obj.player.bodiesInRange), 0, 40)
+  local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.playfield.left.fixture)
+  love.graphics.print("distance between range and leftwall and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
+  love.graphics.setColor(236, 145, 58)
+  love.graphics.circle("fill", x1, y1, 4)
+  love.graphics.circle("fill", x2, y2, 4)
 end  -- }}}
 
 -- step
@@ -101,7 +106,7 @@ function beginContact(a, b, coll)
   -- print(tprint(obj.player.body:getContacts()))
   local x, y = coll:getNormal()
   local cx1, cy1, cx2, cy2 = coll:getPositions()
-  print(a:getUserData().." colliding with "..b:getUserData()..", vector normal: "..x..", "..y)
+  -- print(a:getUserData().." colliding with "..b:getUserData()..", vector normal: "..x..", "..y)
 
   local obja = a:getUserData()
   local objb = b:getUserData()
@@ -128,6 +133,7 @@ end
 function preSolve(a, b, coll)
   local cx1, cy1, cx2, cy2 = coll:getPositions()
   -- print("presolve: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
+  -- print(a:getUserData().." colliding with "..b:getUserData())
 end
 
 function postSolve(a, b, coll, normalimpulse, tangentimpulse)
