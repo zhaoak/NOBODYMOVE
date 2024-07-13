@@ -26,9 +26,9 @@ function love.draw() -- {{{
   -- love.graphics.print("airborne: "..tostring(obj.player.airborne), 0, 0)
   love.graphics.print("shouldLatch: "..tostring(obj.player.shouldLatch), 0, 20)
   love.graphics.print("spood touching how many bodies??: "..tostring(obj.player.bodiesInRange), 0, 40)
-  local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.playfield.left.fixture)
-  love.graphics.print("distance between range and leftwall and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
-  love.graphics.setColor(236, 145, 58)
+  local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.platform.fixture)
+  love.graphics.print("distance between range and platform and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
+  love.graphics.setColor(.95, .65, .25)
   love.graphics.circle("fill", x1, y1, 4)
   love.graphics.circle("fill", x2, y2, 4)
 end  -- }}}
