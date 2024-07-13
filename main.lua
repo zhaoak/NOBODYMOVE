@@ -12,6 +12,7 @@ local nextFrameActions = {}
 -- import physics objects
 obj.playfield = require("playfield")
 obj.player = require("player")
+obj.platform = require("platform")
 
 
 -- functions
@@ -19,6 +20,7 @@ obj.player = require("player")
 function love.draw() -- {{{
   obj.playfield.draw()
   obj.player.draw()
+  obj.platform.draw()
 
   -- various debug info
   -- love.graphics.print("airborne: "..tostring(obj.player.airborne), 0, 0)
@@ -95,6 +97,7 @@ function love.load() -- {{{
 
   obj.playfield.setup(world)
   obj.player.setup(world)
+  obj.platform.setup(world)
 end -- }}}
 
 -- catch resize
