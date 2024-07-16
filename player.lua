@@ -23,7 +23,7 @@ M.setup = function (world) -- {{{
   -- latchbox should start as a sensor
   M.latchbox.fixture:setSensor(true)
 
-  M.reach.shape = love.physics.newCircleShape(20 * 4)
+  M.reach.shape = love.physics.newCircleShape(20 * 3)
   M.reach.fixture = love.physics.newFixture(M.body, M.reach.shape, 0)
   M.reach.fixture:setUserData("reach")
   M.reach.fixture:setRestitution(0)
@@ -44,7 +44,6 @@ M.setup = function (world) -- {{{
   M.bodiesInRange = 0
 
   -- standing distance is how far spooder should hold itself from the nearest wall when latched
-  M.standingDistance = 20 * 1.5
 
 
   -- the reach shape is just to detect when the spood can reach the wall
