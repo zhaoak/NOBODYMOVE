@@ -83,8 +83,8 @@ function love.update(dt) -- {{{
       debugRayImpactY = rayImpactLocY
       debugRayNormalX = normalVectX
       debugRayNormalY = normalVectY
-      
-      obj.player.latchToTerrain(x1, y1)
+
+      obj.player.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY)
     end
   else
     obj.player.shouldLatch = false

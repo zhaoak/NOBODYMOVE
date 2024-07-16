@@ -2,7 +2,7 @@ local M = {reach={}, hardbox={}, latchbox={}}
 
 M.color = {0.5,1,1,1}
 M.hardboxRadius = 20
-M.latchboxRadius = M.hardboxRadius + 5
+M.latchboxRadius = M.hardboxRadius * 1.5
 M.reachRadius = M.hardboxRadius * 3
 
 M.setup = function (world) -- {{{
@@ -17,15 +17,15 @@ M.setup = function (world) -- {{{
   -- a lil bounce, as a treat
   M.hardbox.fixture:setRestitution(0.2)
 
-  -- latchbox is the collision circle of hold on lemme work something out
+  -- latchbox is not actually used so you can ignore this
+  -- (it is currently used in drawcalls tho so don't comment it out yet)
   M.latchbox.shape = love.physics.newCircleShape(M.latchboxRadius)
   M.latchbox.fixture = love.physics.newFixture(M.body, M.latchbox.shape)
   M.latchbox.fixture:setUserData("latchbox")
   M.latchbox.fixture:setRestitution(0)
-
-  -- latchbox should start as a sensor
   M.latchbox.fixture:setSensor(true)
 
+  -- reach is how far away the spood will latch to terrain from
   M.reach.shape = love.physics.newCircleShape(M.reachRadius)
   M.reach.fixture = love.physics.newFixture(M.body, M.reach.shape, 0)
   M.reach.fixture:setUserData("reach")
@@ -82,22 +82,21 @@ M.recoil = function (x, y) -- {{{
 end -- }}}
 
 -- latch to terrain at the given coordinates; given coords must have latchable object at them
-M.latchToTerrain = function (x, y)
+M.latchToTerrain = function (contactLocationX, contactLocationY, terrainSurfaceNormalX, terrainSurfaceNormalY)
   print("LATCH")
   -- cancel all velocity on latch, disable gravity too
   M.body:setLinearVelocity(0, 0)
   M.body:setGravityScale(0)
-  M.latchbox.fixture:setSensor(false)
   M.latched = true
 
-  -- set position to standingDistance from collided-with object
+  -- set position to latchboxRadius from collided-with object
+  M.body:setPosition(contactLocationX + terrainSurfaceNormalX * M.latchboxRadius, contactLocationY + terrainSurfaceNormalY * M.latchboxRadius)
 end
 
 -- unlatch from terrain (making normal physics apply to spood again)
 M.unlatchFromTerrain = function ()
   print("UNLATCH")
   M.body:setGravityScale(1)
-  M.latchbox.fixture:setSensor(true)
   M.latched = false
 end
 
