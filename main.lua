@@ -47,18 +47,18 @@ end  -- }}}
 
 -- step
 function love.update(dt) -- {{{
-  -- iterate thru spood collisions; if one is between 
+  -- iterate thru spood collisions, report their contact points
+  -- debug stuff basically
   local playerBodyContacts = obj.player.body:getContacts()
   local cx1, cy1, cx2, cy2;
   for k, v in ipairs(playerBodyContacts) do
     local fixt1, fixt2 = v:getFixtures()
     cx1, cy1, cx2, cy2 = v:getPositions()
-    -- print("reach is sensor? "..tostring(obj.player.reach.fixture:isSensor()))
     -- print("playercollision! fixtures: "..fixt1:getUserData()..", "..fixt2:getUserData())
     -- print("contact points: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
   end
 
-  -- reset spood
+  -- reset spood on rightclick
   if love.mouse.isDown(2) then
     obj.player.setup(world)
   end
