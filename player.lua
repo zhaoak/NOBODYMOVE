@@ -1,6 +1,9 @@
 local M = {reach={}, hardbox={}, latchbox={}}
 
 M.color = {0.5,1,1,1}
+M.hardboxRadius = 20
+M.latchboxRadius = M.hardboxRadius + 5
+M.reachRadius = M.hardboxRadius * 3
 
 M.setup = function (world) -- {{{
   M.contact = 0
@@ -8,14 +11,14 @@ M.setup = function (world) -- {{{
 
   M.body = love.physics.newBody(world, 100,100, "dynamic")
   -- hardbox is the physical collision box of the spooder
-  M.hardbox.shape = love.physics.newCircleShape(20)
+  M.hardbox.shape = love.physics.newCircleShape(M.hardboxRadius)
   M.hardbox.fixture = love.physics.newFixture(M.body, M.hardbox.shape)
   M.hardbox.fixture:setUserData("hardbox")
   -- a lil bounce, as a treat
   M.hardbox.fixture:setRestitution(0.2)
 
   -- latchbox is the collision circle of hold on lemme work something out
-  M.latchbox.shape = love.physics.newCircleShape(25)
+  M.latchbox.shape = love.physics.newCircleShape(M.latchboxRadius)
   M.latchbox.fixture = love.physics.newFixture(M.body, M.latchbox.shape)
   M.latchbox.fixture:setUserData("latchbox")
   M.latchbox.fixture:setRestitution(0)
@@ -23,7 +26,7 @@ M.setup = function (world) -- {{{
   -- latchbox should start as a sensor
   M.latchbox.fixture:setSensor(true)
 
-  M.reach.shape = love.physics.newCircleShape(20 * 3)
+  M.reach.shape = love.physics.newCircleShape(M.reachRadius)
   M.reach.fixture = love.physics.newFixture(M.body, M.reach.shape, 0)
   M.reach.fixture:setUserData("reach")
   M.reach.fixture:setRestitution(0)
@@ -78,43 +81,24 @@ M.recoil = function (x, y) -- {{{
     M.body:applyLinearImpulse(-math.sin(angle)*700, -math.cos(angle)*700)
 end -- }}}
 
-M.latchToTerrain = function (cx1, cy1, cx2, cy2, contactObj)
+-- latch to terrain at the given coordinates; given coords must have latchable object at them
+M.latchToTerrain = function (x, y)
   print("LATCH")
   -- cancel all velocity on latch, disable gravity too
   M.body:setLinearVelocity(0, 0)
   M.body:setGravityScale(0)
+  M.latchbox.fixture:setSensor(false)
   M.latched = true
 
   -- set position to standingDistance from collided-with object
-  -- do this by calculating distance from object using contact points between player and terrain
-  local interceptionMidpointX, interceptionMidpointY
-  if cx2 and cy2 then
-    -- if circle intersecting line at two points and not just one
-    interceptionMidpointX = (math.abs(cx2) - math.abs(cx1)) / 2
-    interceptionMidpointY = (math.abs(cy2) - math.abs(cy1)) / 2
-  else
-    interceptionMidpointX = cx1
-    interceptionMidpointY = cy1
-  end
+end
 
-
-  print(tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
-  print(tostring(interceptionMidpointX)..", "..tostring(interceptionMidpointY).." -- "..tostring(contactObj))
-
-  local spoodCenterPosX, spoodCenterPosY = M.body:getWorldCenter()
-  if interceptionMidpointX > spoodCenterPosX then
-    M.body:setPosition(interceptionMidpointX - M.standingDistance, spoodCenterPosY)
-  end
-  if interceptionMidpointX < spoodCenterPosX then
-    M.body:setPosition(interceptionMidpointX + M.standingDistance, spoodCenterPosY)
-  end
-
-  if interceptionMidpointY > spoodCenterPosY then
-    M.body:setPosition(spoodCenterPosX, interceptionMidpointY - M.standingDistance)
-  end
-  if interceptionMidpointY < spoodCenterPosY then
-    M.body:setPosition(spoodCenterPosX, interceptionMidpointY + M.standingDistance)
-  end
+-- unlatch from terrain (making normal physics apply to spood again)
+M.unlatchFromTerrain = function ()
+  print("UNLATCH")
+  M.body:setGravityScale(1)
+  M.latchbox.fixture:setSensor(true)
+  M.latched = false
 end
 
 M.update = function()

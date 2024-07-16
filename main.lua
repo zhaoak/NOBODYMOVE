@@ -7,7 +7,9 @@ local obj = {} -- all physics objects
 local phys = {} -- physics handlers
 local world -- the physics world
 local cooldown = 0 -- player shoot cooldown (very tmp)
-local nextFrameActions = {}
+local nextFrameActions = {} -- uhhh ignore for now pls
+local debugRayImpactX, debugRayImpactY -- don't mind my devcode pls
+local debugRayNormalX, debugRayNormalY -- yep
 
 -- import physics objects
 obj.playfield = require("playfield")
@@ -31,6 +33,16 @@ function love.draw() -- {{{
   love.graphics.setColor(.95, .65, .25)
   love.graphics.circle("fill", x1, y1, 4)
   love.graphics.circle("fill", x2, y2, 4)
+  love.graphics.setColor(0, .5, 0)
+  if debugRayImpactX ~= nil and debugRayImpactY ~= nil then
+    love.graphics.circle("fill", debugRayImpactX, debugRayImpactY, 4)
+  end
+
+  if debugRayNormalX ~= nil and debugRayImpactY ~= nil then
+    -- We also get the surface normal of the edge the ray hit. Here drawn in green
+    love.graphics.setColor(0, 255, 0)
+    love.graphics.line(debugRayImpactX, debugRayImpactY, debugRayImpactX + debugRayNormalX * 25, debugRayImpactY + debugRayNormalY * 25)
+  end
 end  -- }}}
 
 -- step
@@ -41,9 +53,9 @@ function love.update(dt) -- {{{
   for k, v in ipairs(playerBodyContacts) do
     local fixt1, fixt2 = v:getFixtures()
     cx1, cy1, cx2, cy2 = v:getPositions()
-    print("reach is sensor? "..tostring(obj.player.reach.fixture:isSensor()))
-    print("playercollision! fixtures: "..fixt1:getUserData()..", "..fixt2:getUserData())
-    print("contact points: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
+    -- print("reach is sensor? "..tostring(obj.player.reach.fixture:isSensor()))
+    -- print("playercollision! fixtures: "..fixt1:getUserData()..", "..fixt2:getUserData())
+    -- print("contact points: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
   end
 
   -- reset spood
@@ -60,11 +72,24 @@ function love.update(dt) -- {{{
 
   if love.keyboard.isDown("space") then
     obj.player.shouldLatch = true
-  else
-    obj.player.shouldLatch = false 
     -- if within range of wall and not already latched, latch to it
-    if not obj.player.latched and obj.player.bodiesInRange > 0 then
-      -- obj.player.latchToTerrain(cx1, cy1, nil, nil, nil)
+    local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.platform.fixture)
+    if not obj.player.latched and distance == 0 then
+      -- raytrace from spood center position through getDistance contact point, find the point where spood is touching terrain
+      local spoodWorldCenterX, spoodWorldCenterY = obj.player.body:getWorldCenter()
+      local normalVectX, normalVectY, fraction = obj.platform.fixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, x1, y1, 5)
+      local rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (y1 - spoodWorldCenterY) * fraction
+      debugRayImpactX = rayImpactLocX
+      debugRayImpactY = rayImpactLocY
+      debugRayNormalX = normalVectX
+      debugRayNormalY = normalVectY
+      
+      obj.player.latchToTerrain(x1, y1)
+    end
+  else
+    obj.player.shouldLatch = false
+    if obj.player.latched == true then
+      obj.player.unlatchFromTerrain()
     end
   end
 
