@@ -79,8 +79,9 @@ end -- }}}
 -- latch to terrain at the given coordinates; given coords must have latchable object at them
 M.latchToTerrain = function (contactLocationX, contactLocationY, terrainSurfaceNormalX, terrainSurfaceNormalY)
   print("LATCH")
-  -- cancel all velocity on latch, disable gravity too
+  -- cancel all linear+angular velocity on latch, disable gravity too
   M.body:setLinearVelocity(0, 0)
+  M.body:setAngularVelocity(0)
   M.body:setGravityScale(0)
   M.latched = true
 
@@ -88,17 +89,11 @@ M.latchToTerrain = function (contactLocationX, contactLocationY, terrainSurfaceN
   M.body:setPosition(contactLocationX + terrainSurfaceNormalX * M.latchboxRadius, contactLocationY + terrainSurfaceNormalY * M.latchboxRadius)
 end
 
--- unlatch from terrain (making normal physics apply to spood again)
+-- unlatch from terrain (making gravity apply to spood again)
 M.unlatchFromTerrain = function ()
   print("UNLATCH")
   M.body:setGravityScale(1)
   M.latched = false
-end
-
--- Move spooder along a arbitrarily-rotated line, up to a maximum velocity. Used for walking on a surface while latched.
--- 
-M.walkAlongLine = function (lineX1, lineY1, lineX2, lineY2)
-
 end
 -- }}}
 

@@ -1,6 +1,7 @@
 local M = { }
 
 M.color = {1,1,1,1}
+
 local function addLine(x1,y1, x2,y2) -- {{{
   local line = {}
   line.shape = love.physics.newEdgeShape(x1,y1, x2,y2)
@@ -13,9 +14,8 @@ M.setup = function (world) -- {{{
   -- create the lines with the current window size
   M.resize(love.graphics.getDimensions())
 
-  -- create platform
+  -- create tilted platform
   local windowSizeX, windowSizeY = love.graphics.getDimensions()
-  -- M.body = love.physics.newBody(M.world, windowSizeX/3, windowSizeY/2, "static")
   M.tiltedPlatform = {}
   M.tiltedPlatform.shape = love.physics.newRectangleShape(windowSizeX/3, windowSizeY/2, windowSizeX/3, windowSizeY/5, 50)
   M.tiltedPlatform.fixture = love.physics.newFixture(M.body, M.tiltedPlatform.shape)
@@ -46,6 +46,8 @@ M.draw = function() -- {{{
   drawRotatedRectange("fill", topLeftWorldPointX, topLeftWorldPointY, windowSizeX/3, windowSizeY/5, 50)
 end -- }}}
 
+-- playfield utility functions {{{
+
 M.resize = function(width, height) -- {{{
   if M.body then M.body:destroy() end
   M.body = love.physics.newBody(M.world, 0,0, "static")
@@ -60,5 +62,6 @@ M.resize = function(width, height) -- {{{
   M.right.fixture:setUserData({["name"] = "rightborder"})
 end -- }}}
 
+-- }}}
 return M
 -- vim: foldmethod=marker
