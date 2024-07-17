@@ -8,6 +8,7 @@ local phys = {} -- physics handlers
 local world -- the physics world
 local cooldown = 0 -- player shoot cooldown (very tmp)
 local nextFrameActions = {} -- uhhh ignore for now pls
+local TerrainInRange = {}
 local LastFramePositionX, LastFramePositionY
 local LastFrameVelocityX, LastFrameVelocityY, LastFrameVelocity
 local debugRayImpactX, debugRayImpactY -- don't mind my devcode pls
@@ -29,7 +30,6 @@ function love.draw() -- {{{
   -- various debug info
   -- love.graphics.print("airborne: "..tostring(obj.player.airborne), 0, 0)
   love.graphics.print("shouldLatch: "..tostring(obj.player.shouldLatch), 0, 20)
-  love.graphics.print("spood touching how many bodies??: "..tostring(obj.player.bodiesInRange), 0, 40)
   local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.platform.fixture)
   love.graphics.print("distance between range and platform and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
   love.graphics.setColor(.95, .65, .25)
@@ -195,17 +195,15 @@ love.resize = function (width,height)
   obj.playfield.resize(width,height)
 end
 
+-- physics collision callbacks {{{
 function beginContact(a, b, coll)
-  -- print(tprint(obj.player.body:getContacts()))
-  local x, y = coll:getNormal()
-  local cx1, cy1, cx2, cy2 = coll:getPositions()
   -- print(a:getUserData().." colliding with "..b:getUserData()..", vector normal: "..x..", "..y)
 
   local obja = a:getUserData()
   local objb = b:getUserData()
 
-  if ((obja == "reach" and objb == "border") or (obja == "border" and objb == "reach")) then
-    obj.player.bodiesInRange = obj.player.bodiesInRange + 1
+  if (obja == "reach" or objb == "reach") then
+    -- cache value
   end
 
   -- print(tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
@@ -217,14 +215,10 @@ function endContact(a, b, coll)
   local obja = a:getUserData()
   local objb = b:getUserData()
 
-  if ((obja == "reach" and objb == "border") or (obja == "border" and objb == "reach")) then
-    obj.player.airborne = true
-    obj.player.bodiesInRange = obj.player.bodiesInRange - 1
-  end
 end
 
 function preSolve(a, b, coll)
-  local cx1, cy1, cx2, cy2 = coll:getPositions()
+  -- local cx1, cy1, cx2, cy2 = coll:getPositions()
   -- print("presolve: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
   -- print(a:getUserData().." colliding with "..b:getUserData())
 end
@@ -233,7 +227,9 @@ function postSolve(a, b, coll, normalimpulse, tangentimpulse)
   -- local cx1, cy1, cx2, cy2 = coll:getPositions()
   -- print("postsolve: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
 end
+-- }}}
 
+-- misc utility garbage {{{
 function tprint (tbl, indent)
   if not indent then indent = 0 end
   local toprint = string.rep(" ", indent) .. "{\r\n"
@@ -258,5 +254,6 @@ function tprint (tbl, indent)
   toprint = toprint .. string.rep(" ", indent-2) .. "}"
   return toprint
 end
+-- }}}
 
 -- vim: foldmethod=marker

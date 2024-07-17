@@ -18,8 +18,8 @@ M.setup = function (world) -- {{{
   -- a lil bounce, as a treat
   M.hardbox.fixture:setRestitution(0.2)
 
-  -- latchbox is not actually used so you can ignore this
-  -- (it is currently used in drawcalls tho so don't comment it out yet)
+  -- latchbox is not actually used (but latchboxRadius is for latching)
+  -- (it is currently used in debug drawcalls tho so don't comment it out yet)
   M.latchbox.shape = love.physics.newCircleShape(M.latchboxRadius)
   M.latchbox.fixture = love.physics.newFixture(M.body, M.latchbox.shape)
   M.latchbox.fixture:setUserData("latchbox")
@@ -32,10 +32,6 @@ M.setup = function (world) -- {{{
   M.reach.fixture:setUserData("reach")
   M.reach.fixture:setRestitution(0)
 
-  -- variable tracking whether or not spood is currently walking or in air
-  -- wasd input handling varies based on whether you're walking on surface or airborne
-  M.airborne = true
-
   -- var tracking whether spood is currently walking on surface or not
   M.latched = false
 
@@ -44,24 +40,13 @@ M.setup = function (world) -- {{{
   -- when latched, spooder can skitter along surface much faster than air control allows
   M.shouldLatch = false
 
-  -- tracks how many terrain objects spood is currently within range of
-  M.bodiesInRange = 0
-
-  -- standing distance is how far spooder should hold itself from the nearest wall when latched
-
-
   -- the reach shape is just to detect when the spood can reach the wall
   M.reach.fixture:setSensor(true)
-  -- connect it to the hardbox
-  -- M.reach.weld = love.physics.newWeldJoint(M.body, M.reach.body, M.body:getX(), M.body:getY())
 
 end -- }}}
 
 M.draw = function () -- {{{
   love.graphics.setColor(M.color)
-  if not M.airborne then
-    love.graphics.setColor(1,0,0)
-  end
   love.graphics.circle("fill", M.body:getX(), M.body:getY(), M.hardbox.shape:getRadius())
 
   if arg[2] == 'debug' then
@@ -78,6 +63,7 @@ M.draw = function () -- {{{
   love.graphics.circle("fill", eyePos2X, eyePos2Y, 3)
 end -- }}}
 
+-- game event specific functions {{{
 M.recoil = function (x, y) -- {{{
     -- normalize the points of the ball and target together
     x = x - M.body:getX()
@@ -114,6 +100,7 @@ end
 M.walkAlongLine = function (lineX1, lineY1, lineX2, lineY2)
 
 end
+-- }}}
 
 M.update = function()
   if M.contact > 0 then
