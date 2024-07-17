@@ -153,6 +153,14 @@ function love.update(dt) -- {{{
     end
   end
 
+  -- if l/r keys are pressed simultaneously while latched, cancel movement
+  if obj.player.latched and love.keyboard.isDown('d') and love.keyboard.isDown('a') then
+    local newLinearVelocityX, newLinearVelocityY = obj.player.body:getLinearVelocity()
+    newLinearVelocityX = newLinearVelocityX * .7
+    newLinearVelocityY = newLinearVelocityY * .7
+    obj.player.body:setLinearVelocity(newLinearVelocityX, newLinearVelocityY)
+  end
+
   -- if walking on surface and no keys are pressed, decelerate
   if obj.player.latched and love.keyboard.isDown('d') == false and love.keyboard.isDown('a') == false then
     local newLinearVelocityX, newLinearVelocityY = obj.player.body:getLinearVelocity()
