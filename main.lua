@@ -8,6 +8,8 @@ local phys = {} -- physics handlers
 local world -- the physics world
 local cooldown = 0 -- player shoot cooldown (very tmp)
 local nextFrameActions = {} -- uhhh ignore for now pls
+local LastFramePositionX, LastFramePositionY
+local LastFrameVelocityX, LastFrameVelocityY, LastFrameVelocity
 local debugRayImpactX, debugRayImpactY -- don't mind my devcode pls
 local debugRayNormalX, debugRayNormalY -- yep
 
@@ -59,8 +61,15 @@ function love.update(dt) -- {{{
     -- print("contact points: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
   end
 
+  -- cache current frame spood velocity
   local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = obj.player.body:getLinearVelocity()
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
+
+  -- cache values used for latching to surfaces for this frame
+  -- currently hardcoded to only check platform, will be generalized to all latchable surfaces in range in future
+  local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.platform.fixture)
+  local spoodWorldCenterX, spoodWorldCenterY = obj.player.body:getWorldCenter()
+  local normalVectX, normalVectY, fraction = obj.platform.fixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, x1, y1, 5)
 
   -- reset spood on rightclick
   if love.mouse.isDown(2) then
@@ -80,8 +89,6 @@ function love.update(dt) -- {{{
     local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.platform.fixture)
     if not obj.player.latched and distance == 0 then
       -- raytrace from spood center position through getDistance contact point, find the point where spood is touching terrain
-      local spoodWorldCenterX, spoodWorldCenterY = obj.player.body:getWorldCenter()
-      local normalVectX, normalVectY, fraction = obj.platform.fixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, x1, y1, 5)
       local rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (y1 - spoodWorldCenterY) * fraction
       debugRayImpactX = rayImpactLocX
       debugRayImpactY = rayImpactLocY
@@ -105,16 +112,21 @@ function love.update(dt) -- {{{
       -- to tell what direction to move, use same raytrace technique as above,
       -- rotate the returned normal vector by 90 degrees, then use a multiple of that value to apply force in that direction
       if spoodCurrentLinearVelocity <= obj.player.maxWalkingSpeed then
-        local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.platform.fixture)
-        local spoodWorldCenterX, spoodWorldCenterY = obj.player.body:getWorldCenter()
-        local normalVectX, normalVectY, fraction = obj.platform.fixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, x1, y1, 5)
+        debugRayNormalX = normalVectX
+        debugRayNormalY = normalVectY
         local directionVectorX = normalVectY
         local directionVectorY = normalVectX * -1
-        obj.player.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
+        -- check if spooder has actually walked off of latched surface
+        -- edit: it DOESN"T WORK
+        if normalVectX == nil or normalVectY == nil then
+          obj.player.unlatchFromTerrain()
+        else
+          obj.player.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
+        end
       end
     else
       -- otherwise, use air controls
-      obj.player.body:applyForce(-50, 0)
+      obj.player.body:applyForce(-100, 0)
     end
   end
 
@@ -124,15 +136,20 @@ function love.update(dt) -- {{{
       -- to tell what direction to move, use same raytrace technique as above,
       -- rotate the returned normal vector by 90 degrees, then use a multiple of that value to apply force in that direction
       if spoodCurrentLinearVelocity <= obj.player.maxWalkingSpeed then
-        local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.platform.fixture)
-        local spoodWorldCenterX, spoodWorldCenterY = obj.player.body:getWorldCenter()
-        local normalVectX, normalVectY, fraction = obj.platform.fixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, x1, y1, 5)
+        debugRayNormalX = normalVectX
+        debugRayNormalY = normalVectY
         local directionVectorX = normalVectY * -1
         local directionVectorY = normalVectX
-        obj.player.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
+        -- check if spooder has walked off latched surface
+        if normalVectX == nil or normalVectY == nil then
+          obj.player.unlatchFromTerrain()
+        else
+          obj.player.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
+        end
       end
     else
-      obj.player.body:applyForce(50, 0)
+      -- otherwise, use air controls
+      obj.player.body:applyForce(100, 0)
     end
   end
 
@@ -143,6 +160,13 @@ function love.update(dt) -- {{{
     newLinearVelocityY = newLinearVelocityY * .7
     obj.player.body:setLinearVelocity(newLinearVelocityX, newLinearVelocityY)
   end
+
+  -- cache this frame's playervalues for comparison next frame
+  LastFramePositionX = spoodWorldCenterX
+  LastFramePositionY = spoodWorldCenterY
+  LastFrameVelocityX = spoodCurrentLinearVelocityX
+  LastFrameVelocityY = spoodCurrentLinearVelocityY
+  LastFrameVelocity = spoodCurrentLinearVelocity
 
   obj.player.update()
 

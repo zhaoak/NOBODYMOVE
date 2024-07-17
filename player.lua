@@ -68,6 +68,14 @@ M.draw = function () -- {{{
     love.graphics.circle("line", M.body:getX(), M.body:getY(), M.reach.shape:getRadius())
     love.graphics.circle("line", M.body:getX(), M.body:getY(), M.latchbox.shape:getRadius())
   end
+
+  love.graphics.setColor(0,0,0)
+  local eyePos1X, eyePos1Y = M.body:getLocalCenter()
+  eyePos1X, eyePos1Y = M.body:getWorldPoint(eyePos1X - 3, eyePos1Y - 5)
+  local eyePos2X, eyePos2Y = M.body:getLocalCenter()
+  eyePos2X, eyePos2Y = M.body:getWorldPoint(eyePos2X + 3, eyePos2Y - 5)
+  love.graphics.circle("fill", eyePos1X, eyePos1Y, 3)
+  love.graphics.circle("fill", eyePos2X, eyePos2Y, 3)
 end -- }}}
 
 M.recoil = function (x, y) -- {{{
@@ -99,6 +107,12 @@ M.unlatchFromTerrain = function ()
   print("UNLATCH")
   M.body:setGravityScale(1)
   M.latched = false
+end
+
+-- Move spooder along a arbitrarily-rotated line, up to a maximum velocity. Used for walking on a surface while latched.
+-- 
+M.walkAlongLine = function (lineX1, lineY1, lineX2, lineY2)
+
 end
 
 M.update = function()
