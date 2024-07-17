@@ -42,6 +42,7 @@ function love.draw() -- {{{
     -- We also get the surface normal of the edge the ray hit. Here drawn in green
     love.graphics.setColor(0, 255, 0)
     love.graphics.line(debugRayImpactX, debugRayImpactY, debugRayImpactX + debugRayNormalX * 25, debugRayImpactY + debugRayNormalY * 25)
+    print(tostring(debugRayNormalX).." / "..tostring(debugRayNormalY))
   end
 end  -- }}}
 
@@ -57,6 +58,9 @@ function love.update(dt) -- {{{
     -- print("playercollision! fixtures: "..fixt1:getUserData()..", "..fixt2:getUserData())
     -- print("contact points: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
   end
+
+  local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = obj.player.body:getLinearVelocity()
+  local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
 
   -- reset spood on rightclick
   if love.mouse.isDown(2) then
@@ -83,7 +87,7 @@ function love.update(dt) -- {{{
       debugRayImpactY = rayImpactLocY
       debugRayNormalX = normalVectX
       debugRayNormalY = normalVectY
-
+      -- then latch to it
       obj.player.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY)
     end
   else
@@ -94,13 +98,50 @@ function love.update(dt) -- {{{
   end
 
 
-  -- air keeb controls
-  if love.keyboard.isDown('a') and obj.player.shouldLatch == false then
-    obj.player.body:applyForce(-50, 0)
+  -- left/right controls
+  if love.keyboard.isDown('a') and love.keyboard.isDown('d') == false then
+    if obj.player.latched == true then
+      -- if latched, move along surface
+      -- to tell what direction to move, use same raytrace technique as above,
+      -- rotate the returned normal vector by 90 degrees, then use a multiple of that value to apply force in that direction
+      if spoodCurrentLinearVelocity <= obj.player.maxWalkingSpeed then
+        local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.platform.fixture)
+        local spoodWorldCenterX, spoodWorldCenterY = obj.player.body:getWorldCenter()
+        local normalVectX, normalVectY, fraction = obj.platform.fixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, x1, y1, 5)
+        local directionVectorX = normalVectY
+        local directionVectorY = normalVectX * -1
+        obj.player.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
+      end
+    else
+      -- otherwise, use air controls
+      obj.player.body:applyForce(-50, 0)
+    end
   end
 
-  if love.keyboard.isDown('d') and obj.player.shouldLatch == false then
-    obj.player.body:applyForce(50, 0)
+  if love.keyboard.isDown('d') and love.keyboard.isDown('a') == false then
+    if obj.player.latched == true then
+      -- if latched and below max walking speed, move along surface
+      -- to tell what direction to move, use same raytrace technique as above,
+      -- rotate the returned normal vector by 90 degrees, then use a multiple of that value to apply force in that direction
+      if spoodCurrentLinearVelocity <= obj.player.maxWalkingSpeed then
+        local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.platform.fixture)
+        local spoodWorldCenterX, spoodWorldCenterY = obj.player.body:getWorldCenter()
+        local normalVectX, normalVectY, fraction = obj.platform.fixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, x1, y1, 5)
+        local directionVectorX = normalVectY * -1
+        local directionVectorY = normalVectX
+        obj.player.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
+      end
+    else
+      obj.player.body:applyForce(50, 0)
+    end
+  end
+
+  -- if walking on surface and no keys are pressed, decelerate
+  if obj.player.latched and love.keyboard.isDown('d') == false and love.keyboard.isDown('a') == false then
+    local newLinearVelocityX, newLinearVelocityY = obj.player.body:getLinearVelocity()
+    newLinearVelocityX = newLinearVelocityX * .7
+    newLinearVelocityY = newLinearVelocityY * .7
+    obj.player.body:setLinearVelocity(newLinearVelocityX, newLinearVelocityY)
   end
 
   obj.player.update()

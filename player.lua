@@ -4,6 +4,7 @@ M.color = {0.5,1,1,1}
 M.hardboxRadius = 20
 M.latchboxRadius = M.hardboxRadius * 1.5
 M.reachRadius = M.hardboxRadius * 3
+M.maxWalkingSpeed = 300
 
 M.setup = function (world) -- {{{
   M.contact = 0
