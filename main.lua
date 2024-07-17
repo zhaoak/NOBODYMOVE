@@ -42,7 +42,7 @@ function love.draw() -- {{{
     -- We also get the surface normal of the edge the ray hit. Here drawn in green
     love.graphics.setColor(0, 255, 0)
     love.graphics.line(debugRayImpactX, debugRayImpactY, debugRayImpactX + debugRayNormalX * 25, debugRayImpactY + debugRayNormalY * 25)
-    print(tostring(debugRayNormalX).." / "..tostring(debugRayNormalY))
+    -- print(tostring(debugRayNormalX).." / "..tostring(debugRayNormalY))
   end
 end  -- }}}
 
@@ -93,7 +93,7 @@ function love.update(dt) -- {{{
       debugRayNormalX = normalVectX
       debugRayNormalY = normalVectY
       -- then latch to it
-      obj.player.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY)
+      obj.player.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction)
     end
   else
     obj.player.shouldLatch = false
@@ -165,6 +165,11 @@ function love.update(dt) -- {{{
     newLinearVelocityX = newLinearVelocityX * .7
     newLinearVelocityY = newLinearVelocityY * .7
     obj.player.body:setLinearVelocity(newLinearVelocityX, newLinearVelocityY)
+  end
+
+  -- if currently latched, check if still in valid position to be latched
+  if obj.player.latched then
+    obj.player.checkIfLatchStillValid(obj.playfield.tiltedPlatform.fixture)
   end
 
   -- cache this frame's playervalues for comparison next frame

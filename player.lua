@@ -6,6 +6,12 @@ M.latchboxRadius = M.hardboxRadius * 1.5
 M.reachRadius = M.hardboxRadius * 3
 M.maxWalkingSpeed = 300
 
+M.rayImpactOffsetXCache = 0
+M.rayImpactOffsetYCache = 0
+M.rayImpactFractionCache = 0
+M.latchedSurfaceNormalXCache = 0
+M.latchedSurfaceNormalYCache = 0
+
 M.setup = function (world) -- {{{
   M.contact = 0
   if M.body then M.body:destroy() end
@@ -77,8 +83,16 @@ M.recoil = function (x, y) -- {{{
 end -- }}}
 
 -- latch to terrain at the given coordinates; given coords must have latchable object at them
-M.latchToTerrain = function (contactLocationX, contactLocationY, terrainSurfaceNormalX, terrainSurfaceNormalY)
+M.latchToTerrain = function (contactLocationX, contactLocationY, terrainSurfaceNormalX, terrainSurfaceNormalY, rayImpactFraction)
   print("LATCH")
+  -- cache offset from ray impact location, as well as raycast fraction value and surface normal
+  local spoodWorldCenterX, spoodWorldCenterY = M.body:getWorldCenter()
+  M.rayImpactOffsetXCache = contactLocationX - spoodWorldCenterX
+  M.rayImpactOffsetYCache = contactLocationY - spoodWorldCenterY
+  M.rayImpactFractionCache = rayImpactFraction
+  M.latchedSurfaceNormalXCache = terrainSurfaceNormalX
+  M.latchedSurfaceNormalYCache = terrainSurfaceNormalY
+
   -- cancel all linear+angular velocity on latch, disable gravity too
   M.body:setLinearVelocity(0, 0)
   M.body:setAngularVelocity(0)
@@ -94,6 +108,23 @@ M.unlatchFromTerrain = function ()
   print("UNLATCH")
   M.body:setGravityScale(1)
   M.latched = false
+end
+
+-- Called every frame when latched to surface in order to check if player is
+-- still in valid position to walk on latched surface.
+-- If not, unlatches them.
+M.checkIfLatchStillValid = function (checkedFixture)
+  local spoodWorldCenterX, spoodWorldCenterY = M.body:getWorldCenter()
+  local checkedNormalVectX, checkedNormalVectY, fraction = checkedFixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, spoodWorldCenterX+M.rayImpactOffsetXCache, spoodWorldCenterY+M.rayImpactOffsetYCache, 5)
+  print(tostring(checkedNormalVectX).." / "..tostring(checkedNormalVectY).." vs: "..tostring(M.latchedSurfaceNormalXCache).." / "..tostring(M.latchedSurfaceNormalYCache))
+  print(tostring(fraction).." vs: "..tostring(M.rayImpactFractionCache))
+  if checkedNormalVectX == M.latchedSurfaceNormalXCache and
+     checkedNormalVectY == M.latchedSurfaceNormalYCache then
+     -- fraction == M.rayImpactFractionCache then
+    return
+  else
+    M:unlatchFromTerrain()
+  end
 end
 -- }}}
 
