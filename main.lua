@@ -17,7 +17,6 @@ local debugRayNormalX, debugRayNormalY -- yep
 -- import physics objects
 obj.playfield = require("playfield")
 obj.player = require("player")
-obj.platform = require("platform")
 
 
 -- functions
@@ -25,12 +24,11 @@ obj.platform = require("platform")
 function love.draw() -- {{{
   obj.playfield.draw()
   obj.player.draw()
-  obj.platform.draw()
 
   -- various debug info
-  -- love.graphics.print("airborne: "..tostring(obj.player.airborne), 0, 0)
+  love.graphics.setColor(1, 1, 1)
   love.graphics.print("shouldLatch: "..tostring(obj.player.shouldLatch), 0, 20)
-  local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.platform.fixture)
+  local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.playfield.tiltedPlatform.fixture)
   love.graphics.print("distance between range and platform and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
   love.graphics.setColor(.95, .65, .25)
   love.graphics.circle("fill", x1, y1, 4)
@@ -67,9 +65,9 @@ function love.update(dt) -- {{{
 
   -- cache values used for latching to surfaces for this frame
   -- currently hardcoded to only check platform, will be generalized to all latchable surfaces in range in future
-  local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.platform.fixture)
+  local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.playfield.tiltedPlatform.fixture)
   local spoodWorldCenterX, spoodWorldCenterY = obj.player.body:getWorldCenter()
-  local normalVectX, normalVectY, fraction = obj.platform.fixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, x1, y1, 5)
+  local normalVectX, normalVectY, fraction = obj.playfield.tiltedPlatform.fixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, x1, y1, 5)
 
   -- reset spood on rightclick
   if love.mouse.isDown(2) then
@@ -86,7 +84,7 @@ function love.update(dt) -- {{{
   if love.keyboard.isDown("space") then
     obj.player.shouldLatch = true
     -- if within range of wall and not already latched, latch to it
-    local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.platform.fixture)
+    local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.playfield.tiltedPlatform.fixture)
     if not obj.player.latched and distance == 0 then
       -- raytrace from spood center position through getDistance contact point, find the point where spood is touching terrain
       local rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (y1 - spoodWorldCenterY) * fraction
@@ -195,7 +193,6 @@ function love.load() -- {{{
 
   obj.playfield.setup(world)
   obj.player.setup(world)
-  obj.platform.setup(world)
 end -- }}}
 
 -- catch resize

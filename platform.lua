@@ -1,3 +1,4 @@
+-- this file's code integrated into playfield.lua -- this file is no longer used
 local M = { }
 
 M.color = {1,1,1,1}
@@ -6,13 +7,12 @@ M.setup = function (world) -- {{{
   M.world = world -- stash for laters
   if M.body then M.body:destroy() end
 
+  -- create platform
   local windowSizeX, windowSizeY = love.graphics.getDimensions()
   M.body = love.physics.newBody(M.world, windowSizeX/3, windowSizeY/2, "static")
   M.shape = love.physics.newRectangleShape(0, 0, windowSizeX/3, windowSizeY/5, 50)
   M.fixture = love.physics.newFixture(M.body, M.shape)
   M.fixture:setUserData("platform")
-
-  -- create platform
 end -- }}}
 
 M.draw = function() -- {{{
