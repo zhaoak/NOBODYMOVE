@@ -168,9 +168,9 @@ function love.update(dt) -- {{{
   end
 
   -- if currently latched, check if still in valid position to be latched
-  if obj.player.latched then
-    obj.player.checkIfLatchStillValid(obj.playfield.tiltedPlatform.fixture)
-  end
+  -- if obj.player.latched then
+  --   obj.player.checkIfLatchStillValid(obj.playfield.tiltedPlatform.fixture)
+  -- end
 
   -- cache this frame's playervalues for comparison next frame
   LastFramePositionX = spoodWorldCenterX
