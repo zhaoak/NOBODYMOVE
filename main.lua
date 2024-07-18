@@ -28,21 +28,23 @@ function love.draw() -- {{{
   -- various debug info
   love.graphics.setColor(1, 1, 1)
   love.graphics.print("shouldLatch: "..tostring(obj.player.shouldLatch), 0, 20)
-  local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.playfield.tiltedPlatform.fixture)
-  love.graphics.print("distance between range and platform and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
-  love.graphics.setColor(.95, .65, .25)
-  love.graphics.circle("fill", x1, y1, 4)
-  love.graphics.circle("fill", x2, y2, 4)
-  love.graphics.setColor(0, .5, 0)
-  if debugRayImpactX ~= nil and debugRayImpactY ~= nil then
-    love.graphics.circle("fill", debugRayImpactX, debugRayImpactY, 4)
-  end
+  if debugClosestFixture then
+    local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, debugClosestFixture)
+    love.graphics.print("distance between range and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
+    love.graphics.setColor(0, .5, 0)
+    if debugRayImpactX ~= nil and debugRayImpactY ~= nil then
+      love.graphics.circle("fill", debugRayImpactX, debugRayImpactY, 4)
+    end
 
-  if debugRayNormalX ~= nil and debugRayImpactY ~= nil then
-    -- We also get the surface normal of the edge the ray hit. Here drawn in green
-    love.graphics.setColor(0, 255, 0)
-    love.graphics.line(debugRayImpactX, debugRayImpactY, debugRayImpactX + debugRayNormalX * 25, debugRayImpactY + debugRayNormalY * 25)
-    -- print(tostring(debugRayNormalX).." / "..tostring(debugRayNormalY))
+    if debugRayNormalX ~= nil and debugRayImpactY ~= nil then
+      -- We also get the surface normal of the edge the ray hit. Here drawn in green
+      love.graphics.setColor(0, 255, 0)
+      love.graphics.line(debugRayImpactX, debugRayImpactY, debugRayImpactX + debugRayNormalX * 25, debugRayImpactY + debugRayNormalY * 25)
+      -- print(tostring(debugRayNormalX).." / "..tostring(debugRayNormalY))
+    end
+    love.graphics.setColor(.95, .65, .25)
+    love.graphics.circle("fill", x1, y1, 4)
+    love.graphics.circle("fill", x2, y2, 4)
   end
 end  -- }}}
 
@@ -63,11 +65,46 @@ function love.update(dt) -- {{{
   local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = obj.player.body:getLinearVelocity()
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
 
-  -- cache values used for latching to surfaces for this frame
-  -- currently hardcoded to only check platform, will be generalized to all latchable surfaces in range in future
-  local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.playfield.tiltedPlatform.fixture)
+  -- if not latched, iterate through all terrain in range this frame, find the closest fixture
+  -- the closest fixture is the one that should be latched to
+  local closestFixture = nil
+  debugClosestFixture = nil
+  if not obj.player.latched then
+    local shortestDistance = obj.player.reachRadius + 1
+    for k, v in pairs(TerrainInRange) do
+      local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.hardbox.fixture, v)
+      if distance < shortestDistance then shortestDistance = distance end
+      local newUserData = v:getUserData()
+      newUserData.distance = distance
+      newUserData.x1 = x1
+      newUserData.y1 = y1
+      newUserData.x2 = x2
+      newUserData.y2 = y2
+      v:setUserData(newUserData)
+    end
+    for k, v in pairs(TerrainInRange) do
+      local thisFixtureUserData = v:getUserData()
+      if thisFixtureUserData.distance == shortestDistance then
+        closestFixture = TerrainInRange[thisFixtureUserData.uid]
+        debugClosestFixture = closestFixture
+        print(tprint(closestFixture:getUserData()).." is closest")
+      end
+    end
+  end
+
   local spoodWorldCenterX, spoodWorldCenterY = obj.player.body:getWorldCenter()
-  local normalVectX, normalVectY, fraction = obj.playfield.tiltedPlatform.fixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, x1, y1, 5)
+  local rayImpactLocX, rayImpactLocY = 50, 50
+  local normalVectX, normalVectY = 50, 50
+  if closestFixture then
+    -- raytrace from spood center position through previously calculated getDistance contact point on closest fixture,
+    -- using raytrace to find the point where spood is touching terrain
+    normalVectX, normalVectY, fraction = closestFixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, closestFixture:getUserData().x1, closestFixture:getUserData().y1, 10)
+    rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (closestFixture:getUserData().x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (closestFixture:getUserData().y1 - spoodWorldCenterY) * fraction
+    debugRayImpactX = rayImpactLocX
+    debugRayImpactY = rayImpactLocY
+    debugRayNormalX = normalVectX
+    debugRayNormalY = normalVectY
+  end
 
   -- reset spood on rightclick
   if love.mouse.isDown(2) then
@@ -83,17 +120,12 @@ function love.update(dt) -- {{{
 
   if love.keyboard.isDown("space") then
     obj.player.shouldLatch = true
-    -- if within range of wall and not already latched, latch to it
-    local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.playfield.tiltedPlatform.fixture)
-    if not obj.player.latched and distance == 0 then
-      -- raytrace from spood center position through getDistance contact point, find the point where spood is touching terrain
-      local rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (y1 - spoodWorldCenterY) * fraction
-      debugRayImpactX = rayImpactLocX
-      debugRayImpactY = rayImpactLocY
-      debugRayNormalX = normalVectX
-      debugRayNormalY = normalVectY
+    -- if latchable fixture within range, latch to closest one
+    -- local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.playfield.tiltedPlatform.fixture)
+    if not obj.player.latched and closestFixture then
+      print(tostring(rayImpactLocX))
       -- then latch to it
-      obj.player.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction, obj.playfield.tiltedPlatform.fixture)
+      -- obj.player.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction, closestFixture)
     end
   else
     obj.player.shouldLatch = false
@@ -217,11 +249,11 @@ function beginContact(a, b, coll)
   if (fixtureAUserData == "reach" and fixtureBUserData.type == "terrain") or (fixtureBUserData == "reach" and fixtureAUserData.type == "terrain") then
     -- ...then add the terrain to the cache of terrain items in latching range
     if fixtureAUserData == "reach" then
-      TerrainInRange[fixtureBUserData.uid] = fixtureBUserData
+      TerrainInRange[fixtureBUserData.uid] = b
     else
-      TerrainInRange[fixtureAUserData.uid] = fixtureAUserData
+      TerrainInRange[fixtureAUserData.uid] = a
     end
-    print(tprint(TerrainInRange))
+    printTerrainInRangeUserData()
   end
 
   -- print(tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
@@ -237,11 +269,12 @@ function endContact(a, b, coll)
   if (fixtureAUserData == "reach" and fixtureBUserData.type == "terrain") or (fixtureBUserData == "reach" and fixtureAUserData.type == "terrain") then
     -- ...remove the terrain from the cache of terrain items in latching range
     if fixtureAUserData == "reach" then
+      print(fixtureBUserData.name.." leaving latchrange")
       TerrainInRange[fixtureBUserData.uid] = nil 
     else
+      print(fixtureAUserData.name.." leaving latchrange")
       TerrainInRange[fixtureAUserData.uid] = nil 
     end
-    print(tprint(TerrainInRange))
   end
 end
 
@@ -281,6 +314,12 @@ function tprint (tbl, indent)
   end
   toprint = toprint .. string.rep(" ", indent-2) .. "}"
   return toprint
+end
+
+function printTerrainInRangeUserData()
+  for k, v in pairs(TerrainInRange) do
+    print(tprint(v:getUserData()))
+  end
 end
 -- }}}
 

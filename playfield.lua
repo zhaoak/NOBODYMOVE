@@ -25,6 +25,13 @@ M.setup = function (world) -- {{{
   M.tiltedPlatform.fixture = love.physics.newFixture(M.body, M.tiltedPlatform.shape)
   M.tiltedPlatform.fixture:setUserData({["name"] = "tiltedplatform", ["type"] = "terrain"})
   M.assignFixtureUID(M.tiltedPlatform.fixture)
+
+  -- more testing platforms
+  M.platform2 = {}
+  M.platform2.shape = love.physics.newRectangleShape(200, 400, 100, 200, 0)
+  M.platform2.fixture = love.physics.newFixture(M.body, M.platform2.shape)
+  M.platform2.fixture:setUserData({["name"] = "platform2", ["type"] = "terrain"})
+  M.assignFixtureUID(M.platform2.fixture)
 end -- }}}
 
 M.draw = function() -- {{{
@@ -49,6 +56,9 @@ M.draw = function() -- {{{
     love.graphics.pop()
   end
   drawRotatedRectange("fill", topLeftWorldPointX, topLeftWorldPointY, windowSizeX/3, windowSizeY/5, 50)
+
+  -- draw other platforms
+  love.graphics.polygon("fill", M.body:getWorldPoints(M.platform2.shape:getPoints()))
 end -- }}}
 
 -- playfield utility functions {{{
