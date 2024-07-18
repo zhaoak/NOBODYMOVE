@@ -209,11 +209,18 @@ end
 function beginContact(a, b, coll)
   -- print(a:getUserData().." colliding with "..b:getUserData()..", vector normal: "..x..", "..y)
 
-  local obja = a:getUserData()
-  local objb = b:getUserData()
+  local fixtureAUserData = a:getUserData()
+  local fixtureBUserData = b:getUserData()
 
-  if (obja == "reach" or objb == "reach") then
-    -- cache value
+  -- if terrain comes in range of spooder's reach...
+  if (fixtureAUserData == "reach" and fixtureBUserData.type == "terrain") or (fixtureBUserData == "reach" and fixtureAUserData.type == "terrain") then
+    -- ...then add the terrain to the cache of terrain items in latching range
+    if fixtureAUserData == "reach" then
+      TerrainInRange[fixtureBUserData.uid] = fixtureBUserData
+    else
+      TerrainInRange[fixtureAUserData.uid] = fixtureAUserData
+    end
+    print(tprint(TerrainInRange))
   end
 
   -- print(tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
@@ -222,9 +229,19 @@ end
 function endContact(a, b, coll)
   -- print(a:getUserData().." and "..b:getUserData().." no longer colliding")
 
-  local obja = a:getUserData()
-  local objb = b:getUserData()
+  local fixtureAUserData = a:getUserData()
+  local fixtureBUserData = b:getUserData()
 
+  -- when terrain leaves range of spooder's reach...
+  if (fixtureAUserData == "reach" and fixtureBUserData.type == "terrain") or (fixtureBUserData == "reach" and fixtureAUserData.type == "terrain") then
+    -- ...remove the terrain from the cache of terrain items in latching range
+    if fixtureAUserData == "reach" then
+      TerrainInRange[fixtureBUserData.uid] = nil 
+    else
+      TerrainInRange[fixtureAUserData.uid] = nil 
+    end
+    print(tprint(TerrainInRange))
+  end
 end
 
 function preSolve(a, b, coll)
