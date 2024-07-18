@@ -13,6 +13,7 @@ local LastFramePositionX, LastFramePositionY
 local LastFrameVelocityX, LastFrameVelocityY, LastFrameVelocity
 local debugRayImpactX, debugRayImpactY -- don't mind my devcode pls
 local debugRayNormalX, debugRayNormalY -- yep
+local debugClosestFixture
 
 -- import physics objects
 obj.playfield = require("playfield")
@@ -29,8 +30,8 @@ function love.draw() -- {{{
   love.graphics.setColor(1, 1, 1)
   love.graphics.print("shouldLatch: "..tostring(obj.player.shouldLatch), 0, 20)
   if debugClosestFixture then
-    local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, debugClosestFixture)
-    love.graphics.print("distance between range and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
+    local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.hardbox.fixture, debugClosestFixture)
+    love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
     love.graphics.setColor(0, .5, 0)
     if debugRayImpactX ~= nil and debugRayImpactY ~= nil then
       love.graphics.circle("fill", debugRayImpactX, debugRayImpactY, 4)
@@ -50,17 +51,6 @@ end  -- }}}
 
 -- step
 function love.update(dt) -- {{{
-  -- iterate thru spood collisions, report their contact points
-  -- debug stuff basically
-  local playerBodyContacts = obj.player.body:getContacts()
-  local cx1, cy1, cx2, cy2;
-  for k, v in ipairs(playerBodyContacts) do
-    local fixt1, fixt2 = v:getFixtures()
-    cx1, cy1, cx2, cy2 = v:getPositions()
-    -- print("playercollision! fixtures: "..fixt1:getUserData()..", "..fixt2:getUserData())
-    -- print("contact points: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
-  end
-
   -- cache current frame spood velocity
   local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = obj.player.body:getLinearVelocity()
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
@@ -70,6 +60,11 @@ function love.update(dt) -- {{{
   local closestFixture = nil
   debugClosestFixture = nil
   if not obj.player.latched then
+    -- shortestDistance on init should be larger than anything it'll be compared to,
+    -- so that even a fixture on the edge of latchrange is correctly recognized as the shortest,
+    -- so long as it's the only fixture in range.
+    -- This first loop measures the distance from the player for each fixture in range,
+    -- as well as "bubbles" the shortest distance to the top (like bubbleSort does)
     local shortestDistance = obj.player.reachRadius + 1
     for k, v in pairs(TerrainInRange) do
       local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.hardbox.fixture, v)
@@ -82,22 +77,27 @@ function love.update(dt) -- {{{
       newUserData.y2 = y2
       v:setUserData(newUserData)
     end
+    -- This second loop iterates identifies and caches whichever fixture in range is the closest to spood
     for k, v in pairs(TerrainInRange) do
       local thisFixtureUserData = v:getUserData()
       if thisFixtureUserData.distance == shortestDistance then
         closestFixture = TerrainInRange[thisFixtureUserData.uid]
         debugClosestFixture = closestFixture
-        print(tprint(closestFixture:getUserData()).." is closest")
+        -- print(tprint(closestFixture:getUserData()).." is closest")
       end
     end
   end
 
+  -- Variables used for calculating latchpoint
   local spoodWorldCenterX, spoodWorldCenterY = obj.player.body:getWorldCenter()
-  local rayImpactLocX, rayImpactLocY = 50, 50
-  local normalVectX, normalVectY = 50, 50
+  local rayImpactLocX, rayImpactLocY = nil, nil
+  local normalVectX, normalVectY = nil, nil
+
+  -- If a closest fixture exists (which it will, so long as any latchable terrain is in range),
+  -- raytrace from spood center position through previously cached getDistance contact point,
+  -- checking for impact against the identified closest fixture;
+  -- this will give us the location on the edge of the closest fixture to latch to.
   if closestFixture then
-    -- raytrace from spood center position through previously calculated getDistance contact point on closest fixture,
-    -- using raytrace to find the point where spood is touching terrain
     normalVectX, normalVectY, fraction = closestFixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, closestFixture:getUserData().x1, closestFixture:getUserData().y1, 10)
     rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (closestFixture:getUserData().x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (closestFixture:getUserData().y1 - spoodWorldCenterY) * fraction
     debugRayImpactX = rayImpactLocX
@@ -120,14 +120,12 @@ function love.update(dt) -- {{{
 
   if love.keyboard.isDown("space") then
     obj.player.shouldLatch = true
-    -- if latchable fixture within range, latch to closest one
-    -- local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.reach.fixture, obj.playfield.tiltedPlatform.fixture)
+    -- If in latching range, and there's a fixture to latch to, do so!
     if not obj.player.latched and closestFixture then
-      print(tostring(rayImpactLocX))
-      -- then latch to it
-      -- obj.player.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction, closestFixture)
+      obj.player.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction, closestFixture)
     end
   else
+    -- If the player lets go of latch key, let go of current latch
     obj.player.shouldLatch = false
     if obj.player.latched == true then
       obj.player.unlatchFromTerrain()
