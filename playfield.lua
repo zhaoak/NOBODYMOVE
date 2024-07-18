@@ -55,10 +55,10 @@ M.draw = function() -- {{{
     love.graphics.rectangle(mode, 0, 0, width, height) -- origin in the top left corner
     love.graphics.pop()
   end
-  drawRotatedRectange("fill", topLeftWorldPointX, topLeftWorldPointY, windowSizeX/3, windowSizeY/5, 50)
+  drawRotatedRectange("line", topLeftWorldPointX, topLeftWorldPointY, windowSizeX/3, windowSizeY/5, 50)
 
   -- draw other platforms
-  love.graphics.polygon("fill", M.body:getWorldPoints(M.platform2.shape:getPoints()))
+  love.graphics.polygon("line", M.body:getWorldPoints(M.platform2.shape:getPoints()))
 end -- }}}
 
 -- playfield utility functions {{{

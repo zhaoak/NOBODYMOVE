@@ -113,6 +113,8 @@ M.unlatchFromTerrain = function ()
   M.body:setGravityScale(1)
   M.latched = false
   M.currentlyLatchedFixture = nil
+  M.latchedSurfaceNormalXCache = nil
+  M.latchedSurfaceNormalYCache = nil
 end
 
 -- Called every frame when latched to surface in order to check if player is

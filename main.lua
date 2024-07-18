@@ -11,6 +11,7 @@ local nextFrameActions = {} -- uhhh ignore for now pls
 local TerrainInRange = {} -- using collision callbacks, when terrain enters/exits latchrange, it's added/removed here
 local LastFramePositionX, LastFramePositionY
 local LastFrameVelocityX, LastFrameVelocityY, LastFrameVelocity
+
 local debugRayImpactX, debugRayImpactY -- don't mind my devcode pls
 local debugRayNormalX, debugRayNormalY -- yep
 local debugClosestFixture
@@ -77,7 +78,7 @@ function love.update(dt) -- {{{
       newUserData.y2 = y2
       v:setUserData(newUserData)
     end
-    -- This second loop iterates identifies and caches whichever fixture in range is the closest to spood
+    -- This second loop identifies and caches whichever fixture in range is the closest to spood
     for k, v in pairs(TerrainInRange) do
       local thisFixtureUserData = v:getUserData()
       if thisFixtureUserData.distance == shortestDistance then
@@ -90,8 +91,8 @@ function love.update(dt) -- {{{
 
   -- Variables used for calculating latchpoint
   local spoodWorldCenterX, spoodWorldCenterY = obj.player.body:getWorldCenter()
-  local rayImpactLocX, rayImpactLocY = nil, nil
-  local normalVectX, normalVectY = nil, nil
+  local rayImpactLocX, rayImpactLocY
+  local normalVectX, normalVectY
 
   -- If a closest fixture exists (which it will, so long as any latchable terrain is in range),
   -- raytrace from spood center position through previously cached getDistance contact point,
@@ -132,25 +133,17 @@ function love.update(dt) -- {{{
     end
   end
 
-
   -- left/right controls
   if love.keyboard.isDown('a') and love.keyboard.isDown('d') == false then
     if obj.player.latched == true then
-      -- if latched, move along surface
-      -- to tell what direction to move, use same raytrace technique as above,
-      -- rotate the returned normal vector by 90 degrees, then use a multiple of that value to apply force in that direction
+      -- If latched and below max walking speed, move along surface
+      -- To tell what direction to move, use cached data from the raytrace performed on initial latch,
+      -- rotate the returned normal vector by 90 degrees,
+      -- then use a multiple of that value to apply force in that direction.
       if spoodCurrentLinearVelocity <= obj.player.maxWalkingSpeed then
-        debugRayNormalX = normalVectX
-        debugRayNormalY = normalVectY
-        local directionVectorX = normalVectY
-        local directionVectorY = normalVectX * -1
-        -- check if spooder has actually walked off of latched surface
-        -- edit: it DOESN"T WORK
-        if normalVectX == nil or normalVectY == nil then
-          obj.player.unlatchFromTerrain()
-        else
-          obj.player.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
-        end
+        local directionVectorX = obj.player.latchedSurfaceNormalYCache
+        local directionVectorY = obj.player.latchedSurfaceNormalXCache * -1
+        obj.player.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
       end
     else
       -- otherwise, use air controls
@@ -160,29 +153,22 @@ function love.update(dt) -- {{{
 
   if love.keyboard.isDown('d') and love.keyboard.isDown('a') == false then
     if obj.player.latched == true then
-      -- if latched and below max walking speed, move along surface
-      -- to tell what direction to move, use same raytrace technique as above,
-      -- rotate the returned normal vector by 90 degrees, then use a multiple of that value to apply force in that direction
+      -- If latched and below max walking speed, move along surface.
+      -- To tell what direction to move, use cached data from the raytrace performed on initial latch,
+      -- rotate the returned normal vector by 90 degrees,
+      -- then use a multiple of that value to apply force in that direction.
       if spoodCurrentLinearVelocity <= obj.player.maxWalkingSpeed then
-        debugRayNormalX = normalVectX
-        debugRayNormalY = normalVectY
-        local directionVectorX = normalVectY * -1
-        local directionVectorY = normalVectX
-        -- check if spooder has walked off latched surface
-        -- this doesn't work btw
-        if normalVectX == nil or normalVectY == nil then
-          obj.player.unlatchFromTerrain()
-        else
-          obj.player.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
-        end
+        local directionVectorX = obj.player.latchedSurfaceNormalYCache * -1
+        local directionVectorY = obj.player.latchedSurfaceNormalXCache 
+        obj.player.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
       end
     else
-      -- otherwise, use air controls
+      -- Otherwise, use air controls
       obj.player.body:applyForce(100, 0)
     end
   end
 
-  -- if l/r keys are pressed simultaneously while latched, cancel movement
+  -- If l/r keys are pressed simultaneously while latched, stop moving.
   if obj.player.latched and love.keyboard.isDown('d') and love.keyboard.isDown('a') then
     local newLinearVelocityX, newLinearVelocityY = obj.player.body:getLinearVelocity()
     newLinearVelocityX = newLinearVelocityX * .7
@@ -190,7 +176,7 @@ function love.update(dt) -- {{{
     obj.player.body:setLinearVelocity(newLinearVelocityX, newLinearVelocityY)
   end
 
-  -- if walking on surface and no keys are pressed, decelerate
+  -- If walking on surface and no keys are pressed, slow to a stop.
   if obj.player.latched and love.keyboard.isDown('d') == false and love.keyboard.isDown('a') == false then
     local newLinearVelocityX, newLinearVelocityY = obj.player.body:getLinearVelocity()
     newLinearVelocityX = newLinearVelocityX * .7
@@ -289,6 +275,9 @@ end
 -- }}}
 
 -- misc utility garbage {{{
+-- this one is stolen directly from stack overflow
+-- https://stackoverflow.com/questions/41942289/display-contents-of-tables-in-lua
+-- thanks, luiz
 function tprint (tbl, indent)
   if not indent then indent = 0 end
   local toprint = string.rep(" ", indent) .. "{\r\n"
