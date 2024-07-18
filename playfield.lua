@@ -2,6 +2,8 @@ local M = { }
 
 M.color = {1,1,1,1}
 
+M.fixtureUIDCounter = 0
+
 local function addLine(x1,y1, x2,y2) -- {{{
   local line = {}
   line.shape = love.physics.newEdgeShape(x1,y1, x2,y2)
@@ -10,6 +12,8 @@ local function addLine(x1,y1, x2,y2) -- {{{
 end -- }}}
 
 M.setup = function (world) -- {{{
+  M.fixtureUIDCounter = 0
+
   M.world = world -- stash for laters
   -- create the lines with the current window size
   M.resize(love.graphics.getDimensions())
@@ -19,7 +23,8 @@ M.setup = function (world) -- {{{
   M.tiltedPlatform = {}
   M.tiltedPlatform.shape = love.physics.newRectangleShape(windowSizeX/3, windowSizeY/2, windowSizeX/3, windowSizeY/5, 50)
   M.tiltedPlatform.fixture = love.physics.newFixture(M.body, M.tiltedPlatform.shape)
-  M.tiltedPlatform.fixture:setUserData({["name"] = "tiltedplatform"})
+  M.tiltedPlatform.fixture:setUserData({["name"] = "tiltedplatform", ["type"] = "terrain"})
+  M.assignFixtureUID(M.tiltedPlatform.fixture)
 end -- }}}
 
 M.draw = function() -- {{{
@@ -53,14 +58,25 @@ M.resize = function(width, height) -- {{{
   M.body = love.physics.newBody(M.world, 0,0, "static")
 
   M.top = addLine(0,0, width,0)
-  M.top.fixture:setUserData({["name"] = "topborder"})
+  M.top.fixture:setUserData({["name"] = "topborder", ["type"] = "terrain"})
+  M.assignFixtureUID(M.top.fixture)
   M.bottom = addLine(0,height, width,height)
-  M.bottom.fixture:setUserData({["name"] = "bottomborder"})
+  M.bottom.fixture:setUserData({["name"] = "bottomborder", ["type"] = "terrain"})
+  M.assignFixtureUID(M.bottom.fixture)
   M.left = addLine(0,0, 0,height)
-  M.left.fixture:setUserData({["name"] = "leftborder"})
+  M.left.fixture:setUserData({["name"] = "leftborder", ["type"] = "terrain"})
+  M.assignFixtureUID(M.left.fixture)
   M.right = addLine(width,0, width,height)
-  M.right.fixture:setUserData({["name"] = "rightborder"})
+  M.right.fixture:setUserData({["name"] = "rightborder", ["type"] = "terrain"})
+  M.assignFixtureUID(M.right.fixture)
 end -- }}}
+
+M.assignFixtureUID = function(fixture)
+  local newFixtureUserData = fixture:getUserData()
+  newFixtureUserData.uid = M.fixtureUIDCounter
+  M.fixtureUIDCounter = M.fixtureUIDCounter + 1
+  fixture:setUserData(newFixtureUserData)
+end
 
 -- }}}
 return M
