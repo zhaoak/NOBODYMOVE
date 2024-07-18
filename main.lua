@@ -8,7 +8,7 @@ local phys = {} -- physics handlers
 local world -- the physics world
 local cooldown = 0 -- player shoot cooldown (very tmp)
 local nextFrameActions = {} -- uhhh ignore for now pls
-local TerrainInRange = {}
+local TerrainInRange = {} -- using collision callbacks, when terrain enters/exits latchrange, it's added/removed here
 local LastFramePositionX, LastFramePositionY
 local LastFrameVelocityX, LastFrameVelocityY, LastFrameVelocity
 local debugRayImpactX, debugRayImpactY -- don't mind my devcode pls
@@ -93,7 +93,7 @@ function love.update(dt) -- {{{
       debugRayNormalX = normalVectX
       debugRayNormalY = normalVectY
       -- then latch to it
-      obj.player.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction)
+      obj.player.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction, obj.playfield.tiltedPlatform.fixture)
     end
   else
     obj.player.shouldLatch = false
@@ -139,6 +139,7 @@ function love.update(dt) -- {{{
         local directionVectorX = normalVectY * -1
         local directionVectorY = normalVectX
         -- check if spooder has walked off latched surface
+        -- this doesn't work btw
         if normalVectX == nil or normalVectY == nil then
           obj.player.unlatchFromTerrain()
         else

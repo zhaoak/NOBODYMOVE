@@ -5,6 +5,7 @@ M.hardboxRadius = 20
 M.latchboxRadius = M.hardboxRadius * 1.5
 M.reachRadius = M.hardboxRadius * 3
 M.maxWalkingSpeed = 300
+M.currentlyLatchedFixture = nil
 
 M.rayImpactOffsetXCache = 0
 M.rayImpactOffsetYCache = 0
@@ -83,7 +84,7 @@ M.recoil = function (x, y) -- {{{
 end -- }}}
 
 -- latch to terrain at the given coordinates; given coords must have latchable object at them
-M.latchToTerrain = function (contactLocationX, contactLocationY, terrainSurfaceNormalX, terrainSurfaceNormalY, rayImpactFraction)
+M.latchToTerrain = function (contactLocationX, contactLocationY, terrainSurfaceNormalX, terrainSurfaceNormalY, rayImpactFraction, fixtureLatchedTo)
   print("LATCH")
   -- cache offset from ray impact location, as well as raycast fraction value and surface normal
   local spoodWorldCenterX, spoodWorldCenterY = M.body:getWorldCenter()
@@ -92,6 +93,9 @@ M.latchToTerrain = function (contactLocationX, contactLocationY, terrainSurfaceN
   M.rayImpactFractionCache = rayImpactFraction
   M.latchedSurfaceNormalXCache = terrainSurfaceNormalX
   M.latchedSurfaceNormalYCache = terrainSurfaceNormalY
+
+  -- cache fixture spood is latched to
+  M.currentlyLatchedFixture = fixtureLatchedTo
 
   -- cancel all linear+angular velocity on latch, disable gravity too
   M.body:setLinearVelocity(0, 0)
@@ -108,6 +112,7 @@ M.unlatchFromTerrain = function ()
   print("UNLATCH")
   M.body:setGravityScale(1)
   M.latched = false
+  M.currentlyLatchedFixture = nil
 end
 
 -- Called every frame when latched to surface in order to check if player is
