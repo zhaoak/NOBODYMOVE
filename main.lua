@@ -67,6 +67,11 @@ function love.update(dt) -- {{{
   LastFrameVelocityY = spoodCurrentLinearVelocityY
   LastFrameVelocity = spoodCurrentLinearVelocity
 
+  -- reset spood on rightclick
+  if love.mouse.isDown(2) then
+    obj.player.setup(world)
+  end
+
   obj.player.update(dt)
 
   world:update(dt)

@@ -16,6 +16,10 @@ M.latchedSurfaceNormalYCache = 0
 
 M.terrainInRange = {} -- using collision callbacks, when terrain enters/exits latchrange, it's added/removed here
 
+local debugRayImpactX, debugRayImpactY -- don't mind my devcode pls
+local debugRayNormalX, debugRayNormalY -- yep
+local debugClosestFixture
+
 M.setup = function (world) -- {{{
   M.contact = 0
   if M.body then M.body:destroy() end
@@ -71,19 +75,44 @@ M.draw = function () -- {{{
   eyePos2X, eyePos2Y = M.body:getWorldPoint(eyePos2X + 3, eyePos2Y - 5)
   love.graphics.circle("fill", eyePos1X, eyePos1Y, 3)
   love.graphics.circle("fill", eyePos2X, eyePos2Y, 3)
+
+  -- various debug info
+  love.graphics.setColor(1, 1, 1)
+  local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
+  local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
+  love.graphics.print("spooder velocity, x/y/total: "..tostring(spoodCurrentLinearVelocityX).." / "..tostring(spoodCurrentLinearVelocityY).." / "..tostring(spoodCurrentLinearVelocity))
+  love.graphics.print("latched? "..tostring(M.latched), 0, 20)
+  if debugClosestFixture then
+    local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, debugClosestFixture)
+    love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
+    love.graphics.setColor(0, .5, 0)
+    if debugRayImpactX ~= nil and debugRayImpactY ~= nil then
+      love.graphics.circle("fill", debugRayImpactX, debugRayImpactY, 4)
+    end
+
+    if debugRayNormalX ~= nil and debugRayImpactY ~= nil then
+      -- We also get the surface normal of the edge the ray hit. Here drawn in green
+      love.graphics.setColor(0, 255, 0)
+      love.graphics.line(debugRayImpactX, debugRayImpactY, debugRayImpactX + debugRayNormalX * 25, debugRayImpactY + debugRayNormalY * 25)
+      -- print(tostring(debugRayNormalX).." / "..tostring(debugRayNormalY))
+    end
+    love.graphics.setColor(.95, .65, .25)
+    love.graphics.circle("fill", x1, y1, 4)
+    love.graphics.circle("fill", x2, y2, 4)
+  end
 end -- }}}
 
 -- game event specific functions {{{
 M.recoil = function (x, y) -- {{{
-    -- normalize the points of the ball and target together
-    x = x - M.body:getX()
-    y = y - M.body:getY()
+  -- normalize the points of the ball and target together
+  x = x - M.body:getX()
+  y = y - M.body:getY()
 
-    -- get the angle of the mouse from the ball
-    local angle = math.atan2(x,y)
+  -- get the angle of the mouse from the ball
+  local angle = math.atan2(x,y)
 
-    -- convert the angle back into points at a fixed distance from the boll, and push
-    M.body:applyLinearImpulse(-math.sin(angle)*700, -math.cos(angle)*700)
+  -- convert the angle back into points at a fixed distance from the boll, and push
+  M.body:applyLinearImpulse(-math.sin(angle)*700, -math.cos(angle)*700)
 end -- }}}
 
 -- latch to terrain at the given coordinates; given coords must have latchable object at them
@@ -139,8 +168,8 @@ M.checkIfLatchStillValid = function (checkedFixture)
   print(tostring(checkedNormalVectX).." / "..tostring(checkedNormalVectY).." vs: "..tostring(M.latchedSurfaceNormalXCache).." / "..tostring(M.latchedSurfaceNormalYCache))
   print(tostring(fraction).." vs: "..tostring(M.rayImpactFractionCache))
   if checkedNormalVectX == M.latchedSurfaceNormalXCache and
-     checkedNormalVectY == M.latchedSurfaceNormalYCache then
-     -- fraction == M.rayImpactFractionCache then
+    checkedNormalVectY == M.latchedSurfaceNormalYCache then
+    -- fraction == M.rayImpactFractionCache then
     return
   else
     M:unlatchFromTerrain()
@@ -155,58 +184,58 @@ M.update = function(dt)
 
   -- if not latched, iterate through all terrain in range this frame, find the closest fixture
   -- the closest fixture is the one that should be latched to
-  local closestFixture = nil
+  local closestLatchableFixture = nil
   debugClosestFixture = nil
-  if not M.latched then
-    -- shortestDistance on init should be larger than anything it'll be compared to,
-    -- so that even a fixture on the edge of latchrange is correctly recognized as the shortest,
-    -- so long as it's the only fixture in range.
-    -- This first loop measures the distance from the player for each fixture in range,
-    -- as well as "bubbles" the shortest distance to the top (like bubbleSort does)
-    local shortestDistance = M.reachRadius + 1
-    for k, v in pairs(M.terrainInRange) do
-      local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, v)
-      if distance < shortestDistance then shortestDistance = distance end
-      local newUserData = v:getUserData()
-      newUserData.distance = distance
-      newUserData.x1 = x1
-      newUserData.y1 = y1
-      newUserData.x2 = x2
-      newUserData.y2 = y2
-      v:setUserData(newUserData)
-    end
-    -- This second loop identifies and caches whichever fixture in range is the closest to spood
-    for k, v in pairs(M.terrainInRange) do
-      local thisFixtureUserData = v:getUserData()
-      if thisFixtureUserData.distance == shortestDistance then
-        closestFixture = M.terrainInRange[thisFixtureUserData.uid]
-        debugClosestFixture = closestFixture
-        -- print(util.tprint(closestFixture:getUserData()).." is closest")
-      end
-    end
+  -- shortestDistance on init should be larger than anything it'll be compared to,
+  -- so that even a fixture on the edge of latchrange is correctly recognized as the shortest,
+  -- so long as it's the only fixture in range.
+  -- This first loop measures the distance from the player for each fixture in range,
+  -- as well as "bubbles" the shortest distance to the top (like bubbleSort does)
+  local shortestDistance = M.reachRadius + 1
+  for k, v in pairs(M.terrainInRange) do
+    local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, v)
+    if distance < shortestDistance then shortestDistance = distance end
+    local newUserData = v:getUserData()
+    newUserData.distance = distance
+    newUserData.x1 = x1
+    newUserData.y1 = y1
+    newUserData.x2 = x2
+    newUserData.y2 = y2
+    v:setUserData(newUserData)
   end
 
   -- Variables used for calculating latchpoint
   local spoodWorldCenterX, spoodWorldCenterY = M.body:getWorldCenter()
   local rayImpactLocX, rayImpactLocY
-  local normalVectX, normalVectY
+  local normalVectX, normalVectY, fraction
+  -- This second loop identifies and caches whichever fixture in range is the closest to spood
+  for k, v in pairs(M.terrainInRange) do
+    local thisFixtureUserData = v:getUserData()
+    if thisFixtureUserData.distance == shortestDistance then
+      closestLatchableFixture = M.terrainInRange[thisFixtureUserData.uid]
+      debugClosestFixture = closestLatchableFixture
+      -- print(util.tprint(closestFixture:getUserData()).." is closest")
+      normalVectX, normalVectY, fraction = closestLatchableFixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, closestLatchableFixture:getUserData().x1, closestLatchableFixture:getUserData().y1, 10)
+      -- sometimes the ray fails to hit on like, an exact edge case of aiming for a vertex with a 90 deg or less angle
+      if fraction then
+        rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (closestLatchableFixture:getUserData().x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (closestLatchableFixture:getUserData().y1 - spoodWorldCenterY) * fraction
+        debugRayImpactX = rayImpactLocX
+        debugRayImpactY = rayImpactLocY
+        debugRayNormalX = normalVectX
+        debugRayNormalY = normalVectY
+      else -- cancel, raycast failed
+        closestLatchableFixture = nil
+        debugClosestFixture = nil
+      end
+    end
+  end
+
 
   -- If a closest fixture exists (which it will, so long as any latchable terrain is in range),
   -- raytrace from spood center position through previously cached getDistance contact point,
   -- checking for impact against the identified closest fixture;
   -- this will give us the location on the edge of the closest fixture to latch to.
-  if closestFixture then
-    normalVectX, normalVectY, fraction = closestFixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, closestFixture:getUserData().x1, closestFixture:getUserData().y1, 10)
-    rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (closestFixture:getUserData().x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (closestFixture:getUserData().y1 - spoodWorldCenterY) * fraction
-    debugRayImpactX = rayImpactLocX
-    debugRayImpactY = rayImpactLocY
-    debugRayNormalX = normalVectX
-    debugRayNormalY = normalVectY
-  end
-
-  -- reset spood on rightclick
-  if love.mouse.isDown(2) then
-    M.setup(world)
+  if closestLatchableFixture then
   end
 
   -- recoil the player away from the mouse
@@ -219,8 +248,8 @@ M.update = function(dt)
   if love.keyboard.isDown("space") then
     M.shouldLatch = true
     -- If in latching range, and there's a fixture to latch to, do so!
-    if not M.latched and closestFixture then
-      M.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction, closestFixture)
+    if not M.latched and closestLatchableFixture then
+      M.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction, closestLatchableFixture)
     end
   else
     -- If the player lets go of latch key, let go of current latch
@@ -230,74 +259,31 @@ M.update = function(dt)
     end
   end
 
- -- if love.keyboard.isDown('w') then
- --    M.body:applyLinearImpulse(0, 50)
- --  end
- -- if love.keyboard.isDown('s') then
- --    M.body:applyLinearImpulse(50, 0)
- --  end
- -- if love.keyboard.isDown('a') then
- --    M.body:applyLinearImpulse(-50, 0)
- --  end
- -- if love.keyboard.isDown('d') then
- --    M.body:applyLinearImpulse(-50, 0)
- --  end
- --
-
-  -- left/right controls
-  if love.keyboard.isDown('a') and love.keyboard.isDown('d') == false then
-    if M.latched == true then
-      -- If latched and below max walking speed, move along surface
-      -- To tell what direction to move, use cached data from the raytrace performed on initial latch,
-      -- rotate the returned normal vector by 90 degrees,
-      -- then use a multiple of that value to apply force in that direction.
-      if spoodCurrentLinearVelocity <= M.maxWalkingSpeed then
-        local directionVectorX = M.latchedSurfaceNormalYCache
-        local directionVectorY = M.latchedSurfaceNormalXCache * -1
-        M.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
+  -- don't move up down midair
+  if closestLatchableFixture or M.latched then
+    if love.keyboard.isDown('w') then
+      if spoodCurrentLinearVelocityY >= -M.maxWalkingSpeed then
+        M.body:applyLinearImpulse(0, -50)
       end
-    else
-      -- otherwise, use air controls
-      if spoodCurrentLinearVelocityX >= -1 * M.maxWalkingSpeed then
-        M.body:applyLinearImpulse(-50, 0)
+    end
+    if love.keyboard.isDown('s') then
+      if spoodCurrentLinearVelocityY <= M.maxWalkingSpeed then
+        M.body:applyLinearImpulse(0, 50)
       end
     end
   end
-
-  if love.keyboard.isDown('d') and love.keyboard.isDown('a') == false then
-    if M.latched == true then
-      -- If latched and below max walking speed, move along surface.
-      -- To tell what direction to move, use cached data from the raytrace performed on initial latch,
-      -- rotate the returned normal vector by 90 degrees,
-      -- then use a multiple of that value to apply force in that direction.
-      if spoodCurrentLinearVelocity <= M.maxWalkingSpeed then
-        local directionVectorX = M.latchedSurfaceNormalYCache * -1
-        local directionVectorY = M.latchedSurfaceNormalXCache
-        M.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
-      end
-    else
-      -- Otherwise, use air controls
-      if spoodCurrentLinearVelocityX <= M.maxWalkingSpeed then
-        M.body:applyLinearImpulse(50, 0)
-      end
+  if love.keyboard.isDown('a') then
+    if spoodCurrentLinearVelocityX >= -M.maxWalkingSpeed then
+      M.body:applyLinearImpulse(-50, 0)
+    end
+  end
+  if love.keyboard.isDown('d') then
+    if spoodCurrentLinearVelocityX <= M.maxWalkingSpeed then
+      M.body:applyLinearImpulse(50, 0)
     end
   end
 
-  -- If l/r keys are pressed simultaneously while latched, stop moving.
-  if M.latched and love.keyboard.isDown('d') and love.keyboard.isDown('a') then
-    local newLinearVelocityX, newLinearVelocityY = M.body:getLinearVelocity()
-    newLinearVelocityX = newLinearVelocityX * .7
-    newLinearVelocityY = newLinearVelocityY * .7
-    M.body:setLinearVelocity(newLinearVelocityX, newLinearVelocityY)
-  end
 
-  -- If walking on surface and no keys are pressed, slow to a stop.
-  if M.latched and love.keyboard.isDown('d') == false and love.keyboard.isDown('a') == false then
-    local newLinearVelocityX, newLinearVelocityY = M.body:getLinearVelocity()
-    newLinearVelocityX = newLinearVelocityX * .7
-    newLinearVelocityY = newLinearVelocityY * .7
-    M.body:setLinearVelocity(newLinearVelocityX, newLinearVelocityY)
-  end
 end
 
 return M
