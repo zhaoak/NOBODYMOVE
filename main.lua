@@ -1,5 +1,7 @@
 -- nobody move prototype
 
+-- utilities
+local util = require'util'
 
 
 -- filewide vars
@@ -87,7 +89,7 @@ function love.update(dt) -- {{{
       if thisFixtureUserData.distance == shortestDistance then
         closestFixture = TerrainInRange[thisFixtureUserData.uid]
         debugClosestFixture = closestFixture
-        -- print(tprint(closestFixture:getUserData()).." is closest")
+        -- print(util.tprint(closestFixture:getUserData()).." is closest")
       end
     end
   end
@@ -164,7 +166,7 @@ function love.update(dt) -- {{{
       -- then use a multiple of that value to apply force in that direction.
       if spoodCurrentLinearVelocity <= obj.player.maxWalkingSpeed then
         local directionVectorX = obj.player.latchedSurfaceNormalYCache * -1
-        local directionVectorY = obj.player.latchedSurfaceNormalXCache 
+        local directionVectorY = obj.player.latchedSurfaceNormalXCache
         obj.player.body:applyLinearImpulse(50 * directionVectorX, 50 * directionVectorY)
       end
     else
@@ -244,7 +246,7 @@ function beginContact(a, b, coll)
     else
       TerrainInRange[fixtureAUserData.uid] = a
     end
-    printTerrainInRangeUserData()
+    util.printTerrainInRangeUserData(TerrainInRange)
   end
 
   -- print(tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
@@ -261,10 +263,10 @@ function endContact(a, b, coll)
     -- ...remove the terrain from the cache of terrain items in latching range
     if fixtureAUserData == "reach" then
       print(fixtureBUserData.name.." leaving latchrange")
-      TerrainInRange[fixtureBUserData.uid] = nil 
+      TerrainInRange[fixtureBUserData.uid] = nil
     else
       print(fixtureAUserData.name.." leaving latchrange")
-      TerrainInRange[fixtureAUserData.uid] = nil 
+      TerrainInRange[fixtureAUserData.uid] = nil
     end
   end
 end
@@ -281,40 +283,5 @@ function postSolve(a, b, coll, normalimpulse, tangentimpulse)
 end
 -- }}}
 
--- misc utility garbage {{{
--- this one is stolen directly from stack overflow
--- https://stackoverflow.com/questions/41942289/display-contents-of-tables-in-lua
--- thanks, luiz
-function tprint (tbl, indent)
-  if not indent then indent = 0 end
-  local toprint = string.rep(" ", indent) .. "{\r\n"
-  indent = indent + 2 
-  for k, v in pairs(tbl) do
-    toprint = toprint .. string.rep(" ", indent)
-    if (type(k) == "number") then
-      toprint = toprint .. "[" .. k .. "] = "
-    elseif (type(k) == "string") then
-      toprint = toprint  .. k ..  "= "   
-    end
-    if (type(v) == "number") then
-      toprint = toprint .. v .. ",\r\n"
-    elseif (type(v) == "string") then
-      toprint = toprint .. "\"" .. v .. "\",\r\n"
-    elseif (type(v) == "table") then
-      toprint = toprint .. tprint(v, indent + 2) .. ",\r\n"
-    else
-      toprint = toprint .. "\"" .. tostring(v) .. "\",\r\n"
-    end
-  end
-  toprint = toprint .. string.rep(" ", indent-2) .. "}"
-  return toprint
-end
-
-function printTerrainInRangeUserData()
-  for k, v in pairs(TerrainInRange) do
-    print(tprint(v:getUserData()))
-  end
-end
--- }}}
 
 -- vim: foldmethod=marker

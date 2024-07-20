@@ -1,8 +1,8 @@
+local util = require'util'
+
 local M = { }
 
 M.color = {1,1,1,1}
-
-M.fixtureUIDCounter = 0
 
 local function addLine(x1,y1, x2,y2) -- {{{
   local line = {}
@@ -92,8 +92,7 @@ end -- }}}
 
 M.assignFixtureUID = function(fixture)
   local newFixtureUserData = fixture:getUserData()
-  newFixtureUserData.uid = M.fixtureUIDCounter
-  M.fixtureUIDCounter = M.fixtureUIDCounter + 1
+  newFixtureUserData.uid = util.gen_uid()
   fixture:setUserData(newFixtureUserData)
 end
 
