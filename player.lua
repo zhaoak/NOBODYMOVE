@@ -97,10 +97,20 @@ M.latchToTerrain = function (contactLocationX, contactLocationY, terrainSurfaceN
   -- cache fixture spood is latched to
   M.currentlyLatchedFixture = fixtureLatchedTo
 
-  -- cancel all linear+angular velocity on latch, disable gravity too
+  -- cancel all linear+angular velocity on latch, disable gravity too,
+  -- set angle, and update state
   M.body:setLinearVelocity(0, 0)
   M.body:setAngularVelocity(0)
   M.body:setGravityScale(0)
+  -- Here we calculate the angle to set spood to so that it "stands" on terrain correctly
+  -- (with its butt towards the surface it's latched to.)
+  -- `atan2` finds the correct angle for this and takes care of the oddities with converting negative/positive vectors
+  -- to the appropriate angle.
+  -- The negative sign before `terrainSurfaceNormalY` is because in Love, (0,0) is at the top left corner and
+  -- Y increases when moving _down_ rather than up--
+  -- whereas `atan2` expects four quadrants where (0,0) is the intersection of all of them.
+  local newAngle = math.atan2(terrainSurfaceNormalX, -terrainSurfaceNormalY)
+  M.body:setAngle(newAngle)
   M.latched = true
 
   -- set position to latchboxRadius from collided-with object
