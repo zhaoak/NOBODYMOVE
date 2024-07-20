@@ -26,31 +26,6 @@ obj.player = require("player")
 function love.draw() -- {{{
   obj.playfield.draw()
   obj.player.draw()
-
-  -- various debug info
-  love.graphics.setColor(1, 1, 1)
-  local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = obj.player.body:getLinearVelocity()
-  local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
-  love.graphics.print("spooder velocity, x/y/total: "..tostring(spoodCurrentLinearVelocityX).." / "..tostring(spoodCurrentLinearVelocityY).." / "..tostring(spoodCurrentLinearVelocity))
-  love.graphics.print("latched? "..tostring(obj.player.latched), 0, 20)
-  if debugClosestFixture then
-    local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.hardbox.fixture, debugClosestFixture)
-    love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
-    love.graphics.setColor(0, .5, 0)
-    if debugRayImpactX ~= nil and debugRayImpactY ~= nil then
-      love.graphics.circle("fill", debugRayImpactX, debugRayImpactY, 4)
-    end
-
-    if debugRayNormalX ~= nil and debugRayImpactY ~= nil then
-      -- We also get the surface normal of the edge the ray hit. Here drawn in green
-      love.graphics.setColor(0, 255, 0)
-      love.graphics.line(debugRayImpactX, debugRayImpactY, debugRayImpactX + debugRayNormalX * 25, debugRayImpactY + debugRayNormalY * 25)
-      -- print(tostring(debugRayNormalX).." / "..tostring(debugRayNormalY))
-    end
-    love.graphics.setColor(.95, .65, .25)
-    love.graphics.circle("fill", x1, y1, 4)
-    love.graphics.circle("fill", x2, y2, 4)
-  end
 end  -- }}}
 
 -- step

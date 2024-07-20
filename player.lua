@@ -87,7 +87,7 @@ M.draw = function () -- {{{
     if debugClosestFixture then
       local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, debugClosestFixture)
       love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
-      love.graphics.setColor(0, .5, 0)
+      love.graphics.setColor(0, .5, 0, 0.3)
       if debugRayImpactX ~= nil and debugRayImpactY ~= nil then
         love.graphics.circle("fill", debugRayImpactX, debugRayImpactY, 4)
       end
