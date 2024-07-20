@@ -29,7 +29,10 @@ function love.draw() -- {{{
 
   -- various debug info
   love.graphics.setColor(1, 1, 1)
-  love.graphics.print("shouldLatch: "..tostring(obj.player.shouldLatch), 0, 20)
+  local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = obj.player.body:getLinearVelocity()
+  local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
+  love.graphics.print("spooder velocity, x/y/total: "..tostring(spoodCurrentLinearVelocityX).." / "..tostring(spoodCurrentLinearVelocityY).." / "..tostring(spoodCurrentLinearVelocity))
+  love.graphics.print("latched? "..tostring(obj.player.latched), 0, 20)
   if debugClosestFixture then
     local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.hardbox.fixture, debugClosestFixture)
     love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
@@ -147,7 +150,9 @@ function love.update(dt) -- {{{
       end
     else
       -- otherwise, use air controls
-      obj.player.body:applyForce(-100, 0)
+      if spoodCurrentLinearVelocityX >= -1 * obj.player.maxWalkingSpeed then
+        obj.player.body:applyLinearImpulse(-50, 0)
+      end
     end
   end
 
@@ -164,7 +169,9 @@ function love.update(dt) -- {{{
       end
     else
       -- Otherwise, use air controls
-      obj.player.body:applyForce(100, 0)
+      if spoodCurrentLinearVelocityX <= obj.player.maxWalkingSpeed then
+        obj.player.body:applyLinearImpulse(50, 0)
+      end
     end
   end
 
@@ -210,7 +217,7 @@ function love.load() -- {{{
   love.physics.setMeter(64)
 
   -- create the physics world
-  world = love.physics.newWorld(0,5*64, false)
+  world = love.physics.newWorld(0,10*64, false)
   world:setCallbacks( beginContact, endContact, preSolve, postSolve )
 
   obj.playfield.setup(world)

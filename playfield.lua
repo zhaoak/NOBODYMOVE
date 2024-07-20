@@ -32,6 +32,13 @@ M.setup = function (world) -- {{{
   M.platform2.fixture = love.physics.newFixture(M.body, M.platform2.shape)
   M.platform2.fixture:setUserData({["name"] = "platform2", ["type"] = "terrain"})
   M.assignFixtureUID(M.platform2.fixture)
+
+  -- testing circle
+  M.circle = {}
+  M.circle.shape = love.physics.newCircleShape(600, 400, 50)
+  M.circle.fixture = love.physics.newFixture(M.body, M.circle.shape)
+  M.circle.fixture:setUserData({["name"] = "circle", ["type"] = "terrain"})
+  M.assignFixtureUID(M.circle.fixture)
 end -- }}}
 
 M.draw = function() -- {{{
@@ -59,6 +66,8 @@ M.draw = function() -- {{{
 
   -- draw other platforms
   love.graphics.polygon("line", M.body:getWorldPoints(M.platform2.shape:getPoints()))
+  local circleX, circleY = M.circle.shape:getPoint()
+  love.graphics.circle("line", circleX, circleY, M.circle.shape:getRadius())
 end -- }}}
 
 -- playfield utility functions {{{
