@@ -8,6 +8,7 @@ M.maxWalkingSpeed = 300
 M.playerAcceleration = 50
 M.currentlyLatchedFixture = nil
 local cooldown = 0
+M.grounded = false
 
 M.rayImpactOffsetXCache = 0
 M.rayImpactOffsetYCache = 0
@@ -105,7 +106,7 @@ M.draw = function () -- {{{
 end -- }}}
 
 -- game event specific functions {{{
-M.recoil = function (x, y) -- {{{
+M.recoil = function (x, y)
   -- normalize the points of the ball and target together
   x = x - M.body:getX()
   y = y - M.body:getY()
@@ -115,7 +116,7 @@ M.recoil = function (x, y) -- {{{
 
   -- convert the angle back into points at a fixed distance from the boll, and push
   M.body:applyLinearImpulse(-math.sin(angle)*700, -math.cos(angle)*700)
-end -- }}}
+end
 
 -- latch to terrain at the given coordinates; given coords must have latchable object at them
 M.latchToTerrain = function (contactLocationX, contactLocationY, terrainSurfaceNormalX, terrainSurfaceNormalY, rayImpactFraction, fixtureLatchedTo)
@@ -247,7 +248,7 @@ M.update = function(dt) -- {{{
 
   if love.keyboard.isDown("space") then
     M.shouldLatch = true
-    -- If in latching range, and there's a fixture to latch to, do so!
+    -- If in grabbing range, and there's a fixture to grab, do so!
     if not M.latched and closestGrabbableFixture then
       M.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction, closestGrabbableFixture)
     end
