@@ -8,7 +8,7 @@ M.maxWalkingSpeed = 300
 M.playerAcceleration = 50
 M.currentlyLatchedFixture = nil
 local cooldown = 0
-M.grounded = false
+M.currentlyGrabbing = false
 
 M.rayImpactOffsetXCache = 0
 M.rayImpactOffsetYCache = 0
@@ -227,6 +227,8 @@ M.update = function(dt) -- {{{
       -- sometimes the ray fails to hit on like, an exact edge case of aiming for a vertex with a 90 deg or less angle
       if fraction then
         rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (closestGrabbableFixture:getUserData().x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (closestGrabbableFixture:getUserData().y1 - spoodWorldCenterY) * fraction
+        local newAngle = math.atan2(normalVectX, -normalVectY)
+        M.body:setAngle(newAngle)
         debugRayImpactX = rayImpactLocX
         debugRayImpactY = rayImpactLocY
         debugRayNormalX = normalVectX
@@ -274,7 +276,9 @@ M.update = function(dt) -- {{{
   end
 
   if love.keyboard.isDown('s') then
+    if spoodCurrentLinearVelocityY >= -M.maxWalkingSpeed then
       M.body:applyLinearImpulse(0, M.playerAcceleration)
+    end
   end
 
   if love.keyboard.isDown('a') then
@@ -291,6 +295,16 @@ M.update = function(dt) -- {{{
   if not closestGrabbableFixture then
     -- Set velocity back to normal if it's been halved
     M.playerAcceleration = M.playerAcceleration * 2
+  end
+
+  if spoodCurrentLinearVelocity < 100 then
+    if closestGrabbableFixture and not love.keyboard.isDown('w') and not love.keyboard.isDown('a') and not love.keyboard.isDown('s') and not love.keyboard.isDown('d') then
+      local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.7)
+      local decelerationForceY = -(spoodCurrentLinearVelocityY * 0.7)
+      M.body:applyLinearImpulse(decelerationForceX, decelerationForceY)
+      local antigravX, antigravY = M.body:getWorld():getGravity()
+      M.body:applyForce(-antigravX, -antigravY)
+    end
   end
 
 end -- }}}
