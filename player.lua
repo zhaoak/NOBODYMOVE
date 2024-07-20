@@ -5,6 +5,7 @@ M.hardboxRadius = 20
 M.latchboxRadius = M.hardboxRadius * 1.5
 M.reachRadius = M.hardboxRadius * 3
 M.maxWalkingSpeed = 300
+M.playerAcceleration = 50
 M.currentlyLatchedFixture = nil
 local cooldown = 0
 
@@ -63,11 +64,6 @@ M.draw = function () -- {{{
   love.graphics.setColor(M.color)
   love.graphics.circle("fill", M.body:getX(), M.body:getY(), M.hardbox.shape:getRadius())
 
-  if arg[2] == 'debug' then
-    love.graphics.circle("line", M.body:getX(), M.body:getY(), M.reach.shape:getRadius())
-    love.graphics.circle("line", M.body:getX(), M.body:getY(), M.latchbox.shape:getRadius())
-  end
-
   love.graphics.setColor(0,0,0)
   local eyePos1X, eyePos1Y = M.body:getLocalCenter()
   eyePos1X, eyePos1Y = M.body:getWorldPoint(eyePos1X - 3, eyePos1Y - 5)
@@ -76,30 +72,36 @@ M.draw = function () -- {{{
   love.graphics.circle("fill", eyePos1X, eyePos1Y, 3)
   love.graphics.circle("fill", eyePos2X, eyePos2Y, 3)
 
-  -- various debug info
-  love.graphics.setColor(1, 1, 1)
-  local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
-  local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
-  love.graphics.print("spooder velocity, x/y/total: "..tostring(spoodCurrentLinearVelocityX).." / "..tostring(spoodCurrentLinearVelocityY).." / "..tostring(spoodCurrentLinearVelocity))
-  love.graphics.print("latched? "..tostring(M.latched), 0, 20)
-  if debugClosestFixture then
-    local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, debugClosestFixture)
-    love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
-    love.graphics.setColor(0, .5, 0)
-    if debugRayImpactX ~= nil and debugRayImpactY ~= nil then
-      love.graphics.circle("fill", debugRayImpactX, debugRayImpactY, 4)
-    end
+  -- debug rendering {{{
+  if arg[2] == 'debug' then
+    love.graphics.circle("line", M.body:getX(), M.body:getY(), M.reach.shape:getRadius())
+    love.graphics.circle("line", M.body:getX(), M.body:getY(), M.latchbox.shape:getRadius())
 
-    if debugRayNormalX ~= nil and debugRayImpactY ~= nil then
-      -- We also get the surface normal of the edge the ray hit. Here drawn in green
-      love.graphics.setColor(0, 255, 0)
-      love.graphics.line(debugRayImpactX, debugRayImpactY, debugRayImpactX + debugRayNormalX * 25, debugRayImpactY + debugRayNormalY * 25)
-      -- print(tostring(debugRayNormalX).." / "..tostring(debugRayNormalY))
+    -- various debug info
+    love.graphics.setColor(1, 1, 1)
+    local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
+    local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
+    love.graphics.print("spooder velocity, x/y/total: "..tostring(spoodCurrentLinearVelocityX).." / "..tostring(spoodCurrentLinearVelocityY).." / "..tostring(spoodCurrentLinearVelocity))
+    love.graphics.print("latched? "..tostring(M.latched), 0, 20)
+    if debugClosestFixture then
+      local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, debugClosestFixture)
+      love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
+      love.graphics.setColor(0, .5, 0)
+      if debugRayImpactX ~= nil and debugRayImpactY ~= nil then
+        love.graphics.circle("fill", debugRayImpactX, debugRayImpactY, 4)
+      end
+
+      if debugRayNormalX ~= nil and debugRayImpactY ~= nil then
+        -- We also get the surface normal of the edge the ray hit. Here drawn in green
+        love.graphics.setColor(0, 255, 0)
+        love.graphics.line(debugRayImpactX, debugRayImpactY, debugRayImpactX + debugRayNormalX * 25, debugRayImpactY + debugRayNormalY * 25)
+        -- print(tostring(debugRayNormalX).." / "..tostring(debugRayNormalY))
+      end
+      love.graphics.setColor(.95, .65, .25, .3)
+      love.graphics.circle("fill", x1, y1, 4)
+      love.graphics.circle("fill", x2, y2, 4)
     end
-    love.graphics.setColor(.95, .65, .25)
-    love.graphics.circle("fill", x1, y1, 4)
-    love.graphics.circle("fill", x2, y2, 4)
-  end
+  end -- }}}
 end -- }}}
 
 -- game event specific functions {{{
@@ -177,17 +179,18 @@ M.checkIfLatchStillValid = function (checkedFixture)
 end
 -- }}}
 
-M.update = function(dt)
+M.update = function(dt) -- {{{
   -- cache current frame spood velocity
   local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
 
-  -- if not latched, iterate through all terrain in range this frame, find the closest fixture
-  -- the closest fixture is the one that should be latched to
-  local closestLatchableFixture = nil
+  -- Find closest grabbable point code {{{
+  -- (in debug rendering, closest grabbable point is rendered in green)
+  local closestGrabbableFixture = nil
   debugClosestFixture = nil
+
   -- shortestDistance on init should be larger than anything it'll be compared to,
-  -- so that even a fixture on the edge of latchrange is correctly recognized as the shortest,
+  -- so that even a fixture on the edge of grab range is correctly recognized as the shortest,
   -- so long as it's the only fixture in range.
   -- This first loop measures the distance from the player for each fixture in range,
   -- as well as "bubbles" the shortest distance to the top (like bubbleSort does)
@@ -204,39 +207,36 @@ M.update = function(dt)
     v:setUserData(newUserData)
   end
 
-  -- Variables used for calculating latchpoint
+  -- Variables used for calculating grab point
   local spoodWorldCenterX, spoodWorldCenterY = M.body:getWorldCenter()
   local rayImpactLocX, rayImpactLocY
   local normalVectX, normalVectY, fraction
+
   -- This second loop identifies and caches whichever fixture in range is the closest to spood
   for k, v in pairs(M.terrainInRange) do
     local thisFixtureUserData = v:getUserData()
     if thisFixtureUserData.distance == shortestDistance then
-      closestLatchableFixture = M.terrainInRange[thisFixtureUserData.uid]
-      debugClosestFixture = closestLatchableFixture
+      closestGrabbableFixture = M.terrainInRange[thisFixtureUserData.uid]
+      debugClosestFixture = closestGrabbableFixture
       -- print(util.tprint(closestFixture:getUserData()).." is closest")
-      normalVectX, normalVectY, fraction = closestLatchableFixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, closestLatchableFixture:getUserData().x1, closestLatchableFixture:getUserData().y1, 10)
+      -- Raytrace from spood center position through previously cached getDistance contact point,
+      -- checking for impact against the identified closest fixture;
+      -- this will give us the "grab point" the spood is currently using.
+      normalVectX, normalVectY, fraction = closestGrabbableFixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, closestGrabbableFixture:getUserData().x1, closestGrabbableFixture:getUserData().y1, 10)
       -- sometimes the ray fails to hit on like, an exact edge case of aiming for a vertex with a 90 deg or less angle
       if fraction then
-        rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (closestLatchableFixture:getUserData().x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (closestLatchableFixture:getUserData().y1 - spoodWorldCenterY) * fraction
+        rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (closestGrabbableFixture:getUserData().x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (closestGrabbableFixture:getUserData().y1 - spoodWorldCenterY) * fraction
         debugRayImpactX = rayImpactLocX
         debugRayImpactY = rayImpactLocY
         debugRayNormalX = normalVectX
         debugRayNormalY = normalVectY
       else -- cancel, raycast failed
-        closestLatchableFixture = nil
+        closestGrabbableFixture = nil
         debugClosestFixture = nil
       end
     end
   end
-
-
-  -- If a closest fixture exists (which it will, so long as any latchable terrain is in range),
-  -- raytrace from spood center position through previously cached getDistance contact point,
-  -- checking for impact against the identified closest fixture;
-  -- this will give us the location on the edge of the closest fixture to latch to.
-  if closestLatchableFixture then
-  end
+  -- }}}
 
   -- recoil the player away from the mouse
   if love.mouse.isDown(1) and cooldown <= 0 then
@@ -248,8 +248,8 @@ M.update = function(dt)
   if love.keyboard.isDown("space") then
     M.shouldLatch = true
     -- If in latching range, and there's a fixture to latch to, do so!
-    if not M.latched and closestLatchableFixture then
-      M.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction, closestLatchableFixture)
+    if not M.latched and closestGrabbableFixture then
+      M.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction, closestGrabbableFixture)
     end
   else
     -- If the player lets go of latch key, let go of current latch
@@ -259,32 +259,40 @@ M.update = function(dt)
     end
   end
 
-  -- don't move up down midair
-  if closestLatchableFixture or M.latched then
+  -- While within grabbing range of terrain, spood can move any arbitrary direction in the air--
+  -- but not when no terrain is in range. There's also a max speed you can accelerate to while grabbed.
+  if closestGrabbableFixture then
     if love.keyboard.isDown('w') then
       if spoodCurrentLinearVelocityY >= -M.maxWalkingSpeed then
-        M.body:applyLinearImpulse(0, -50)
+        M.body:applyLinearImpulse(0, -M.playerAcceleration)
       end
     end
-    if love.keyboard.isDown('s') then
-      if spoodCurrentLinearVelocityY <= M.maxWalkingSpeed then
-        M.body:applyLinearImpulse(0, 50)
-      end
-    end
+  else
+      -- If player is in the air, reduce how much velocity they can apply
+      M.playerAcceleration = M.playerAcceleration / 2
   end
+
+  if love.keyboard.isDown('s') then
+      M.body:applyLinearImpulse(0, M.playerAcceleration)
+  end
+
   if love.keyboard.isDown('a') then
     if spoodCurrentLinearVelocityX >= -M.maxWalkingSpeed then
-      M.body:applyLinearImpulse(-50, 0)
+      M.body:applyLinearImpulse(-M.playerAcceleration, 0)
     end
   end
   if love.keyboard.isDown('d') then
     if spoodCurrentLinearVelocityX <= M.maxWalkingSpeed then
-      M.body:applyLinearImpulse(50, 0)
+      M.body:applyLinearImpulse(M.playerAcceleration, 0)
     end
   end
 
+  if not closestGrabbableFixture then
+    -- Set velocity back to normal if it's been halved
+    M.playerAcceleration = M.playerAcceleration * 2
+  end
 
-end
+end -- }}}
 
 return M
 -- vim: foldmethod=marker
