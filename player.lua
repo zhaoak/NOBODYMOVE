@@ -276,8 +276,9 @@ M.update = function(dt) -- {{{
   end
 
   if love.keyboard.isDown('s') then
-    if spoodCurrentLinearVelocityY >= -M.maxWalkingSpeed then
+    if spoodCurrentLinearVelocityY <= M.maxWalkingSpeed then
       M.body:applyLinearImpulse(0, M.playerAcceleration)
+      print(spoodCurrentLinearVelocityY)
     end
   end
 
@@ -297,11 +298,11 @@ M.update = function(dt) -- {{{
     M.playerAcceleration = M.playerAcceleration * 2
   end
 
-  if spoodCurrentLinearVelocity < 100 then
-    if closestGrabbableFixture and not love.keyboard.isDown('w') and not love.keyboard.isDown('a') and not love.keyboard.isDown('s') and not love.keyboard.isDown('d') then
-      local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.7)
-      local decelerationForceY = -(spoodCurrentLinearVelocityY * 0.7)
-      M.body:applyLinearImpulse(decelerationForceX, decelerationForceY)
+  if closestGrabbableFixture and not love.keyboard.isDown('w') and not love.keyboard.isDown('a') and not love.keyboard.isDown('s') and not love.keyboard.isDown('d') then
+    local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.05)
+    local decelerationForceY = -(spoodCurrentLinearVelocityY * 0.05)
+    M.body:applyLinearImpulse(decelerationForceX, decelerationForceY)
+    if spoodCurrentLinearVelocity < 100 then
       local antigravX, antigravY = M.body:getWorld():getGravity()
       M.body:applyForce(-antigravX, -antigravY)
     end
