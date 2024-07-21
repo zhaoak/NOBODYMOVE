@@ -232,6 +232,7 @@ M.update = function(dt) -- {{{
         if M.wantsGrab then
           local newAngle = math.atan2(normalVectX, -normalVectY)
           M.body:setAngle(newAngle)
+          M.body:setAngularVelocity(0)
         end
         debugRayImpactX = rayImpactLocX
         debugRayImpactY = rayImpactLocY
@@ -310,6 +311,13 @@ M.update = function(dt) -- {{{
   end
 
 end -- }}}
+
+ -- i live in spain withut the a
+function love.wheelmoved(_,y)
+  if not M.wantsGrab then
+    M.body:applyAngularImpulse(y*1000)
+  end
+end
 
 return M
 -- vim: foldmethod=marker
