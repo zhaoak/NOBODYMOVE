@@ -8,7 +8,7 @@ M.maxWalkingSpeed = 300
 M.playerAcceleration = 50
 M.currentlyLatchedFixture = nil
 local cooldown = 0
-M.currentlyGrabbing = false
+M.wantsGrab = true
 
 M.rayImpactOffsetXCache = 0
 M.rayImpactOffsetYCache = 0
@@ -75,15 +75,17 @@ M.draw = function () -- {{{
 
   -- debug rendering {{{
   if arg[2] == 'debug' then
-    love.graphics.circle("line", M.body:getX(), M.body:getY(), M.reach.shape:getRadius())
-    love.graphics.circle("line", M.body:getX(), M.body:getY(), M.latchbox.shape:getRadius())
+    if M.wantsGrab then
+      love.graphics.circle("line", M.body:getX(), M.body:getY(), M.reach.shape:getRadius())
+      love.graphics.circle("line", M.body:getX(), M.body:getY(), M.latchbox.shape:getRadius())
+    end
 
     -- various debug info
     love.graphics.setColor(1, 1, 1)
     local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
     local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
     love.graphics.print("spooder velocity, x/y/total: "..tostring(spoodCurrentLinearVelocityX).." / "..tostring(spoodCurrentLinearVelocityY).." / "..tostring(spoodCurrentLinearVelocity))
-    love.graphics.print("latched? "..tostring(M.latched), 0, 20)
+    love.graphics.print("shouldGrab? "..tostring(M.wantsGrab), 0, 20)
     if debugClosestFixture then
       local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, debugClosestFixture)
       love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
@@ -227,8 +229,10 @@ M.update = function(dt) -- {{{
       -- sometimes the ray fails to hit on like, an exact edge case of aiming for a vertex with a 90 deg or less angle
       if fraction then
         rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (closestGrabbableFixture:getUserData().x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (closestGrabbableFixture:getUserData().y1 - spoodWorldCenterY) * fraction
-        local newAngle = math.atan2(normalVectX, -normalVectY)
-        M.body:setAngle(newAngle)
+        if M.wantsGrab then
+          local newAngle = math.atan2(normalVectX, -normalVectY)
+          M.body:setAngle(newAngle)
+        end
         debugRayImpactX = rayImpactLocX
         debugRayImpactY = rayImpactLocY
         debugRayNormalX = normalVectX
@@ -249,23 +253,15 @@ M.update = function(dt) -- {{{
   cooldown = cooldown - dt -- decrement the cooldown
 
   if love.keyboard.isDown("space") then
-    M.shouldLatch = true
-    -- If in grabbing range, and there's a fixture to grab, do so!
-    if not M.latched and closestGrabbableFixture then
-      M.latchToTerrain(rayImpactLocX, rayImpactLocY, normalVectX, normalVectY, fraction, closestGrabbableFixture)
-    end
+    M.wantsGrab = false
   else
-    -- If the player lets go of latch key, let go of current latch
-    M.shouldLatch = false
-    if M.latched == true then
-      M.unlatchFromTerrain()
-    end
+    M.wantsGrab = true
   end
 
   -- While within grabbing range of terrain, spood can move any arbitrary direction in the air--
   -- but not when no terrain is in range. There's also a max speed you can accelerate to while grabbed.
   if closestGrabbableFixture then
-    if love.keyboard.isDown('w') then
+    if love.keyboard.isDown('w') and M.wantsGrab then
       if spoodCurrentLinearVelocityY >= -M.maxWalkingSpeed then
         M.body:applyLinearImpulse(0, -M.playerAcceleration)
       end
@@ -275,38 +271,43 @@ M.update = function(dt) -- {{{
       M.playerAcceleration = M.playerAcceleration / 4
   end
 
-  if love.keyboard.isDown('s') then
+  if love.keyboard.isDown('s') and M.wantsGrab then
     if spoodCurrentLinearVelocityY <= M.maxWalkingSpeed then
       M.body:applyLinearImpulse(0, M.playerAcceleration)
       print(spoodCurrentLinearVelocityY)
     end
   end
 
-  if love.keyboard.isDown('a') then
+  if love.keyboard.isDown('a') and M.wantsGrab then
     if spoodCurrentLinearVelocityX >= -M.maxWalkingSpeed then
       M.body:applyLinearImpulse(-M.playerAcceleration, 0)
     end
   end
-  if love.keyboard.isDown('d') then
+  if love.keyboard.isDown('d') and M.wantsGrab then
     if spoodCurrentLinearVelocityX <= M.maxWalkingSpeed then
       M.body:applyLinearImpulse(M.playerAcceleration, 0)
     end
   end
 
+  -- Set velocity back to normal if it's been halved
   if not closestGrabbableFixture then
-    -- Set velocity back to normal if it's been halved
     M.playerAcceleration = M.playerAcceleration * 4
   end
 
-  if closestGrabbableFixture and not love.keyboard.isDown('w') and not love.keyboard.isDown('a') and not love.keyboard.isDown('s') and not love.keyboard.isDown('d') then
+  -- If not holding any movement keys while grabbed on terrain, decelerate.
+  -- You'll skid if you have a lot of velocity, and stop moving entirely if you're slow enough.
+  if closestGrabbableFixture and not love.keyboard.isDown('w') and not love.keyboard.isDown('a') and not love.keyboard.isDown('s') and not love.keyboard.isDown('d') and M.wantsGrab then
     local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.05)
     local decelerationForceY = -(spoodCurrentLinearVelocityY * 0.05)
     M.body:applyLinearImpulse(decelerationForceX, decelerationForceY)
   end
-    if closestGrabbableFixture and spoodCurrentLinearVelocityY < 301 and not love.keyboard.isDown'w' then
-      local antigravX, antigravY = M.body:getWorld():getGravity()
-      M.body:applyForce(-antigravX, -antigravY)
-    end
+
+  -- If you're not already moving up or down really fast and not actively climbing upward,
+  -- cancel out the force of gravity. (it feels weird to climb without gravity)
+  if closestGrabbableFixture and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and not love.keyboard.isDown'w' and M.wantsGrab then
+    local antigravX, antigravY = M.body:getWorld():getGravity()
+    M.body:applyForce(-antigravX, -antigravY)
+  end
 
 end -- }}}
 
