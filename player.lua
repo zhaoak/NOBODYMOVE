@@ -187,7 +187,9 @@ M.update = function(dt) -- {{{
   local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
 
+  -- may be set later, reset every frame
   M.body:setGravityScale(1)
+  M.body:setAngularDamping(0)
 
   -- Find closest grabbable point code {{{
   -- (in debug rendering, closest grabbable point is rendered in green)
@@ -227,14 +229,27 @@ M.update = function(dt) -- {{{
       -- Raytrace from spood center position through previously cached getDistance contact point,
       -- checking for impact against the identified closest fixture;
       -- this will give us the "grab point" the spood is currently using.
-      normalVectX, normalVectY, fraction = closestGrabbableFixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, closestGrabbableFixture:getUserData().x1, closestGrabbableFixture:getUserData().y1, 10)
+      normalVectX, normalVectY, fraction = closestGrabbableFixture:rayCast(
+        spoodWorldCenterX,
+        spoodWorldCenterY,
+        closestGrabbableFixture:getUserData().x1,
+        closestGrabbableFixture:getUserData().y1,
+        10)
       -- sometimes the ray fails to hit on like, an exact edge case of aiming for a vertex with a 90 deg or less angle
       if fraction then
-        rayImpactLocX, rayImpactLocY = spoodWorldCenterX + (closestGrabbableFixture:getUserData().x1 - spoodWorldCenterX) * fraction, spoodWorldCenterY + (closestGrabbableFixture:getUserData().y1 - spoodWorldCenterY) * fraction
+        rayImpactLocX = spoodWorldCenterX + (closestGrabbableFixture:getUserData().x1 - spoodWorldCenterX) * fraction
+        rayImpactLocY = spoodWorldCenterY + (closestGrabbableFixture:getUserData().y1 - spoodWorldCenterY) * fraction
         if M.wantsGrab then
-          local newAngle = math.atan2(normalVectX, -normalVectY)
-          M.body:setAngle(newAngle)
-          M.body:setAngularVelocity(0)
+          local targetAngle = math.atan2(normalVectX, -normalVectY)
+          -- have the spood rotate towards the target angle
+          if math.abs(M.body:getAngle() - targetAngle) > 0.1 then
+            if M.body:getAngle() - targetAngle >= 0 then
+              M.body:applyTorque(-20000)
+            else
+              M.body:applyTorque(20000)
+            end
+            M.body:setAngularDamping(4)
+          end
         end
         debugRayImpactX = rayImpactLocX
         debugRayImpactY = rayImpactLocY
@@ -270,14 +285,13 @@ M.update = function(dt) -- {{{
       end
     end
   else
-      -- If player is in the air, reduce how much velocity they can apply
-      M.playerAcceleration = M.playerAcceleration / 4
+    -- If player is in the air, reduce how much velocity they can apply
+    M.playerAcceleration = M.playerAcceleration / 4
   end
 
   if love.keyboard.isDown('s') and M.wantsGrab then
     if spoodCurrentLinearVelocityY <= M.maxWalkingSpeed then
       M.body:applyLinearImpulse(0, M.playerAcceleration)
-      print(spoodCurrentLinearVelocityY)
     end
   end
 
@@ -300,23 +314,25 @@ M.update = function(dt) -- {{{
   -- If you're not already moving up or down really fast and not actively climbing upward,
   -- cancel out the force of gravity. (it feels weird to climb without gravity)
   if closestGrabbableFixture and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and not love.keyboard.isDown'w' and M.wantsGrab then
-    -- local antigravX, antigravY = M.body:getWorld():getGravity()
-    -- M.body:applyForce(-antigravX, -antigravY)
     M.body:setGravityScale(0)
   end
 
   -- If not holding any movement keys while grabbed on terrain, decelerate.
   -- You'll skid if you have a lot of velocity, and stop moving entirely if you're slow enough.
   if closestGrabbableFixture and not love.keyboard.isDown('w') and not love.keyboard.isDown('a') and not love.keyboard.isDown('s') and not love.keyboard.isDown('d') and M.wantsGrab then
-    local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.05)
-    local decelerationForceY = -(spoodCurrentLinearVelocityY * 0.05)
-    M.body:applyLinearImpulse(decelerationForceX, decelerationForceY)
+    if math.abs(spoodCurrentLinearVelocity) < 1 then
+      M.body:setLinearVelocity(0, 0)
+    else
+      local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.05)
+      local decelerationForceY = -(spoodCurrentLinearVelocityY * 0.05)
+      M.body:applyLinearImpulse(decelerationForceX, decelerationForceY)
+    end
   end
 
 
 end -- }}}
 
- -- i live in spain withut the a
+-- i live in spain withut the a
 function love.wheelmoved(_,y)
   if not M.wantsGrab then
     M.body:applyAngularImpulse(y*1000)
