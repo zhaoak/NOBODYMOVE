@@ -187,6 +187,8 @@ M.update = function(dt) -- {{{
   local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
 
+  M.body:setGravityScale(1)
+
   -- Find closest grabbable point code {{{
   -- (in debug rendering, closest grabbable point is rendered in green)
   local closestGrabbableFixture = nil
@@ -295,6 +297,14 @@ M.update = function(dt) -- {{{
     M.playerAcceleration = M.playerAcceleration * 4
   end
 
+  -- If you're not already moving up or down really fast and not actively climbing upward,
+  -- cancel out the force of gravity. (it feels weird to climb without gravity)
+  if closestGrabbableFixture and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and not love.keyboard.isDown'w' and M.wantsGrab then
+    -- local antigravX, antigravY = M.body:getWorld():getGravity()
+    -- M.body:applyForce(-antigravX, -antigravY)
+    M.body:setGravityScale(0)
+  end
+
   -- If not holding any movement keys while grabbed on terrain, decelerate.
   -- You'll skid if you have a lot of velocity, and stop moving entirely if you're slow enough.
   if closestGrabbableFixture and not love.keyboard.isDown('w') and not love.keyboard.isDown('a') and not love.keyboard.isDown('s') and not love.keyboard.isDown('d') and M.wantsGrab then
@@ -303,12 +313,6 @@ M.update = function(dt) -- {{{
     M.body:applyLinearImpulse(decelerationForceX, decelerationForceY)
   end
 
-  -- If you're not already moving up or down really fast and not actively climbing upward,
-  -- cancel out the force of gravity. (it feels weird to climb without gravity)
-  if closestGrabbableFixture and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and not love.keyboard.isDown'w' and M.wantsGrab then
-    local antigravX, antigravY = M.body:getWorld():getGravity()
-    M.body:applyForce(-antigravX, -antigravY)
-  end
 
 end -- }}}
 
