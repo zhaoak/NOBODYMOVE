@@ -272,7 +272,7 @@ M.update = function(dt) -- {{{
     end
   else
       -- If player is in the air, reduce how much velocity they can apply
-      M.playerAcceleration = M.playerAcceleration / 2
+      M.playerAcceleration = M.playerAcceleration / 4
   end
 
   if love.keyboard.isDown('s') then
@@ -295,18 +295,18 @@ M.update = function(dt) -- {{{
 
   if not closestGrabbableFixture then
     -- Set velocity back to normal if it's been halved
-    M.playerAcceleration = M.playerAcceleration * 2
+    M.playerAcceleration = M.playerAcceleration * 4
   end
 
   if closestGrabbableFixture and not love.keyboard.isDown('w') and not love.keyboard.isDown('a') and not love.keyboard.isDown('s') and not love.keyboard.isDown('d') then
     local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.05)
     local decelerationForceY = -(spoodCurrentLinearVelocityY * 0.05)
     M.body:applyLinearImpulse(decelerationForceX, decelerationForceY)
-    if spoodCurrentLinearVelocity < 100 then
+  end
+    if closestGrabbableFixture and spoodCurrentLinearVelocityY < 301 and not love.keyboard.isDown'w' then
       local antigravX, antigravY = M.body:getWorld():getGravity()
       M.body:applyForce(-antigravX, -antigravY)
     end
-  end
 
 end -- }}}
 
