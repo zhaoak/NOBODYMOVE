@@ -19,6 +19,7 @@ local debugClosestFixture
 -- import physics objects
 obj.playfield = require("playfield")
 obj.player = require("player")
+local gunlib = require'guns'
 
 
 -- functions
@@ -30,23 +31,12 @@ end  -- }}}
 
 -- step
 function love.update(dt) -- {{{
-  -- if currently latched, check if still in valid position to be latched
-  -- if obj.player.latched then
-  --   obj.player.checkIfLatchStillValid(obj.playfield.tiltedPlatform.fixture)
-  -- end
-
-  -- cache this frame's playervalues for comparison next frame
-  LastFramePositionX = spoodWorldCenterX
-  LastFramePositionY = spoodWorldCenterY
-  LastFrameVelocityX = spoodCurrentLinearVelocityX
-  LastFrameVelocityY = spoodCurrentLinearVelocityY
-  LastFrameVelocity = spoodCurrentLinearVelocity
-
   -- reset spood on rightclick
   if love.mouse.isDown(2) then
     obj.player.setup(world)
   end
 
+  gunlib.update(dt)
   obj.player.update(dt)
 
   world:update(dt)

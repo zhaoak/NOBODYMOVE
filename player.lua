@@ -1,3 +1,6 @@
+local gunlib = require'guns'
+local modlib = require'mods'
+
 local M = {reach={}, hardbox={}, latchbox={}}
 
 M.color = {0.5,1,1,1}
@@ -7,7 +10,6 @@ M.reachRadius = M.hardboxRadius * 3
 M.maxWalkingSpeed = 300
 M.playerAcceleration = 50
 M.currentlyLatchedFixture = nil
-local cooldown = 0
 M.wantsGrab = true
 
 M.rayImpactOffsetXCache = 0
@@ -18,11 +20,23 @@ M.latchedSurfaceNormalYCache = 0
 
 M.terrainInRange = {} -- using collision callbacks, when terrain enters/exits latchrange, it's added/removed here
 
+M.guns = {}
+
 local debugRayImpactX, debugRayImpactY -- don't mind my devcode pls
 local debugRayNormalX, debugRayNormalY -- yep
 local debugClosestFixture
 
 M.setup = function (world) -- {{{
+  -- tmp code for guns
+  for i = 0,1 do
+    -- M.guns[i] = gunlib.create("hitscan", i+1)
+    M.guns[i] = gunlib.create("hitscan", 0.5)
+    -- add mods
+    for j = 0,3 do
+      M.guns[i].mods[j] = modlib.create()
+    end
+  end
+
   M.contact = 0
   if M.body then M.body:destroy() end
 
@@ -107,19 +121,28 @@ M.draw = function () -- {{{
   end -- }}}
 end -- }}}
 
+M.shoot = function (x, y) -- {{{
+  for i,gun in ipairs(M.guns) do
+    if gun.cooldown < 0 then
+      local recoil = gun:shoot(x,y)
+
+      -- normalize the points of the spood and target together
+      x = x - M.body:getX()
+      y = y - M.body:getY()
+
+      -- get the angle of the mouse from the gun
+      local angle = math.atan2(x,y)
+
+      -- convert the angle back into points at a fixed distance from the boll, and move by recoil
+      x = -math.sin(angle)*recoil
+      y = -math.cos(angle)*recoil
+
+      M.body:applyLinearImpulse(x,y)
+    end
+  end
+end -- }}}
+
 -- game event specific functions {{{
-M.recoil = function (x, y)
-  -- normalize the points of the ball and target together
-  x = x - M.body:getX()
-  y = y - M.body:getY()
-
-  -- get the angle of the mouse from the ball
-  local angle = math.atan2(x,y)
-
-  -- convert the angle back into points at a fixed distance from the boll, and push
-  M.body:applyLinearImpulse(-math.sin(angle)*700, -math.cos(angle)*700)
-end
-
 -- latch to terrain at the given coordinates; given coords must have latchable object at them
 M.latchToTerrain = function (contactLocationX, contactLocationY, terrainSurfaceNormalX, terrainSurfaceNormalY, rayImpactFraction, fixtureLatchedTo)
   print("LATCH")
@@ -263,12 +286,10 @@ M.update = function(dt) -- {{{
   end
   -- }}}
 
-  -- recoil the player away from the mouse
-  if love.mouse.isDown(1) and cooldown <= 0 then
-    cooldown = 0.4
-    M.recoil(love.mouse:getX(), love.mouse:getY())
+  -- shoot guns!
+  if love.mouse.isDown(1) then
+    M.shoot(love.mouse:getX(), love.mouse:getY())
   end
-  cooldown = cooldown - dt -- decrement the cooldown
 
   if love.keyboard.isDown("space") then
     M.wantsGrab = false
