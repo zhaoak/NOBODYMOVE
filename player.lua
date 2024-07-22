@@ -52,7 +52,7 @@ M.setup = function (world) -- {{{
   M.reach.fixture = love.physics.newFixture(M.body, M.reach.shape, 0)
   -- the reach shape is just to detect when the spood can reach the wall
   -- you'd think we'd use a sensor, but no, check out preSolve in main.lua for where we handle that
-  M.reach.fixture:setUserData{name = "reach", simisensor=true}
+  M.reach.fixture:setUserData{name = "reach", semisensor=true}
 
 
 end -- }}}
