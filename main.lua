@@ -99,7 +99,8 @@ function endContact(a, b, contact) -- {{{
 end -- }}}
 
 function preSolve(a, b, contact) -- {{{
-  -- since 'sensors' senselessly sense solely shapes sharing space, shan't share specifics, shove sensors. shitty sensors.
+  -- Since 'sensors' senselessly sense solely shapes sharing space, shan't share specifics, shove sensors.
+  -- Silly sensors, surely sharing shouldn't stress software simulation?
   -- So, set shapes: "sure, sharing space shouldn't shove shapes", so seeing spots shapes share shall succeed shortly.
 
   -- ...
@@ -107,7 +108,7 @@ function preSolve(a, b, contact) -- {{{
   -- um. i meant. fixtures set to be sensors only track the fact that they're colliding, not anything about it
   -- so instead of making e.g. the player's reach box a sensor, just cancel the contact from doing anything with physics every time it gets created
   -- then in code when we grab the contact we can use methods like getPositions
-  if a:getUserData().simisensor or b:getUserData().simisensor then
+  if a:getUserData().semisensor or b:getUserData().semisensor then
     contact:setEnabled(false)
   end
   -- local cx1, cy1, cx2, cy2 = contact:getPositions()
