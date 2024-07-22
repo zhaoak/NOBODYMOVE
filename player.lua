@@ -23,9 +23,6 @@ M.terrainInRange = {} -- using collision callbacks, when terrain enters/exits la
 
 M.guns = {}
 
-local debugRayImpactX, debugRayImpactY -- don't mind my devcode pls
-local debugRayNormalX, debugRayNormalY -- yep
-local debugClosestFixture
 -- }}}
 
 M.setup = function (world) -- {{{
@@ -46,18 +43,17 @@ M.setup = function (world) -- {{{
   -- hardbox is the physical collision box of the spooder
   M.hardbox.shape = love.physics.newCircleShape(M.hardboxRadius)
   M.hardbox.fixture = love.physics.newFixture(M.body, M.hardbox.shape)
-  M.hardbox.fixture:setUserData("hardbox")
+  M.hardbox.fixture:setUserData{name = "hardbox"}
   -- a lil bounce, as a treat
   M.hardbox.fixture:setRestitution(0.2)
 
   -- reach is how far away the spood will latch to terrain from
   M.reach.shape = love.physics.newCircleShape(M.reachRadius)
   M.reach.fixture = love.physics.newFixture(M.body, M.reach.shape, 0)
-  M.reach.fixture:setUserData("reach")
-  M.reach.fixture:setRestitution(0)
-
   -- the reach shape is just to detect when the spood can reach the wall
-  M.reach.fixture:setSensor(true)
+  -- you'd think we'd use a sensor, but no, check out preSolve in main.lua for where we handle that
+  M.reach.fixture:setUserData{name = "reach", simisensor=true}
+
 
 end -- }}}
 
@@ -87,19 +83,19 @@ M.draw = function () -- {{{
     local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
     local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
     love.graphics.print("spooder velocity, x/y/total/angular: "..tostring(spoodCurrentLinearVelocityX).." / "..tostring(spoodCurrentLinearVelocityY).." / "..tostring(spoodCurrentLinearVelocity).." / "..tostring(M.body:getAngularVelocity()))
-    love.graphics.print("grabbing? "..tostring(M.grabbing), 0, 20)
-    if debugClosestFixture then
-      local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, debugClosestFixture)
+    love.graphics.print("grabbing? "..tostring(M.grab), 0, 20)
+    if M.grab then
+      local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, M.grab.fixture)
       love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
       love.graphics.setColor(0, .5, 0, 0.3)
-      if debugRayImpactX ~= nil and debugRayImpactY ~= nil then
-        love.graphics.circle("fill", debugRayImpactX, debugRayImpactY, 4)
+      if M.grab.x ~= nil and M.grab.y ~= nil then
+        love.graphics.circle("fill", M.grab.x, M.grab.y, 4)
       end
 
-      if debugRayNormalX ~= nil and debugRayImpactY ~= nil then
+      if M.grab.normalX ~= nil and M.grab.y ~= nil then
         -- We also get the surface normal of the edge the ray hit. Here drawn in green
         love.graphics.setColor(0, 255, 0)
-        love.graphics.line(debugRayImpactX, debugRayImpactY, debugRayImpactX + debugRayNormalX * 25, debugRayImpactY + debugRayNormalY * 25)
+        love.graphics.line(M.grab.x, M.grab.y, M.grab.x + M.grab.normalX * 25, M.grab.y + M.grab.normalY * 25)
         -- print(tostring(debugRayNormalX).." / "..tostring(debugRayNormalY))
       end
       love.graphics.setColor(.95, .65, .25, .3)
@@ -197,29 +193,15 @@ M.checkIfLatchStillValid = function (checkedFixture)
 end
 -- }}}
 
-M.update = function(dt) -- {{{
-  -- cache current frame spood velocity
-  local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
-  local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
-
-  -- may be set later, reset every frame {{{
-  M.body:setGravityScale(1)
-  M.body:setAngularDamping(0)
-  M.grabbing = false
-  local grabPoint = {}
-  -- }}}
-
-  -- find object grab point and determine if grabbing {{{
-  if love.keyboard.isDown("space") then -- don't bother looking if in ragdoll mode
+-- {{{ find object grab point and determine if grabbing
+local checkGrab = function ()
+  -- don't bother looking if in ragdoll mode
+  if love.keyboard.isDown("space") then
     M.ragdoll = true
   else
     M.ragdoll = false
 
-    local closestGrabbableFixture = nil
-    -- (in debug rendering, closest grabbable point is rendered in green)
-    debugClosestFixture = nil
-
-    -- {{{ find shortest distance for every reachable object
+    -- {{{ find closest reachable object
     -- shortestDistance on init should be larger than anything it'll be compared to,
     -- so that even a fixture on the edge of grab range is correctly recognized as the shortest,
     -- so long as it's the only fixture in range.
@@ -228,59 +210,55 @@ M.update = function(dt) -- {{{
     local shortestDistance = math.huge
     for _, v in pairs(M.terrainInRange) do
       -- get distance from spood
-      local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, v)
+      local distance, x, y = love.physics.getDistance(M.hardbox.fixture, v)
       -- check if it's the new closest and save
       if distance < shortestDistance then
+        -- set the new threshold
         shortestDistance = distance
-        closestGrabbableFixture = v
 
-        -- cache the distance call, we need it later anyway
-        local newUserData = v:getUserData()
-        newUserData.distance = distance
-        newUserData.x1 = x1
-        newUserData.y1 = y1
-        newUserData.x2 = x2
-        newUserData.y2 = y2
-        v:setUserData(newUserData)
+        -- set it as the grab point and that we're grabbing
+        M.grab = {}
+        M.grab.fixture = v
+        M.grab.x = x
+        M.grab.y = y
       end
     end
     -- }}}
 
+    -- {{{ if we found a fixture to grab get normal
+    if M.grab then
 
-    -- find the closest point on the closest fixture and set it as the grab point
-    if closestGrabbableFixture then -- {{{
-      -- Variables used for calculating grab point
-      local spoodWorldCenterX, spoodWorldCenterY = M.body:getWorldCenter()
-
-      -- Raytrace from spood center position through previously cached getDistance contact point,
-      -- checking for impact against the identified closest fixture;
-      -- this will give us the "grab point" the spood is currently using.
-      grabPoint.normalX, grabPoint.normalY, grabPoint.fraction = closestGrabbableFixture:rayCast(
-        spoodWorldCenterX,
-        spoodWorldCenterY,
-        closestGrabbableFixture:getUserData().x1,
-        closestGrabbableFixture:getUserData().y1,
-        10)
-
-      -- sometimes the ray fails to hit on like, an exact edge case of aiming for a vertex with a 90 deg or less angle
-      if grabPoint.fraction then
-        -- if it did hit, success! spood has a point to grab and will do so this frame
-        M.grabbing = true
-
-        -- calculate the positon of the point
-        grabPoint.x = spoodWorldCenterX + (closestGrabbableFixture:getUserData().x1 - spoodWorldCenterX) * grabPoint.fraction
-        grabPoint.y = spoodWorldCenterY + (closestGrabbableFixture:getUserData().y1 - spoodWorldCenterY) * grabPoint.fraction
-
-        -- dump to debug
-        debugRayImpactX = grabPoint.x
-        debugRayImpactY = grabPoint.y
-        debugRayNormalX = grabPoint.normalX
-        debugRayNormalY = grabPoint.normalY
-        debugClosestFixture = closestGrabbableFixture
+      -- get the normal by just asking the contact
+      local contacts = M.body:getContacts()
+      for _,contact in ipairs(contacts) do
+        -- get fixtures, one is spood, one is not
+        local f1, f2 = contact:getFixtures()
+        -- see if we have the right contact
+        if (f1 == M.grab.fixture) or (f2 == M.grab.fixture) then
+          if (f1:getUserData().name == "reach") or (f2:getUserData().name == "reach") then
+            -- set the normal
+            M.grab.normalX, M.grab.normalY = contact:getNormal()
+          end
+        end
       end
     end -- }}}
 
-  end -- }}}
+  end
+end -- }}}
+
+M.update = function(dt) -- {{{
+  -- cache current frame spood velocity
+  local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
+  local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
+
+  -- may be set later, reset every frame {{{
+  M.body:setGravityScale(1)
+  M.body:setAngularDamping(0)
+  M.grab = nil
+  -- }}}
+
+  -- find a grab point if a valid one exists
+  checkGrab()
 
   -- {{{ player input and movement
 
@@ -293,12 +271,12 @@ M.update = function(dt) -- {{{
   -- While within grabbing range of terrain, spood can move any arbitrary direction in the air--
   -- but not when no terrain is in range. There's also a max speed you can accelerate to while grabbed.
 
-  if not M.grabbing then -- If player is in the air, reduce how much velocity they can apply
+  if not M.grab then -- If player is in the air, reduce how much velocity they can apply
     M.playerAcceleration = M.playerAcceleration / 4
   end
 
   -- up
-  if M.grabbing and love.keyboard.isDown'w' then -- only allowed while grabbing
+  if M.grab and love.keyboard.isDown'w' then -- only allowed while grabbing
     if spoodCurrentLinearVelocityY >= -M.maxWalkingSpeed then
       M.body:applyLinearImpulse(0, -M.playerAcceleration)
     end
@@ -326,7 +304,7 @@ M.update = function(dt) -- {{{
   end
 
   -- Set velocity back to normal if it's been halved for air movement
-  if not M.grabbing then
+  if not M.grab then
     M.playerAcceleration = M.playerAcceleration * 4 -- this is some accelerated backhop type code
   end
   -- }}}
@@ -339,14 +317,14 @@ M.update = function(dt) -- {{{
   -- commented out section is the speed cap: revist this later but it feels weird to move downward that fast
   -- possibly we'll just lower the move down speed
   -- but works for now
-  if M.grabbing and --[[ spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and ]] not love.keyboard.isDown'w' then
+  if M.grab and --[[ spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and ]] not love.keyboard.isDown'w' then
     M.body:setGravityScale(0)
   end
 
   -- {{{ linear damping
   -- If not holding any movement keys while grabbed on terrain, decelerate.
   -- You'll skid if you have a lot of velocity, and stop moving entirely if you're slow enough.
-  if M.grabbing and not love.keyboard.isDown'w' and not love.keyboard.isDown'a' and not love.keyboard.isDown's' and not love.keyboard.isDown'd' then
+  if M.grab and not love.keyboard.isDown'w' and not love.keyboard.isDown'a' and not love.keyboard.isDown's' and not love.keyboard.isDown'd' then
     if math.abs(spoodCurrentLinearVelocity) < 1 and not love.mouse.isDown(1) then -- stinky! hacky: the recoil impulse gets canceled without this
       M.body:setLinearVelocity(0, 0)
     else
@@ -358,14 +336,14 @@ M.update = function(dt) -- {{{
   -- }}}
 
   -- {{{ handle rotating to surface
-  if M.grabbing then
+  if M.grab then
     M.body:setAngularDamping(5) -- spin less
     -- clamp spin, in fact
     if math.abs(M.body:getAngularVelocity()) < 2 then
       M.body:setAngularVelocity(0, 0)
     end
 
-    local targetAngle = math.atan2(grabPoint.normalX, -grabPoint.normalY)
+    local targetAngle = math.atan2(M.grab.normalX, -M.grab.normalY)
     -- phys tracks total rotation which is kind of weird?? if you spin something long enough it goes up forever and hits inf and the
     -- object fucking dies
     -- got annoyed with weird behaviors with the modulo to fix that so ig the spood keeps track of how many times she's spun
