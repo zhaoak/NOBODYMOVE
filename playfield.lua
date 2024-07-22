@@ -23,22 +23,19 @@ M.setup = function (world) -- {{{
   M.tiltedPlatform = {}
   M.tiltedPlatform.shape = love.physics.newRectangleShape(windowSizeX/3, windowSizeY/2, windowSizeX/3, windowSizeY/5, 50)
   M.tiltedPlatform.fixture = love.physics.newFixture(M.body, M.tiltedPlatform.shape)
-  M.tiltedPlatform.fixture:setUserData({["name"] = "tiltedplatform", ["type"] = "terrain"})
-  M.assignFixtureUID(M.tiltedPlatform.fixture)
+  M.tiltedPlatform.fixture:setUserData{name = "tiltedplatform", type = "terrain", uid = util.gen_uid()}
 
   -- more testing platforms
   M.platform2 = {}
   M.platform2.shape = love.physics.newRectangleShape(200, 400, 100, 200, 0)
   M.platform2.fixture = love.physics.newFixture(M.body, M.platform2.shape)
-  M.platform2.fixture:setUserData({["name"] = "platform2", ["type"] = "terrain"})
-  M.assignFixtureUID(M.platform2.fixture)
+  M.platform2.fixture:setUserData{name = "platform2", type = "terrain", uid = util.gen_uid()}
 
   -- testing circle
   M.circle = {}
   M.circle.shape = love.physics.newCircleShape(600, 400, 50)
   M.circle.fixture = love.physics.newFixture(M.body, M.circle.shape)
-  M.circle.fixture:setUserData({["name"] = "circle", ["type"] = "terrain"})
-  M.assignFixtureUID(M.circle.fixture)
+  M.circle.fixture:setUserData{name = "circle", type = "terrain", uid = util.gen_uid()}
 end -- }}}
 
 M.draw = function() -- {{{
@@ -77,24 +74,15 @@ M.resize = function(width, height) -- {{{
   M.body = love.physics.newBody(M.world, 0,0, "static")
 
   M.top = addLine(0,0, width,0)
-  M.top.fixture:setUserData({["name"] = "topborder", ["type"] = "terrain"})
-  M.assignFixtureUID(M.top.fixture)
+  M.top.fixture:setUserData{name = "topborder", type = "terrain", uid = util.gen_uid()}
   M.bottom = addLine(0,height, width,height)
-  M.bottom.fixture:setUserData({["name"] = "bottomborder", ["type"] = "terrain"})
-  M.assignFixtureUID(M.bottom.fixture)
+  M.bottom.fixture:setUserData{name = "bottomborder", type = "terrain", uid = util.gen_uid()}
   M.left = addLine(0,0, 0,height)
-  M.left.fixture:setUserData({["name"] = "leftborder", ["type"] = "terrain"})
-  M.assignFixtureUID(M.left.fixture)
+  M.left.fixture:setUserData{name = "leftborder", type = "terrain", uid = util.gen_uid()}
   M.right = addLine(width,0, width,height)
-  M.right.fixture:setUserData({["name"] = "rightborder", ["type"] = "terrain"})
-  M.assignFixtureUID(M.right.fixture)
+  M.right.fixture:setUserData{name = "rightborder", type = "terrain", uid = util.gen_uid()}
 end -- }}}
 
-M.assignFixtureUID = function(fixture)
-  local newFixtureUserData = fixture:getUserData()
-  newFixtureUserData.uid = util.gen_uid()
-  fixture:setUserData(newFixtureUserData)
-end
 
 -- }}}
 return M

@@ -9,12 +9,6 @@ local obj = {} -- all physics objects
 local phys = {} -- physics handlers
 local world -- the physics world
 local nextFrameActions = {} -- uhhh ignore for now pls
-local LastFramePositionX, LastFramePositionY
-local LastFrameVelocityX, LastFrameVelocityY, LastFrameVelocity
-
-local debugRayImpactX, debugRayImpactY -- don't mind my devcode pls
-local debugRayNormalX, debugRayNormalY -- yep
-local debugClosestFixture
 
 -- import physics objects
 obj.playfield = require("playfield")
@@ -64,16 +58,17 @@ love.resize = function (width,height)
 end
 
 -- physics collision callbacks {{{
-function beginContact(a, b, coll)
+
+function beginContact(a, b, contact) -- {{{
   -- print(a:getUserData().." colliding with "..b:getUserData()..", vector normal: "..x..", "..y)
 
   local fixtureAUserData = a:getUserData()
   local fixtureBUserData = b:getUserData()
 
   -- if terrain comes in range of spooder's reach...
-  if (fixtureAUserData == "reach" and fixtureBUserData.type == "terrain") or (fixtureBUserData == "reach" and fixtureAUserData.type == "terrain") then
+  if (fixtureAUserData.name == "reach" and fixtureBUserData.type == "terrain") or (fixtureBUserData.name == "reach" and fixtureAUserData.type == "terrain") then
     -- ...then add the terrain to the cache of terrain items in latching range
-    if fixtureAUserData == "reach" then
+    if fixtureAUserData.name == "reach" then
       obj.player.terrainInRange[fixtureBUserData.uid] = b
     else
       obj.player.terrainInRange[fixtureAUserData.uid] = a
@@ -82,18 +77,18 @@ function beginContact(a, b, coll)
   end
 
   -- print(tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
-end
+end -- }}}
 
-function endContact(a, b, coll)
+function endContact(a, b, contact) -- {{{
   -- print(a:getUserData().." and "..b:getUserData().." no longer colliding")
 
   local fixtureAUserData = a:getUserData()
   local fixtureBUserData = b:getUserData()
 
   -- when terrain leaves range of spooder's reach...
-  if (fixtureAUserData == "reach" and fixtureBUserData.type == "terrain") or (fixtureBUserData == "reach" and fixtureAUserData.type == "terrain") then
+  if (fixtureAUserData.name == "reach" and fixtureBUserData.type == "terrain") or (fixtureBUserData.name == "reach" and fixtureAUserData.type == "terrain") then
     -- ...remove the terrain from the cache of terrain items in latching range
-    if fixtureAUserData == "reach" then
+    if fixtureAUserData.name == "reach" then
       print(fixtureBUserData.name.." leaving latchrange")
       obj.player.terrainInRange[fixtureBUserData.uid] = nil
     else
@@ -101,18 +96,27 @@ function endContact(a, b, coll)
       obj.player.terrainInRange[fixtureAUserData.uid] = nil
     end
   end
-end
+end -- }}}
 
-function preSolve(a, b, coll)
-  -- local cx1, cy1, cx2, cy2 = coll:getPositions()
+function preSolve(a, b, contact) -- {{{
+  -- since 'sensors' senselessly sense solely shapes sharing space, shove sensors, set shapes: "sure, sharing space" so seeing spots shapes share space succeeds shortly
+  -- ...
+  -- fixtures set to be sensors only track the fact that they're colliding, not anything about it
+  -- so instead of making e.g. the player's reach box a sensor, just cancel the contact from doing anything with physics every time it gets created
+  -- then in code when we grab the contact we can use methods like getPositions
+  if a:getUserData().simisensor or b:getUserData().simisensor then
+    contact:setEnabled(false)
+  end
+  -- local cx1, cy1, cx2, cy2 = contact:getPositions()
   -- print("presolve: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
   -- print(a:getUserData().." colliding with "..b:getUserData())
-end
+end -- }}}
 
-function postSolve(a, b, coll, normalimpulse, tangentimpulse)
-  -- local cx1, cy1, cx2, cy2 = coll:getPositions()
+function postSolve(a, b, contact, normalimpulse, tangentimpulse) -- {{{
+  -- local cx1, cy1, cx2, cy2 = contact:getPositions()
   -- print("postsolve: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
-end
+end -- }}}
+
 -- }}}
 
 
