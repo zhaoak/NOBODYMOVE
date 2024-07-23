@@ -9,8 +9,7 @@ M.hardboxRadius = 20
 M.latchboxRadius = M.hardboxRadius * 1.5
 M.reachRadius = M.hardboxRadius * 3
 M.maxWalkingSpeed = 300
-M.playerAcceleration = 50
-M.currentlyLatchedFixture = nil
+M.playerAcceleration = 5
 M.ragdoll = true
 
 M.rayImpactOffsetXCache = 0
@@ -36,8 +35,12 @@ M.setup = function (world) -- {{{
     end
   end
 
-  M.contact = 0
+  M.world = world -- stash for laters
   if M.body then M.body:destroy() end
+  M.contact = 0
+
+  -- add texture
+  M.sprite = love.graphics.newImage("assets/playernormal.png")
 
   M.body = love.physics.newBody(world, 100,100, "dynamic")
   -- hardbox is the physical collision box of the spooder
@@ -58,23 +61,69 @@ M.setup = function (world) -- {{{
 end -- }}}
 
 M.draw = function () -- {{{
-  -- the body
-  love.graphics.setColor(M.color)
-  love.graphics.circle("fill", M.body:getX(), M.body:getY(), M.hardbox.shape:getRadius())
 
-  -- the eyes
-  love.graphics.setColor(0,0,0)
-  local eyePos1X, eyePos1Y = M.body:getLocalCenter()
-  eyePos1X, eyePos1Y = M.body:getWorldPoint(eyePos1X - 3, eyePos1Y - 5)
-  local eyePos2X, eyePos2Y = M.body:getLocalCenter()
-  eyePos2X, eyePos2Y = M.body:getWorldPoint(eyePos2X + 3, eyePos2Y - 5)
-  love.graphics.circle("fill", eyePos1X, eyePos1Y, 3)
-  love.graphics.circle("fill", eyePos2X, eyePos2Y, 3)
+  -- draw the sprite
+
+  -- reset the colors
+  love.graphics.setColor(1,1,1,1)
+  -- love.graphics.draw(M.sprite, x, y, angle, scale, scale, offset, offset)
+  love.graphics.draw(M.sprite, M.body:getX(), M.body:getY(), M.body:getAngle(), 40/271, 40/276, 271/2, 276/2)
+
+  -- tmp leg
+  for leg = 0,7 do
+    -- angle is octants of the spood (for now, later maybe skew them to more natural positions
+    local angle = (math.pi / 4) * leg
+    -- and offset by a 16th to not have leg straight up and down (the spider isn't straight this is cannon)
+    angle = angle + math.pi / 8
+    -- drawn at reach range
+    local x,y
+    x = -math.sin(angle)*M.reachRadius
+    y = -math.cos(angle)*M.reachRadius
+
+    x, y = M.body:getWorldPoint(x, y)
+    love.graphics.circle("fill", x, y, 3)
+
+    -- try to find where foot go
+    -- naive approach: shoot a ray down from the each spread leg, check if leg can reach, and if so, we know where footie should go
+
+    love.graphics.setColor(0, 0, 0)
+    if M.grab then
+      -- use world so she can grab whatever's near
+      M.world:rayCast(x, y, x + -M.grab.normalX*200, y + -M.grab.normalY*200, function(fixture, colX,colY)
+        local name = fixture:getUserData().name
+        if name == "reach" or name == "hardbox" then
+          return 1
+        else
+          -- love.graphics.line(x, y, colX, colY)
+          -- love.graphics.setColor(100, 0, 0)
+          -- love.graphics.circle("fill", colX, colY, 3)
+          return 0
+        end
+      end)
+    end
+
+  end
 
   -- debug rendering {{{
   if arg[2] == 'debug' then
+
+    -- -- the body
+    love.graphics.setColor(M.color)
+    love.graphics.circle("fill", M.body:getX(), M.body:getY(), M.hardbox.shape:getRadius())
+    --
+    -- -- the eyes
+    -- love.graphics.setColor(0,0,0)
+    local eyePos1X, eyePos1Y = M.body:getLocalCenter()
+    eyePos1X, eyePos1Y = M.body:getWorldPoint(eyePos1X - 3, eyePos1Y - 5)
+    local eyePos2X, eyePos2Y = M.body:getLocalCenter()
+    eyePos2X, eyePos2Y = M.body:getWorldPoint(eyePos2X + 3, eyePos2Y - 5)
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.circle("fill", eyePos1X, eyePos1Y, 3)
+    love.graphics.circle("fill", eyePos2X, eyePos2Y, 3)
+
     -- the reach circle
     if not M.ragdoll then
+      love.graphics.setColor(0,0,20,1)
       love.graphics.circle("line", M.body:getX(), M.body:getY(), M.reach.shape:getRadius())
     end
 
@@ -100,7 +149,15 @@ M.draw = function () -- {{{
       end
       love.graphics.setColor(.95, .65, .25, .3)
       love.graphics.circle("fill", x1, y1, 4)
+      love.graphics.setColor(.95, .65, .77, .6)
       love.graphics.circle("fill", x2, y2, 4)
+
+      -- contact points of two colliding fixtures, whatever that actually means
+      love.graphics.setColor(.95, 0, .25, .7)
+      love.graphics.circle("fill", M.grab.p.x1, M.grab.p.y1, 4)
+      if M.grab.p.x2 then --not always second point
+        love.graphics.circle("fill", M.grab.p.x2, M.grab.p.y2, 4)
+      end
     end
   end -- }}}
 
@@ -130,71 +187,10 @@ M.shoot = function (x, y) -- {{{
   end
 end -- }}}
 
--- depricated latch code {{{
--- latch to terrain at the given coordinates; given coords must have latchable object at them
-M.latchToTerrain = function (contactLocationX, contactLocationY, terrainSurfaceNormalX, terrainSurfaceNormalY, rayImpactFraction, fixtureLatchedTo)
-  print("LATCH")
-  -- cache offset from ray impact location, as well as raycast fraction value and surface normal
-  local spoodWorldCenterX, spoodWorldCenterY = M.body:getWorldCenter()
-  M.rayImpactOffsetXCache = contactLocationX - spoodWorldCenterX
-  M.rayImpactOffsetYCache = contactLocationY - spoodWorldCenterY
-  M.rayImpactFractionCache = rayImpactFraction
-  M.latchedSurfaceNormalXCache = terrainSurfaceNormalX
-  M.latchedSurfaceNormalYCache = terrainSurfaceNormalY
+local function getGrab() -- {{{
+  -- find object grab point and determine if grabbing
+  local grab = nil
 
-  -- cache fixture spood is latched to
-  M.currentlyLatchedFixture = fixtureLatchedTo
-
-  -- cancel all linear+angular velocity on latch, disable gravity too,
-  -- set angle, and update state
-  M.body:setLinearVelocity(0, 0)
-  M.body:setAngularVelocity(0)
-  M.body:setGravityScale(0)
-  -- Here we calculate the angle to set spood to so that it "stands" on terrain correctly
-  -- (with its butt towards the surface it's latched to.)
-  -- `atan2` finds the correct angle for this and takes care of the oddities with converting negative/positive vectors
-  -- to the appropriate angle.
-  -- The negative sign before `terrainSurfaceNormalY` is because in Love, (0,0) is at the top left corner and
-  -- Y increases when moving _down_ rather than up--
-  -- whereas `atan2` expects four quadrants where (0,0) is the intersection of all of them.
-  local newAngle = math.atan2(terrainSurfaceNormalX, -terrainSurfaceNormalY)
-  M.body:setAngle(newAngle)
-  M.latched = true
-
-  -- set position to latchboxRadius from collided-with object
-  M.body:setPosition(contactLocationX + terrainSurfaceNormalX * M.latchboxRadius, contactLocationY + terrainSurfaceNormalY * M.latchboxRadius)
-end
-
--- unlatch from terrain (making gravity apply to spood again)
-M.unlatchFromTerrain = function ()
-  print("UNLATCH")
-  M.body:setGravityScale(1)
-  M.latched = false
-  M.currentlyLatchedFixture = nil
-  M.latchedSurfaceNormalXCache = nil
-  M.latchedSurfaceNormalYCache = nil
-end
-
--- Called every frame when latched to surface in order to check if player is
--- still in valid position to walk on latched surface.
--- If not, unlatches them.
-M.checkIfLatchStillValid = function (checkedFixture)
-  local spoodWorldCenterX, spoodWorldCenterY = M.body:getWorldCenter()
-  local checkedNormalVectX, checkedNormalVectY, fraction = checkedFixture:rayCast(spoodWorldCenterX, spoodWorldCenterY, spoodWorldCenterX+M.rayImpactOffsetXCache, spoodWorldCenterY+M.rayImpactOffsetYCache, 5)
-  print(tostring(checkedNormalVectX).." / "..tostring(checkedNormalVectY).." vs: "..tostring(M.latchedSurfaceNormalXCache).." / "..tostring(M.latchedSurfaceNormalYCache))
-  print(tostring(fraction).." vs: "..tostring(M.rayImpactFractionCache))
-  if checkedNormalVectX == M.latchedSurfaceNormalXCache and
-    checkedNormalVectY == M.latchedSurfaceNormalYCache then
-    -- fraction == M.rayImpactFractionCache then
-    return
-  else
-    M:unlatchFromTerrain()
-  end
-end
--- }}}
-
--- {{{ find object grab point and determine if grabbing
-local checkGrab = function ()
   -- don't bother looking if in ragdoll mode
   if love.keyboard.isDown("space") then
     M.ragdoll = true
@@ -217,48 +213,54 @@ local checkGrab = function ()
         shortestDistance = distance
 
         -- set it as the grab point and that we're grabbing
-        M.grab = {}
-        M.grab.fixture = v
-        M.grab.x = x
-        M.grab.y = y
+        grab = {}
+        grab.fixture = v
+        grab.x = x
+        grab.y = y
+        grab.distance = distance
       end
     end
     -- }}}
 
     -- {{{ if we found a fixture to grab get normal
-    if M.grab then
-
+    if grab then
       -- get the normal by just asking the contact
       local contacts = M.body:getContacts()
       for _,contact in ipairs(contacts) do
-        -- get fixtures, one is spood, one is not
+        -- see if we have the right contact between reach and the grab fixture and set the normal
         local f1, f2 = contact:getFixtures()
-        -- see if we have the right contact
-        if (f1 == M.grab.fixture) or (f2 == M.grab.fixture) then
-          if (f1:getUserData().name == "reach") or (f2:getUserData().name == "reach") then
-            -- set the normal
-            M.grab.normalX, M.grab.normalY = contact:getNormal()
-          end
+        if (f1 == grab.fixture or f2 == grab.fixture) and (f1:getUserData().name == "reach" or f2:getUserData().name == "reach") then
+          grab.normalX, grab.normalY = contact:getNormal()
+          -- tmp debug
+          grab.p = {}
+          grab.p.x1, grab.p.y1, grab.p.x2, grab.p.x2 = contact:getPositions()
         end
       end
     end -- }}}
 
   end
+
+  return grab
 end -- }}}
+
+local function findFeetPos()
+  local naturalFeetPos = {}
+  for leg = 0,8 do
+    local angle = (math.pi / 8) * leg
+    print(angle)
+  end
+end
+findFeetPos()
 
 M.update = function(dt) -- {{{
   -- cache current frame spood velocity
   local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
 
-  -- may be set later, reset every frame {{{
+  -- may be set later, reset every frame
   M.body:setGravityScale(1)
   M.body:setAngularDamping(0)
-  M.grab = nil
-  -- }}}
-
-  -- find a grab point if a valid one exists
-  checkGrab()
+  M.grab = getGrab() -- find a grab point if a valid one exists
 
   -- {{{ player input and movement
 
@@ -317,7 +319,8 @@ M.update = function(dt) -- {{{
   -- commented out section is the speed cap: revist this later but it feels weird to move downward that fast
   -- possibly we'll just lower the move down speed
   -- but works for now
-  if M.grab and --[[ spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and ]] not love.keyboard.isDown'w' then
+  -- if M.grab and --[[ spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and ]] not love.keyboard.isDown'w' then
+  if M.grab and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and  not love.keyboard.isDown'w' then
     M.body:setGravityScale(0)
   end
 
@@ -344,13 +347,14 @@ M.update = function(dt) -- {{{
     end
 
     local targetAngle = math.atan2(M.grab.normalX, -M.grab.normalY)
-    -- phys tracks total rotation which is kind of weird?? if you spin something long enough it goes up forever and hits inf and the
-    -- object fucking dies
-    -- got annoyed with weird behaviors with the modulo to fix that so ig the spood keeps track of how many times she's spun
-    -- it's cute so
-    if math.abs(M.body:getAngle() - targetAngle) > 0.1 then -- stop spinning when close enough
-      -- have the spood rotate towards the target angle
-      if M.body:getAngle() - targetAngle >= 0 then
+
+    -- the physics engine tracks total rotation-so if you rotate something ten times, it's 20pi
+    -- so the weird math here is modulo-ing to within two rotations, one rotation and she can get fast enough to keep spinning forever
+    -- that's dependant on the dampening though, so if that changes, we may need to change the rotation count
+
+    if math.abs(M.body:getAngle() % (math.pi*4) - math.pi*2 - targetAngle) > 0.1 then -- stop spinning at all when close enough
+      -- find which direction to rotate & do
+      if (M.body:getAngle() % (math.pi*4)) - math.pi*2 - targetAngle >= 0 then
         M.body:applyTorque(-20000)
       else
         M.body:applyTorque(20000)

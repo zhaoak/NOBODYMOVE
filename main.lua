@@ -15,29 +15,7 @@ obj.playfield = require("playfield")
 obj.player = require("player")
 local gunlib = require'guns'
 
-
--- functions
--- draw
-function love.draw() -- {{{
-  obj.playfield.draw()
-  obj.player.draw()
-end  -- }}}
-
--- step
-function love.update(dt) -- {{{
-  -- reset spood on rightclick
-  if love.mouse.isDown(2) then
-    obj.player.setup(world)
-  end
-
-  gunlib.update(dt)
-  obj.player.update(dt)
-
-  world:update(dt)
-end -- }}}
-
--- init
-function love.load() -- {{{
+function love.load() -- {{{ init
   love.graphics.setBackgroundColor(.2,.2,.2)
   love.window.setMode(1000,1000)
   love.window.setVSync(true)
@@ -50,7 +28,27 @@ function love.load() -- {{{
 
   obj.playfield.setup(world)
   obj.player.setup(world)
+
 end -- }}}
+
+function love.update(dt) -- {{{
+  -- reset spood on rightclick
+  if love.mouse.isDown(2) then
+    obj.player.setup(world)
+  end
+
+  gunlib.update(dt)
+  obj.player.update(dt)
+
+  world:update(dt)
+end -- }}}
+
+function love.draw() -- {{{
+  obj.playfield.draw()
+  obj.player.draw()
+
+end  -- }}}
+
 
 -- catch resize
 love.resize = function (width,height)
