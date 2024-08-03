@@ -20,15 +20,13 @@ end -- }}}
 -- have each gun's base behaviors be secretly a mod (and not here)
 -- would work great for grafting guns together
 M.create = function(type, cooldown) -- {{{
--- create a gun
-  local gun = {}
-  gun.mods = {}
-  gun.type = type or "hitscan"
+-- create test gun
+  local gun = require'gundefs/testgun'
 
-  -- not sure how we'll do this with mods, prob just recalculate it on each mod change
-  -- tmp
+  -- -- not sure how we'll do this with mods, prob just recalculate it on each mod change
+  -- -- tmp
   gun.maxCooldown = cooldown
-  gun.cooldown = cooldown
+  -- gun.cooldown = cooldown
 
   -- add methods
   gun.shoot = shoot

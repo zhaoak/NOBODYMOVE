@@ -130,12 +130,23 @@ M.draw = function () -- {{{
       love.graphics.circle("line", M.body:getX(), M.body:getY(), M.reach.shape:getRadius())
     end
 
+    -- gun debug
+    local gunNameDebugList = ""
+    for i, gun in ipairs(M.guns) do
+      gunNameDebugList = gunNameDebugList..gun.name
+      if i ~= table.getn(M.guns) then
+        gunNameDebugList = gunNameDebugList..", "
+      end
+    end
+
     -- various debug info
     love.graphics.setColor(1, 1, 1)
     local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
     local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
     love.graphics.print("spooder velocity, x/y/total/angular: "..tostring(spoodCurrentLinearVelocityX).." / "..tostring(spoodCurrentLinearVelocityY).." / "..tostring(spoodCurrentLinearVelocity).." / "..tostring(M.body:getAngularVelocity()))
     love.graphics.print("grabbing? "..tostring(M.grab), 0, 20)
+    love.graphics.setColor(0, .75, .25)
+    love.graphics.print("current guns: "..gunNameDebugList, 0, 40)
     if M.grab then
       local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, M.grab.fixture)
       love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
@@ -162,7 +173,9 @@ M.draw = function () -- {{{
         love.graphics.circle("fill", M.grab.p.x2, M.grab.p.y2, 4)
       end
     end
-  end -- }}}
+  end 
+
+  -- }}}
 
 end -- }}}
 
