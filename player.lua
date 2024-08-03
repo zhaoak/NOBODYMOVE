@@ -9,7 +9,7 @@ M.hardboxRadius = 20
 M.latchboxRadius = M.hardboxRadius * 1.5
 M.reachRadius = M.hardboxRadius * 3
 M.maxWalkingSpeed = 300
-M.playerAcceleration = 5
+M.playerAcceleration = 20
 M.ragdoll = true
 
 M.rayImpactOffsetXCache = 0
@@ -56,6 +56,9 @@ M.setup = function (world) -- {{{
   -- the reach shape is just to detect when the spood can reach the wall
   -- you'd think we'd use a sensor, but no, check out preSolve in main.lua for where we handle that
   M.reach.fixture:setUserData{name = "reach", semisensor=true}
+
+  -- set angular damping for spooder spinning
+  M.body:setAngularDamping(0.1)
 
 
 end -- }}}
