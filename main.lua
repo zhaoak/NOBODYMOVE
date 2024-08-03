@@ -16,7 +16,7 @@ obj.player = require("player")
 local gunlib = require'guns'
 
 function love.load() -- {{{ init
-  love.graphics.setBackgroundColor(.2,.2,.2)
+  love.graphics.setBackgroundColor(.4,.4,.4)
   love.window.setMode(1000,1000)
   love.window.setVSync(true)
 
@@ -46,6 +46,8 @@ end -- }}}
 function love.draw() -- {{{
   obj.playfield.draw()
   obj.player.draw()
+  -- draw existing bullets and other projectiles
+  -- draw effects (explosions, impacts, etc)
 
 end  -- }}}
 

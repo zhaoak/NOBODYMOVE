@@ -192,7 +192,7 @@ M.shoot = function (x, y) -- {{{
   for i,gun in ipairs(M.guns) do
     if gun.cooldown < 0 then
       local recoil = gun:shoot(x,y)
-      print("bang!!")
+      -- print("bang!!")
       -- normalize the points of the spood and target together
       x = x - M.body:getX()
       y = y - M.body:getY()

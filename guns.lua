@@ -17,9 +17,9 @@ local function shoot (gun, x, y) -- {{{
   return shot.recoil
 end -- }}}
 
-local function draw (gun, player)
+local function draw (gun, player) -- {{{
   -- reset the colors
-  love.graphics.setColor(1,0,0,1)
+  love.graphics.setColor(1,1,1,1)
 
   local spriteLocationOffsetX = math.sin(player.currentAimAngle) * gun.playerHoldDistance
   local spriteLocationOffsetY = math.cos(player.currentAimAngle) * gun.playerHoldDistance
@@ -28,10 +28,14 @@ local function draw (gun, player)
   if player.currentAimAngle < 0 then
     flipGunSprite = -1
   end
+  if arg[2] == "debug" then
+    love.graphics.circle("fill", player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, 5)
+  end
+
   -- draw the gun sprite
-  love.graphics.circle("fill", player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, 5)
-  love.graphics.draw(gun.gunSprite, player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, math.pi/2-player.currentAimAngle, 0.5, 0.5*flipGunSprite, 0, 0)
-end
+  -- y-origin arg has a small positive offset to line up testgun sprite's barrel with actual aim angle, this is temporary and will need to vary with other guns
+  love.graphics.draw(gun.gunSprite, player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, (math.pi/2) - player.currentAimAngle, 0.5, 0.5*flipGunSprite, 0, 15)
+end -- }}}
 
 
 -- have each gun's base behaviors be secretly a mod (and not here)
