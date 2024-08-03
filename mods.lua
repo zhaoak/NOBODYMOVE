@@ -11,7 +11,7 @@ M.create = function() -- {{{
   local mod = {}
 
   -- tmp
-  mod.recoil = 100
+  mod.recoil = 0
 
   -- add methods
   mod.apply = apply

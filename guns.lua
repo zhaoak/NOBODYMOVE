@@ -5,7 +5,7 @@ local function shoot (gun, x, y) -- {{{
   gun.cooldown = gun.maxCooldown
   -- store the state of the shot, so mods can modify it as they go
   -- adding more chaos each time, hopefully
-  local shot = {recoil=0, damage=0} -- stuff like spread, pellets, speed, etc everything idk yet
+  local shot = {recoil=gun.holderKnockback, damage=0} -- stuff like spread, pellets, speed, etc everything idk yet
     for _, mod in ipairs(gun.mods) do
       shot = mod:apply(shot)
     end
@@ -19,14 +19,13 @@ end -- }}}
 
 -- have each gun's base behaviors be secretly a mod (and not here)
 -- would work great for grafting guns together
-M.create = function(type, cooldown) -- {{{
+M.create = function(gunName) -- {{{
 -- create test gun
-  local gun = require'gundefs/testgun'
+  local gun = require('gundefs/'..gunName)
 
   -- -- not sure how we'll do this with mods, prob just recalculate it on each mod change
   -- -- tmp
-  gun.maxCooldown = cooldown
-  -- gun.cooldown = cooldown
+  gun.maxCooldown = gun.cooldown
 
   -- add methods
   gun.shoot = shoot
@@ -36,6 +35,10 @@ M.create = function(type, cooldown) -- {{{
   table.insert(gunlist, gun)
   return gun
 end -- }}}
+
+M.draw = function(gun)
+  
+end
 
 M.update = function (dt)
   for _,gun in ipairs(gunlist) do

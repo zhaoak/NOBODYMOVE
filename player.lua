@@ -25,10 +25,9 @@ M.guns = {}
 -- }}}
 
 M.setup = function (world) -- {{{
-  -- tmp code for guns
+  -- tmp code for guns, player just has one test gun for now
   for i = 0,1 do
-    -- M.guns[i] = gunlib.create("hitscan", i+1)
-    M.guns[i] = gunlib.create("hitscan", 0.5)
+    M.guns[i] = gunlib.create("testgun")
     -- add mods
     for j = 0,3 do
       M.guns[i].mods[j] = modlib.create()
@@ -185,7 +184,7 @@ M.shoot = function (x, y) -- {{{
   for i,gun in ipairs(M.guns) do
     if gun.cooldown < 0 then
       local recoil = gun:shoot(x,y)
-
+      print("bang!!")
       -- normalize the points of the spood and target together
       x = x - M.body:getX()
       y = y - M.body:getY()
