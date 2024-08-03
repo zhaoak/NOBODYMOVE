@@ -17,6 +17,23 @@ local function shoot (gun, x, y) -- {{{
   return shot.recoil
 end -- }}}
 
+local function draw (gun, player)
+  -- reset the colors
+  love.graphics.setColor(1,0,0,1)
+
+  local spriteLocationOffsetX = math.sin(player.currentAimAngle) * gun.playerHoldDistance
+  local spriteLocationOffsetY = math.cos(player.currentAimAngle) * gun.playerHoldDistance
+  -- if the player is aiming left, flip the gun sprite
+  local flipGunSprite = 1
+  if player.currentAimAngle < 0 then
+    flipGunSprite = -1
+  end
+  -- draw the gun sprite
+  love.graphics.circle("fill", player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, 5)
+  love.graphics.draw(gun.gunSprite, player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, math.pi/2-player.currentAimAngle, 0.5, 0.5*flipGunSprite, 0, 0)
+end
+
+
 -- have each gun's base behaviors be secretly a mod (and not here)
 -- would work great for grafting guns together
 M.create = function(gunName) -- {{{
@@ -29,16 +46,13 @@ M.create = function(gunName) -- {{{
 
   -- add methods
   gun.shoot = shoot
+  gun.draw = draw
   -- gun.modify = modify
 
   -- add it to the list
   table.insert(gunlist, gun)
   return gun
 end -- }}}
-
-M.draw = function(gun)
-  
-end
 
 M.update = function (dt)
   for _,gun in ipairs(gunlist) do

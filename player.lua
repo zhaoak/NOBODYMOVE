@@ -11,6 +11,7 @@ M.reachRadius = M.hardboxRadius * 3
 M.maxWalkingSpeed = 300
 M.playerAcceleration = 20
 M.ragdoll = true
+M.currentAimAngle = 0 -- relative to world; i.e. 0 means aiming straight down from player perspective of world
 
 M.rayImpactOffsetXCache = 0
 M.rayImpactOffsetYCache = 0
@@ -106,6 +107,11 @@ M.draw = function () -- {{{
 
   end
 
+  -- draw guns
+  for _,gun in ipairs(M.guns) do
+    gun.draw(gun, M)
+  end
+
   -- debug rendering {{{
   if arg[2] == 'debug' then
 
@@ -144,11 +150,13 @@ M.draw = function () -- {{{
     local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
     love.graphics.print("spooder velocity, x/y/total/angular: "..tostring(spoodCurrentLinearVelocityX).." / "..tostring(spoodCurrentLinearVelocityY).." / "..tostring(spoodCurrentLinearVelocity).." / "..tostring(M.body:getAngularVelocity()))
     love.graphics.print("grabbing? "..tostring(M.grab), 0, 20)
+    love.graphics.print("world-relative aim angle (0 = directly down, pi = directly up): "..tostring(M.currentAimAngle), 0, 40)
     love.graphics.setColor(0, .75, .25)
-    love.graphics.print("current guns: "..gunNameDebugList, 0, 40)
+    love.graphics.print("current guns: "..gunNameDebugList, 0, 60)
+
     if M.grab then
       local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, M.grab.fixture)
-      love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 60)
+      love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 80)
       love.graphics.setColor(0, .5, 0, 0.3)
       if M.grab.x ~= nil and M.grab.y ~= nil then
         love.graphics.circle("fill", M.grab.x, M.grab.y, 4)
@@ -271,6 +279,9 @@ M.update = function(dt) -- {{{
   -- cache current frame spood velocity
   local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
+
+  -- update current absolute aim angle
+  M.currentAimAngle = math.atan2(love.mouse:getX() - M.body:getX(), love.mouse:getY() - M.body:getY())
 
   -- may be set later, reset every frame
   M.body:setGravityScale(1)
