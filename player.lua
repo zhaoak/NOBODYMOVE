@@ -28,7 +28,7 @@ M.guns = {}
 M.setup = function (world) -- {{{
   -- tmp code for guns, player just has one test gun for now
   for i = 0,1 do
-    M.guns[i] = gunlib.equipGun("testgun")
+    M.guns[i] = gunlib.equipGun("samplegun")
     -- add mods
     for j = 0,3 do
       M.guns[i].mods[j] = modlib.create()

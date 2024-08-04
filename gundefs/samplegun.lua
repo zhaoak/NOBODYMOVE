@@ -7,11 +7,33 @@ local M = { }
 -- Name of gun, used as the gun's primary identifier when calling equipGun()
 M.name = "samplegun"
 
--- Type of gun, defines how its projectiles behave by default before mods
+-- Type of gun, defines how its projectiles behave before mods
 -- (normal bullet vs laser vs explosive projectile, etc)
 M.type = "bullet"
 
--- The delay time between shots in seconds
+-- How many projectiles are created for each shot before mods
+M.multishot = 1
+
+-- The default maximum angle of inaccuracy of this gun in radians
+-- (If you'd prefer to use degrees, simply convert a degree value using math.rad)
+-- Example: a value of `math.rad(15)` means the fired shot can be fired clockwise or counterclockwise
+-- up to 15 degrees away from the angle you're aiming at, determined at random
+M.inaccuracy = math.rad(15)
+
+-- The firing pattern of the gun, must be of a predefined type:
+-- 'single' -- one click = gun shoots once per click
+-- 'burst'  -- one click = gun shoots a fixed number of times, then stops
+-- 'auto'   -- fires as long as shoot button held down
+M.fireMode = "single"
+
+-- How many projectiles to fire in burst if weapon has `fireMode = "burst"`
+M.burstCount = 0
+
+-- How long delay between shots in a burst is in seconds
+-- Obviously, only applies if `firemode = "burst"`
+M.burstDelay = .2
+
+-- The delay time between shots in seconds, applies after each 
 M.cooldown = 1
 
 -- Not sure what this one is tbh, lemme know pls spooder

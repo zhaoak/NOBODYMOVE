@@ -6,6 +6,7 @@ local function shoot (gun, x, y) -- {{{
   -- store the state of the shot, so mods can modify it as they go
   -- adding more chaos each time, hopefully
   local shot = {recoil=gun.holderKnockback, damage=0} -- stuff like spread, pellets, speed, etc everything idk yet
+
     for _, mod in ipairs(gun.mods) do
       shot = mod:apply(shot)
     end
