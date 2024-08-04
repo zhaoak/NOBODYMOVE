@@ -34,14 +34,14 @@ local function draw (gun, player) -- {{{
 
   -- draw the gun sprite
   -- y-origin arg has a small positive offset to line up testgun sprite's barrel with actual aim angle, this is temporary and will need to vary with other guns
-  love.graphics.draw(gun.gunSprite, player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, (math.pi/2) - player.currentAimAngle, 0.5, 0.5*flipGunSprite, 0, 15)
+  love.graphics.draw(gun.gunSprite, player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, (math.pi/2) - player.currentAimAngle, 0.3, 0.3*flipGunSprite, 0, 15)
 end -- }}}
 
 
 -- have each gun's base behaviors be secretly a mod (and not here)
 -- would work great for grafting guns together
-M.create = function(gunName) -- {{{
--- create test gun
+M.equipGun = function(gunName) -- {{{
+-- find gundef file by name
   local gun = require('gundefs/'..gunName)
 
   -- -- not sure how we'll do this with mods, prob just recalculate it on each mod change
