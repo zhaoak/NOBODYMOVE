@@ -21,8 +21,8 @@ local function draw (gun, player) -- {{{
   -- reset the colors
   love.graphics.setColor(1,1,1,1)
 
-  local spriteLocationOffsetX = math.sin(player.currentAimAngle) * gun.playerHoldDistance
-  local spriteLocationOffsetY = math.cos(player.currentAimAngle) * gun.playerHoldDistance
+  local spriteLocationOffsetX = math.sin(player.currentAimAngle) * (gun.playerHoldDistance + player.hardboxRadius)
+  local spriteLocationOffsetY = math.cos(player.currentAimAngle) * (gun.playerHoldDistance + player.hardboxRadius)
   -- if the player is aiming left, flip the gun sprite
   local flipGunSprite = 1
   if player.currentAimAngle < 0 then
