@@ -13,6 +13,7 @@ local nextFrameActions = {} -- uhhh ignore for now pls
 -- import physics objects
 obj.playfield = require("playfield")
 obj.player = require("player")
+obj.projectiles = require("projectiles")
 local gunlib = require'guns'
 
 function love.load() -- {{{ init
@@ -28,6 +29,7 @@ function love.load() -- {{{ init
 
   obj.playfield.setup(world)
   obj.player.setup(world)
+  obj.projectiles.setup(world)
 
 end -- }}}
 
@@ -46,9 +48,10 @@ end -- }}}
 function love.draw() -- {{{
   obj.playfield.draw()
   obj.player.draw()
+
   -- draw existing bullets and other projectiles
   -- draw effects (explosions, impacts, etc)
-
+  obj.projectiles.draw()
 end  -- }}}
 
 

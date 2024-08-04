@@ -26,14 +26,14 @@ M.inaccuracy = math.rad(15)
 -- 'auto'   -- fires as long as shoot button held down
 M.fireMode = "single"
 
--- How many projectiles to fire in burst if weapon has `fireMode = "burst"`
-M.burstCount = 0
+-- How many projectiles to fire per burst if weapon has `fireMode = "burst"`
+M.burstCount = 1
 
 -- How long delay between shots in a burst is in seconds
 -- Obviously, only applies if `firemode = "burst"`
 M.burstDelay = .2
 
--- The delay time between shots in seconds, applies after each 
+-- The delay time between shots in seconds, applies after each shot/burst
 M.cooldown = 1
 
 -- Not sure what this one is tbh, lemme know pls spooder

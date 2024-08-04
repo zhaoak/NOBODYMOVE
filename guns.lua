@@ -1,6 +1,8 @@
 local M = { }
 local gunlist = {}
 
+local projectileLib = require'projectiles'
+
 local function shoot (gun, x, y) -- {{{
   gun.cooldown = gun.maxCooldown
   -- store the state of the shot, so mods can modify it as they go
@@ -13,6 +15,10 @@ local function shoot (gun, x, y) -- {{{
 
   if gun.type == "hitscan" then
     -- cast a ray etc
+  end
+
+  if gun.type == "bullet" then
+    projectileLib.createBulletShot(gun, x, y, 0)
   end
 
   return shot.recoil
@@ -48,6 +54,9 @@ M.equipGun = function(gunName) -- {{{
   -- -- not sure how we'll do this with mods, prob just recalculate it on each mod change
   -- -- tmp
   gun.maxCooldown = gun.cooldown
+
+  -- set default aim angle for gun
+  gun.aimAngle = 0
 
   -- add methods
   gun.shoot = shoot
