@@ -17,7 +17,7 @@ end
 
 M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle)
   local newProjectiles = {}
-  for i = 0, gun.multishot do
+  for i = 1, gun.multishot do
     -- create physics data for new bullet
     local newBullet = {}
     newBullet.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
@@ -27,7 +27,6 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     newBullet.body:setBullet(true)
     newBullet.body:setGravityScale(0)
     table.insert(newProjectiles, newBullet)
-
     -- calculate shot angle and randomness, apply forces to physics objects
   end
 
@@ -42,6 +41,13 @@ M.draw = function() -- {{{
     love.graphics.circle("fill", proj.body:getX(), proj.body:getY(), M.bulletRadius)
   end
 end -- }}}
+
+-- for checking timed explosives, other effects
+M.update = function (dt)
+  for i, proj in pairs(projectileList) do
+    -- print(proj.fixture:getUserData())
+  end
+end
 
 return M
 -- vim: foldmethod=marker
