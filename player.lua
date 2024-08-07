@@ -11,6 +11,7 @@ M.latchboxRadius = M.hardboxRadius * 1.5
 M.reachRadius = M.hardboxRadius * 3
 M.maxWalkingSpeed = 300
 M.playerAcceleration = 20
+M.playerLatchedKnockbackReduction = 0.05
 M.ragdoll = true
 M.currentAimAngle = 0 -- relative to world; i.e. 0 means aiming straight down from player perspective of world
 
@@ -199,7 +200,12 @@ M.shoot = function (x, y) -- {{{
       local shotWorldOriginY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
 
       local playerKnockback = gun:shoot(M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, gun)
-      -- print("bang!!")
+
+      -- if player is currently latched to something, greatly reduce knockback
+      if next(M.terrainInRange) ~= nil then
+        playerKnockback = playerKnockback * M.playerLatchedKnockbackReduction
+      end
+
       -- normalize the points of the spood and target together
       x = x - M.body:getX()
       y = y - M.body:getY()
