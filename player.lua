@@ -60,6 +60,9 @@ M.setup = function (world) -- {{{
   -- set angular damping for spooder spinning
   M.body:setAngularDamping(0.1)
 
+  -- set spooder mass
+  M.body:setMass(0.3)
+
 
 end -- }}}
 
