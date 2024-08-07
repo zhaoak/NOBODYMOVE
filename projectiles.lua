@@ -2,8 +2,9 @@ local M = { }
 local projectileList = {}
 
 -- {{{ defines
-M.bulletRadius = 2 -- how wide radius of bullet hitbox is
-M.bulletLaunchVelocity = 10 -- muzzle velocity of bullet projectiles
+M.bulletRadius = 5 -- how wide radius of bullet hitbox is
+M.bulletLaunchVelocity = 300 -- muzzle velocity of bullet projectiles
+M.bulletMass = 0.2
 -- }}}
 
 M.setup = function(world) -- {{{
@@ -26,6 +27,7 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     newBullet.fixture:setUserData({name="bullet",type="projectile_bullet"})
     newBullet.body:setBullet(true)
     newBullet.body:setGravityScale(0)
+    newBullet.body:setMass(M.bulletMass)
     table.insert(newProjectiles, newBullet)
 
     -- calculate shot angle and randomness, apply forces to bullet

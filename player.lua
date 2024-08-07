@@ -191,7 +191,10 @@ M.shoot = function (x, y) -- {{{
   -- attempt to fire every gun
   for i,gun in ipairs(M.guns) do
     if gun.cooldown < 0 then
-      local playerKnockback = gun:shoot(x,y,M.currentAimAngle, gun)
+      local shotWorldOriginX = math.sin(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
+      local shotWorldOriginY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
+
+      local playerKnockback = gun:shoot(M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, gun)
       -- print("bang!!")
       -- normalize the points of the spood and target together
       x = x - M.body:getX()
