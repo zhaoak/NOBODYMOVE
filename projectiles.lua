@@ -36,8 +36,10 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     table.insert(newProjectiles, newBullet)
 
     -- calculate shot angle and randomness, apply forces to bullet
-    local bulletVelocityX = math.sin(worldRelativeAimAngle)*M.bulletLaunchVelocity
-    local bulletVelocityY = math.cos(worldRelativeAimAngle)*M.bulletLaunchVelocity
+    local inaccuracyAngleAdjustment = math.random(-1, 1) * gun.inaccuracy
+    local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment
+    local bulletVelocityX = math.sin(adjustedShotAngle)*M.bulletLaunchVelocity
+    local bulletVelocityY = math.cos(adjustedShotAngle)*M.bulletLaunchVelocity
     newBullet.body:applyLinearImpulse(bulletVelocityX, bulletVelocityY)
   end
 
