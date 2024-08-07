@@ -51,8 +51,9 @@ function love.draw() -- {{{
   obj.player.draw()
 
   -- draw existing bullets and other projectiles
-  -- draw effects (explosions, impacts, etc)
   obj.projectiles.draw()
+
+  -- draw effects (explosions, impacts, etc)
 end  -- }}}
 
 

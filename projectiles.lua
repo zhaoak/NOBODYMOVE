@@ -3,7 +3,7 @@ local projectileList = {}
 
 -- {{{ defines
 M.bulletRadius = 2 -- how wide radius of bullet hitbox is
-M.bulletLaunchVelocity = 200 -- muzzle velocity of bullet projectiles
+M.bulletLaunchVelocity = 10 -- muzzle velocity of bullet projectiles
 -- }}}
 
 M.setup = function(world) -- {{{
@@ -18,7 +18,7 @@ end
 M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle)
   local newProjectiles = {}
   for i = 1, gun.multishot do
-    -- create physics data for new bullet
+    -- create physics object for new bullet
     local newBullet = {}
     newBullet.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
     newBullet.shape = love.physics.newCircleShape(M.bulletRadius)
@@ -27,7 +27,11 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     newBullet.body:setBullet(true)
     newBullet.body:setGravityScale(0)
     table.insert(newProjectiles, newBullet)
-    -- calculate shot angle and randomness, apply forces to physics objects
+
+    -- calculate shot angle and randomness, apply forces to bullet
+    local bulletVelocityX = math.sin(worldRelativeAimAngle)*M.bulletLaunchVelocity
+    local bulletVelocityY = math.cos(worldRelativeAimAngle)*M.bulletLaunchVelocity
+    newBullet.body:applyLinearImpulse(bulletVelocityX, bulletVelocityY)
   end
 
   for _, bullet in ipairs(newProjectiles) do

@@ -191,7 +191,7 @@ M.shoot = function (x, y) -- {{{
   -- attempt to fire every gun
   for i,gun in ipairs(M.guns) do
     if gun.cooldown < 0 then
-      local recoil = gun:shoot(x,y)
+      local playerKnockback = gun:shoot(x,y,M.currentAimAngle, gun)
       -- print("bang!!")
       -- normalize the points of the spood and target together
       x = x - M.body:getX()
@@ -200,9 +200,9 @@ M.shoot = function (x, y) -- {{{
       -- get the angle of the mouse from the gun
       local angle = math.atan2(x,y)
 
-      -- convert the angle back into points at a fixed distance from the boll, and multiply by recoil
-      x = -math.sin(angle)*recoil
-      y = -math.cos(angle)*recoil
+      -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
+      x = -math.sin(angle)*playerKnockback
+      y = -math.cos(angle)*playerKnockback
       M.body:applyLinearImpulse(x,y)
       -- M.body:applyLinearImpulse(x,y, M.body:getX()+2, M.body:getY())
 

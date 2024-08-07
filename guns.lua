@@ -3,7 +3,7 @@ local gunlist = {}
 
 local projectileLib = require'projectiles'
 
-local function shoot (gun, x, y) -- {{{
+local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
   gun.cooldown = gun.maxCooldown
   -- store the state of the shot, so mods can modify it as they go
   -- adding more chaos each time, hopefully
@@ -18,7 +18,7 @@ local function shoot (gun, x, y) -- {{{
   end
 
   if gun.type == "bullet" then
-    projectileLib.createBulletShot(gun, x, y, 0)
+    projectileLib.createBulletShot(gun, x, y, worldRelativeAimAngle)
   end
 
   return shot.recoil

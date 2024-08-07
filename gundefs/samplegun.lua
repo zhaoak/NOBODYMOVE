@@ -17,8 +17,16 @@ M.multishot = 1
 -- The default maximum angle of inaccuracy of this gun in radians
 -- (If you'd prefer to use degrees, simply convert a degree value using math.rad)
 -- Example: a value of `math.rad(15)` means the fired shot can be fired clockwise or counterclockwise
--- up to 15 degrees away from the angle you're aiming at, determined at random
-M.inaccuracy = math.rad(15)
+-- up to 15 degrees off from the angle you're aiming at, determined at random
+M.inaccuracy = math.rad(3)
+
+-- How much this gun's aim is thrown off after each shot.
+M.recoil = math.rad(5)
+
+-- How quickly the gun spins around the spooder in radians/second.
+-- Players can aim at any angle any time--but if the gun's aim hasn't caught up to the player's aim yet,
+-- It won't shoot the right place!
+M.aimSpeed = math.rad(360)
 
 -- The firing pattern of the gun, must be of a predefined type:
 -- 'single' -- one click = gun shoots once per click
