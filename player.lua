@@ -1,5 +1,6 @@
 local gunlib = require'guns'
 local modlib = require'mods'
+local util = require'util'
 
 -- {{{ defines
 local M = {reach={}, hardbox={}, latchbox={}}
@@ -215,6 +216,33 @@ M.shoot = function (x, y) -- {{{
     end
   end
 end -- }}}
+
+-- Handlers for terrain entering/exiting player latch range {{{
+M.handleTerrainEnteringRange = function(a, b, contact)
+    local fixtureAUserData = a:getUserData()
+    local fixtureBUserData = b:getUserData()
+
+    if fixtureAUserData.name == "reach" then
+      M.terrainInRange[fixtureBUserData.uid] = b
+    else
+      M.terrainInRange[fixtureAUserData.uid] = a
+    end
+    util.printTerrainInRangeUserData(M.terrainInRange)
+end
+
+M.handleTerrainLeavingRange = function(a, b, contact)
+    local fixtureAUserData = a:getUserData()
+    local fixtureBUserData = b:getUserData()
+
+    if fixtureAUserData.name == "reach" then
+      print(fixtureBUserData.name.." leaving latchrange")
+      M.terrainInRange[fixtureBUserData.uid] = nil
+    else
+      print(fixtureAUserData.name.." leaving latchrange")
+      M.terrainInRange[fixtureAUserData.uid] = nil
+    end
+end
+-- }}}
 
 local function getGrab() -- {{{
   -- find object grab point and determine if grabbing

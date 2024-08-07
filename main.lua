@@ -71,12 +71,7 @@ function beginContact(a, b, contact) -- {{{
   -- if terrain comes in range of spooder's reach...
   if (fixtureAUserData.name == "reach" and fixtureBUserData.type == "terrain") or (fixtureBUserData.name == "reach" and fixtureAUserData.type == "terrain") then
     -- ...then add the terrain to the cache of terrain items in latching range
-    if fixtureAUserData.name == "reach" then
-      obj.player.terrainInRange[fixtureBUserData.uid] = b
-    else
-      obj.player.terrainInRange[fixtureAUserData.uid] = a
-    end
-    util.printTerrainInRangeUserData(obj.player.terrainInRange)
+    obj.player.handleTerrainEnteringRange(a, b, contact)
   end
 
   -- projectile impact handling
@@ -92,13 +87,7 @@ function endContact(a, b, contact) -- {{{
   -- when terrain leaves range of spooder's reach...
   if (fixtureAUserData.name == "reach" and fixtureBUserData.type == "terrain") or (fixtureBUserData.name == "reach" and fixtureAUserData.type == "terrain") then
     -- ...remove the terrain from the cache of terrain items in latching range
-    if fixtureAUserData.name == "reach" then
-      print(fixtureBUserData.name.." leaving latchrange")
-      obj.player.terrainInRange[fixtureBUserData.uid] = nil
-    else
-      print(fixtureAUserData.name.." leaving latchrange")
-      obj.player.terrainInRange[fixtureAUserData.uid] = nil
-    end
+    obj.player.handleTerrainLeavingRange(a, b, contact)
   end
 end -- }}}
 
