@@ -25,6 +25,7 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     newBullet.shape = love.physics.newCircleShape(M.bulletRadius)
     newBullet.fixture = love.physics.newFixture(newBullet.body, newBullet.shape, 1)
     newBullet.fixture:setUserData({name="bullet",type="projectile_bullet"})
+    newBullet.fixture:setRestitution(0)
     newBullet.body:setBullet(true)
     newBullet.body:setGravityScale(0)
     newBullet.body:setMass(M.bulletMass)
