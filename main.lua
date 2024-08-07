@@ -65,8 +65,6 @@ end
 -- physics collision callbacks {{{
 
 function beginContact(a, b, contact) -- {{{
-  -- print(a:getUserData().." colliding with "..b:getUserData()..", vector normal: "..x..", "..y)
-
   local fixtureAUserData = a:getUserData()
   local fixtureBUserData = b:getUserData()
 
@@ -81,12 +79,13 @@ function beginContact(a, b, contact) -- {{{
     util.printTerrainInRangeUserData(obj.player.terrainInRange)
   end
 
-  -- print(tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
+  -- projectile impact handling
+  if fixtureAUserData.type == "projectile" or fixtureBUserData.type == "projectile" then
+    obj.projectiles.handleProjectileCollision(a, b, contact)
+  end
 end -- }}}
 
 function endContact(a, b, contact) -- {{{
-  -- print(a:getUserData().." and "..b:getUserData().." no longer colliding")
-
   local fixtureAUserData = a:getUserData()
   local fixtureBUserData = b:getUserData()
 
@@ -116,14 +115,9 @@ function preSolve(a, b, contact) -- {{{
   if a:getUserData().semisensor or b:getUserData().semisensor then
     contact:setEnabled(false)
   end
-  -- local cx1, cy1, cx2, cy2 = contact:getPositions()
-  -- print("presolve: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
-  -- print(a:getUserData().." colliding with "..b:getUserData())
 end -- }}}
 
 function postSolve(a, b, contact, normalimpulse, tangentimpulse) -- {{{
-  -- local cx1, cy1, cx2, cy2 = contact:getPositions()
-  -- print("postsolve: "..tostring(cx1)..", "..tostring(cy1).." / "..tostring(cx2)..", "..tostring(cy2))
 end -- }}}
 
 -- }}}
