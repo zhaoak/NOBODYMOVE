@@ -1,5 +1,6 @@
 local gunlib = require'guns'
 local modlib = require'mods'
+local cam = require'camera'
 local util = require'util'
 local filterVals = require'filterValues'
 
@@ -131,84 +132,6 @@ M.draw = function () -- {{{
   for _,gun in ipairs(M.guns) do
     gun.draw(gun, M)
   end
-
-  -- debug rendering {{{
-  if arg[2] == 'debug' then
-
-    -- -- the body
-    love.graphics.setColor(M.color)
-    love.graphics.circle("fill", M.body:getX(), M.body:getY(), M.hardbox.shape:getRadius())
-    --
-    -- -- the eyes
-    -- love.graphics.setColor(0,0,0)
-    local eyePos1X, eyePos1Y = M.body:getLocalCenter()
-    eyePos1X, eyePos1Y = M.body:getWorldPoint(eyePos1X - 3, eyePos1Y - 5)
-    local eyePos2X, eyePos2Y = M.body:getLocalCenter()
-    eyePos2X, eyePos2Y = M.body:getWorldPoint(eyePos2X + 3, eyePos2Y - 5)
-    love.graphics.setColor(0, 0, 0)
-    love.graphics.circle("fill", eyePos1X, eyePos1Y, 3)
-    love.graphics.circle("fill", eyePos2X, eyePos2Y, 3)
-
-    -- the reach circle
-    if not M.ragdoll then
-      love.graphics.setColor(0,0,20,1)
-      love.graphics.circle("line", M.body:getX(), M.body:getY(), M.reach.shape:getRadius())
-    end
-
-    -- gun debug
-    local gunNameDebugList = ""
-    for i, gun in ipairs(M.guns) do
-      gunNameDebugList = gunNameDebugList..gun.name
-      if i ~= table.getn(M.guns) then
-        gunNameDebugList = gunNameDebugList..", "
-      end
-    end
-
-    -- various debug info
-    -- top left debug info
-    love.graphics.setColor(1, 1, 1)
-    local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
-    local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
-    love.graphics.print("spooder velocity, x/y/total/angular: "..tostring(spoodCurrentLinearVelocityX).." / "..tostring(spoodCurrentLinearVelocityY).." / "..tostring(spoodCurrentLinearVelocity).." / "..tostring(M.body:getAngularVelocity()))
-    love.graphics.print("grabbing? "..tostring(M.grab), 0, 20)
-    love.graphics.print("world-relative aim angle (0 = directly down, pi = directly up): "..tostring(M.currentAimAngle), 0, 40)
-    love.graphics.setColor(0, .75, .25)
-    love.graphics.print("current guns: "..gunNameDebugList, 0, 60)
-    
-    -- bottom left debug info
-    local windowSizeX, windowSizeY = love.graphics.getDimensions()
-    love.graphics.setColor(1,1,1)
-    love.graphics.print("world coordinates x/y: "..M.body:getX().." / "..M.body:getY(), 0, windowSizeY - 20)
-
-    if M.grab then
-      local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, M.grab.fixture)
-      love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 80)
-      love.graphics.setColor(0, .5, 0, 0.3)
-      if M.grab.x ~= nil and M.grab.y ~= nil then
-        love.graphics.circle("fill", M.grab.x, M.grab.y, 4)
-      end
-
-      if M.grab.normalX ~= nil and M.grab.y ~= nil then
-        -- We also get the surface normal of the edge the ray hit. Here drawn in green
-        love.graphics.setColor(0, 255, 0)
-        love.graphics.line(M.grab.x, M.grab.y, M.grab.x + M.grab.normalX * 25, M.grab.y + M.grab.normalY * 25)
-        -- print(tostring(debugRayNormalX).." / "..tostring(debugRayNormalY))
-      end
-      love.graphics.setColor(.95, .65, .25, .3)
-      love.graphics.circle("fill", x1, y1, 4)
-      love.graphics.setColor(.95, .65, .77, .6)
-      love.graphics.circle("fill", x2, y2, 4)
-
-      -- contact points of two colliding fixtures, whatever that actually means
-      love.graphics.setColor(.95, 0, .25, .7)
-      love.graphics.circle("fill", M.grab.p.x1, M.grab.p.y1, 4)
-      if M.grab.p.x2 then --not always second point
-        love.graphics.circle("fill", M.grab.p.x2, M.grab.p.y2, 4)
-      end
-    end
-  end 
-
-  -- }}}
 
 end -- }}}
 
@@ -342,7 +265,8 @@ M.update = function(dt) -- {{{
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
 
   -- update current absolute aim angle
-  M.currentAimAngle = math.atan2(love.mouse:getX() - M.body:getX(), love.mouse:getY() - M.body:getY())
+  local camAdjustedMouseX, camAdjustedMouseY = cam.getCameraRelativeMousePos()
+  M.currentAimAngle = math.atan2(camAdjustedMouseX - M.body:getX(), camAdjustedMouseY - M.body:getY())
 
   -- may be set later, reset every frame
   M.body:setGravityScale(1)
@@ -353,7 +277,7 @@ M.update = function(dt) -- {{{
 
   -- shoot guns!
   if love.mouse.isDown(1) then
-    M.shoot(love.mouse:getX(), love.mouse:getY())
+    M.shoot(camAdjustedMouseX, camAdjustedMouseY)
   end
 
   -- {{{ wasd movement

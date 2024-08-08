@@ -10,10 +10,12 @@ local world -- the physics world
 local nextFrameActions = {} -- uhhh ignore for now pls
 
 -- import physics objects
-obj.playfield = require("maps/empty")
+obj.playfield = require("maps.debugmap")
 obj.player = require("player")
 obj.projectiles = require("projectiles")
+
 local gunlib = require'guns'
+local cam = require'camera'
 
 function love.load() -- {{{ init
   local optionsTable = {
@@ -43,7 +45,6 @@ function love.load() -- {{{ init
   obj.playfield.setup(world)
   obj.player.setup(world)
   obj.projectiles.setup(world)
-
 end -- }}}
 
 function love.update(dt) -- {{{
@@ -51,7 +52,10 @@ function love.update(dt) -- {{{
   if love.mouse.isDown(2) then
     obj.player.setup(world)
   end
-
+  
+  -- center camera on spooder
+  local windowSizeX, windowSizeY = love.graphics.getDimensions()
+  cam.setPosition(obj.player.body:getX() - (windowSizeX / 2), obj.player.body:getY() - (windowSizeY / 2))
   gunlib.update(dt)
   obj.player.update(dt)
   obj.projectiles.update(dt)
@@ -60,6 +64,9 @@ function love.update(dt) -- {{{
 end -- }}}
 
 function love.draw() -- {{{
+  -- draw everything whose screen position should move with the camera
+  -- (everything in the world, essentially)
+  cam.set()
   obj.playfield.draw()
   obj.player.draw()
 
@@ -67,6 +74,100 @@ function love.draw() -- {{{
   obj.projectiles.draw()
 
   -- draw effects (explosions, impacts, etc)
+  
+
+  -- camera-affected debug rendering -- {{{
+  if arg[2] == 'debug' then
+    -- -- the body
+    love.graphics.setColor(obj.player.color)
+    love.graphics.circle("fill", obj.player.body:getX(), obj.player.body:getY(), obj.player.hardbox.shape:getRadius())
+    --
+    -- -- the eyes
+    -- love.graphics.setColor(0,0,0)
+    local eyePos1X, eyePos1Y = obj.player.body:getLocalCenter()
+    eyePos1X, eyePos1Y = obj.player.body:getWorldPoint(eyePos1X - 3, eyePos1Y - 5)
+    local eyePos2X, eyePos2Y = obj.player.body:getLocalCenter()
+    eyePos2X, eyePos2Y = obj.player.body:getWorldPoint(eyePos2X + 3, eyePos2Y - 5)
+    love.graphics.setColor(0, 0, 0)
+    love.graphics.circle("fill", eyePos1X, eyePos1Y, 3)
+    love.graphics.circle("fill", eyePos2X, eyePos2Y, 3)
+
+    -- the reach circle
+    if not obj.player.ragdoll then
+      love.graphics.setColor(0,0,20,1)
+      love.graphics.circle("line", obj.player.body:getX(), obj.player.body:getY(), obj.player.reach.shape:getRadius())
+    end 
+
+    if obj.player.grab then
+      local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.hardbox.fixture, obj.player.grab.fixture)
+      love.graphics.setColor(0, .5, 0, 0.3)
+      if obj.player.grab.x ~= nil and obj.player.grab.y ~= nil then
+        love.graphics.circle("fill", obj.player.grab.x, obj.player.grab.y, 4)
+      end
+
+      if obj.player.grab.normalX ~= nil and obj.player.grab.y ~= nil then
+        -- We also get the surface normal of the edge the ray hit. Here drawn in green
+        love.graphics.setColor(0, 255, 0)
+        love.graphics.line(obj.player.grab.x, obj.player.grab.y, obj.player.grab.x + obj.player.grab.normalX * 25, obj.player.grab.y + obj.player.grab.normalY * 25)
+        -- print(tostring(debugRayNormalX).." / "..tostring(debugRayNormalY))
+      end
+      love.graphics.setColor(.95, .65, .25, .3)
+      love.graphics.circle("fill", x1, y1, 4)
+      love.graphics.setColor(.95, .65, .77, .6)
+      love.graphics.circle("fill", x2, y2, 4)
+
+      -- contact points of two colliding fixtures, whatever that actually means
+      love.graphics.setColor(.95, 0, .25, .7)
+      love.graphics.circle("fill", obj.player.grab.p.x1, obj.player.grab.p.y1, 4)
+      if obj.player.grab.p.x2 then --not always second point
+        love.graphics.circle("fill", obj.player.grab.p.x2, obj.player.grab.p.y2, 4)
+      end
+    end
+  end
+  -- }}}
+
+  cam.unset()
+
+  -- draw everything that doesn't move with the camera
+  -- (HUD, other UI elements, etc)
+  
+
+  -- non-camera affected debug rendering {{{
+  if arg[2] == 'debug' then
+
+
+    -- gun debug
+    local gunNameDebugList = ""
+    for i, gun in ipairs(obj.player.guns) do
+      gunNameDebugList = gunNameDebugList..gun.name
+      if i ~= table.getn(obj.player.guns) then
+        gunNameDebugList = gunNameDebugList..", "
+      end
+    end
+
+    -- various debug info
+    -- top left debug info
+    love.graphics.setColor(1, 1, 1)
+    local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = obj.player.body:getLinearVelocity()
+    local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
+    love.graphics.print("spooder velocity, x/y/total/angular: "..tostring(spoodCurrentLinearVelocityX).." / "..tostring(spoodCurrentLinearVelocityY).." / "..tostring(spoodCurrentLinearVelocity).." / "..tostring(obj.player.body:getAngularVelocity()))
+    love.graphics.print("grabbing? "..tostring(obj.player.grab), 0, 20)
+    love.graphics.print("world-relative aim angle (0 = directly down, pi = directly up): "..tostring(obj.player.currentAimAngle), 0, 40)
+    love.graphics.setColor(0, .75, .25)
+    love.graphics.print("current guns: "..gunNameDebugList, 0, 60)
+    if obj.player.grab then
+      local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.hardbox.fixture, obj.player.grab.fixture)
+      love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 80)
+    end
+
+    -- bottom left debug info
+    local windowSizeX, windowSizeY = love.graphics.getDimensions()
+    love.graphics.setColor(1,1,1)
+    love.graphics.print("world coordinates x/y: "..obj.player.body:getX().." / "..obj.player.body:getY(), 0, windowSizeY - 20)
+
+  end 
+
+  -- }}}
 end  -- }}}
 
 

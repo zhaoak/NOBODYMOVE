@@ -1,3 +1,4 @@
+-- WARNING: not updated to work with new camera system, drawn world will be in wrong place
 local util = require'util'
 local filterVals = require'filterValues'
 
