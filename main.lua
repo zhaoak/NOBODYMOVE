@@ -45,6 +45,7 @@ function love.load() -- {{{ init
   obj.playfield.setup(world)
   obj.player.setup(world)
   obj.projectiles.setup(world)
+
 end -- }}}
 
 function love.update(dt) -- {{{
@@ -55,7 +56,9 @@ function love.update(dt) -- {{{
   
   -- center camera on spooder
   local windowSizeX, windowSizeY = love.graphics.getDimensions()
-  cam.setPosition(obj.player.body:getX() - (windowSizeX / 2), obj.player.body:getY() - (windowSizeY / 2))
+  local adjustedCamPositionX = obj.player.body:getX() - ((windowSizeX / 2) * cam.scaleX)
+  local adjustedCamPositionY = obj.player.body:getY() - ((windowSizeY / 2) * cam.scaleY)
+  cam.setPosition(adjustedCamPositionX, adjustedCamPositionY)
   gunlib.update(dt)
   obj.player.update(dt)
   obj.projectiles.update(dt)
