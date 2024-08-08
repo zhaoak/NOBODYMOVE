@@ -14,12 +14,16 @@ M.type = "bullet"
 -- How many projectiles are created for each shot before mods
 M.multishot = 1
 
+-- How long in seconds before the projectiles fired should despawn
+-- (assuming they don't hit anything or aren't destroyed another way)
+M.projectileMaxLifetime = 30
+
 -- The default maximum angle of inaccuracy of this gun in radians
 -- (If you'd prefer to use degrees, simply convert a degree value using math.rad)
 -- Example: a value of `math.rad(15)` means the fired shot can be fired clockwise or counterclockwise
 -- up to 15 degrees off from the angle you're aiming at, determined at random.
 -- This means that at inaccuracy of 15 degrees, the shot can go anywhere in a 30 degree cone.
-M.inaccuracy = math.rad(3)
+M.inaccuracy = math.rad(2)
 
 -- How much this gun's aim is thrown off after each shot.
 M.recoil = math.rad(5)
