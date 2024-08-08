@@ -5,6 +5,9 @@ local M = { }
 
 M.color = {1,1,1,1}
 
+local width = 3000
+local height = 2000
+
 local function addLine(x1,y1, x2,y2) -- {{{
   local line = {}
   line.shape = love.physics.newEdgeShape(x1,y1, x2,y2)
@@ -16,9 +19,6 @@ M.setup = function (world) -- {{{
   M.fixtureUIDCounter = 0
 
   M.world = world
-
-  local width = 3000
-  local height = 1080
 
   if M.body then M.body:destroy() end
 
@@ -47,6 +47,31 @@ M.setup = function (world) -- {{{
   M.right.fixture:setCategory(filterVals.category.terrain)
   M.right.fixture:setMask()
   M.right.fixture:setGroupIndex(0)
+
+  M.tiltedPlatform = {}
+  M.tiltedPlatform.shape = love.physics.newRectangleShape(width/5, height*0.8, width/3, height*0.5, math.rad(30))
+  M.tiltedPlatform.fixture = love.physics.newFixture(M.body, M.tiltedPlatform.shape)
+  M.tiltedPlatform.fixture:setUserData{name = "tiltedplatform", type = "terrain", uid = util.gen_uid("terrain")}
+  M.tiltedPlatform.fixture:setCategory(filterVals.category.terrain)
+  M.tiltedPlatform.fixture:setMask()
+  M.tiltedPlatform.fixture:setGroupIndex(0)
+
+  M.circle = {}
+  M.circle.shape = love.physics.newCircleShape(width*0.75, height*0.5, 200)
+  M.circle.fixture = love.physics.newFixture(M.body, M.circle.shape)
+  M.circle.fixture:setUserData{name = "circle", type = "terrain", uid = util.gen_uid("terrain")}
+  M.circle.fixture:setCategory(filterVals.category.terrain)
+  M.circle.fixture:setMask()
+  M.circle.fixture:setGroupIndex(0)
+
+  M.polygon = {}
+  M.polygon.shape = love.physics.newPolygonShape(width*0.2,0, width*0.25,height*0.15, width*0.4,height*0.3, width*0.45,height*0.5, width*0.5,height*0.3, width*0.65,height*0.15, width*0.7,0, width*0.2,0)
+  M.polygon.fixture = love.physics.newFixture(M.body, M.polygon.shape)
+
+  M.polygon.fixture:setUserData{name = "polygon", type = "terrain", uid = util.gen_uid("terrain")}
+  M.polygon.fixture:setCategory(filterVals.category.terrain)
+  M.polygon.fixture:setMask()
+  M.polygon.fixture:setGroupIndex(0)
 end -- }}}
 
 M.draw = function() -- {{{
@@ -56,6 +81,26 @@ M.draw = function() -- {{{
   love.graphics.line(M.body:getWorldPoints(M.bottom.shape:getPoints()))
   love.graphics.line(M.body:getWorldPoints(M.left.shape:getPoints()))
   love.graphics.line(M.body:getWorldPoints(M.right.shape:getPoints()))
+
+  -- draw platforms
+  local platformTopLeftPointX, platformTopLeftPointY = M.tiltedPlatform.shape:getPoints()
+  local windowSizeX, windowSizeY = love.graphics.getDimensions()
+  local topLeftWorldPointX, topLeftWorldPointY = M.body:getWorldPoints(platformTopLeftPointX, platformTopLeftPointY)
+  local function drawRotatedRectange(mode, x, y, width, height, angle)
+    -- We cannot rotate the rectangle directly, but we
+    -- can move and rotate the coordinate system.
+    love.graphics.push()
+    love.graphics.translate(x, y)
+    love.graphics.rotate(angle)
+    love.graphics.rectangle(mode, 0, 0, width, height) -- origin in the top left corner
+    love.graphics.pop()
+  end
+  drawRotatedRectange("line", topLeftWorldPointX, topLeftWorldPointY, width/3, height*0.5, math.rad(30))
+
+  local circleX, circleY = M.circle.shape:getPoint()
+  love.graphics.circle("line", circleX, circleY, M.circle.shape:getRadius())
+
+  love.graphics.polygon("line", M.body:getWorldPoints(M.polygon.shape:getPoints()))
 end -- }}}
 
 return M
