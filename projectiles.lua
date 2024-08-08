@@ -43,7 +43,7 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     newBullet.fixture:setCategory(filterVals.category.projectile_player)
     -- this bullet should NOT collide with:
     newBullet.fixture:setMask(
-      filterVals.category.friendly, 
+      filterVals.category.friendly,
       filterVals.category.player,
       filterVals.category.projectile_player)
 
@@ -94,7 +94,7 @@ M.handleProjectileCollision = function(a, b, contact)
     end
   else
     -- both A and B are projectiles
-    print("ow!!")
+    print("ow!! the bullets are touching!!")
     contact:setEnabled(false)
   end
 end

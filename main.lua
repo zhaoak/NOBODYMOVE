@@ -10,14 +10,25 @@ local world -- the physics world
 local nextFrameActions = {} -- uhhh ignore for now pls
 
 -- import physics objects
-obj.playfield = require("playfield")
+obj.playfield = require("maps/empty")
 obj.player = require("player")
 obj.projectiles = require("projectiles")
 local gunlib = require'guns'
 
 function love.load() -- {{{ init
+  local optionsTable = {
+    fullscreen = true,
+    fullscreentype = "desktop",
+    vsync = 1,
+    resizable = false,
+    borderless = false,
+    display = 1,
+    minwidth = 800,
+    minheight = 800
+  }
+
+  love.window.setMode(1000,1000, optionsTable)
   love.graphics.setBackgroundColor(.4,.4,.4)
-  love.window.setMode(1000,1000)
   love.window.setVSync(true)
 
   love.physics.setMeter(64)
@@ -60,9 +71,9 @@ end  -- }}}
 
 
 -- catch resize
-love.resize = function (width,height)
-  obj.playfield.resize(width,height)
-end
+-- love.resize = function (width,height)
+--   obj.playfield.resize(width,height)
+-- end
 
 -- physics collision callbacks {{{
 

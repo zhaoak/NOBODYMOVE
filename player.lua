@@ -49,7 +49,7 @@ M.setup = function (world) -- {{{
   -- hardbox is the physical collision box of the spooder
   M.hardbox.shape = love.physics.newCircleShape(M.hardboxRadius)
   M.hardbox.fixture = love.physics.newFixture(M.body, M.hardbox.shape)
-  M.hardbox.fixture:setUserData{name = "hardbox"}
+  M.hardbox.fixture:setUserData{name = "hardbox", type = "playerhitbox"}
   -- a lil bounce, as a treat
   M.hardbox.fixture:setRestitution(0.2)
 
@@ -66,7 +66,7 @@ M.setup = function (world) -- {{{
   M.reach.fixture = love.physics.newFixture(M.body, M.reach.shape, 0)
   -- the reach shape is just to detect when the spood can reach the wall
   -- you'd think we'd use a sensor, but no, check out preSolve in main.lua for where we handle that
-  M.reach.fixture:setUserData{name = "reach", semisensor=true}
+  M.reach.fixture:setUserData{name = "reach", semisensor=true, type = "playerreach"}
   -- reach should also collide with everything hardbox does because of the semisensor weirdness
   M.reach.fixture:setCategory(filterVals.category.player)
   M.reach.fixture:setMask(
@@ -165,6 +165,7 @@ M.draw = function () -- {{{
     end
 
     -- various debug info
+    -- top left debug info
     love.graphics.setColor(1, 1, 1)
     local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
     local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
@@ -173,6 +174,11 @@ M.draw = function () -- {{{
     love.graphics.print("world-relative aim angle (0 = directly down, pi = directly up): "..tostring(M.currentAimAngle), 0, 40)
     love.graphics.setColor(0, .75, .25)
     love.graphics.print("current guns: "..gunNameDebugList, 0, 60)
+    
+    -- bottom left debug info
+    local windowSizeX, windowSizeY = love.graphics.getDimensions()
+    love.graphics.setColor(1,1,1)
+    love.graphics.print("world coordinates x/y: "..M.body:getX().." / "..M.body:getY(), 0, windowSizeY - 20)
 
     if M.grab then
       local distance, x1, y1, x2, y2 = love.physics.getDistance(M.hardbox.fixture, M.grab.fixture)
