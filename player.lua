@@ -1,6 +1,7 @@
 local gunlib = require'guns'
 local modlib = require'mods'
 local util = require'util'
+local filterVals = require'filterValues'
 
 -- {{{ defines
 local M = {reach={}, hardbox={}, latchbox={}}
@@ -52,12 +53,26 @@ M.setup = function (world) -- {{{
   -- a lil bounce, as a treat
   M.hardbox.fixture:setRestitution(0.2)
 
+  -- collision filter data
+  M.hardbox.fixture:setCategory(filterVals.category.player)
+  M.hardbox.fixture:setMask(
+    filterVals.category.friendly,
+    filterVals.category.projectile_player)
+  M.hardbox.fixture:setGroupIndex(0)
+  print(M.hardbox.fixture:getMask())
+
   -- reach is how far away the spood will latch to terrain from
   M.reach.shape = love.physics.newCircleShape(M.reachRadius)
   M.reach.fixture = love.physics.newFixture(M.body, M.reach.shape, 0)
   -- the reach shape is just to detect when the spood can reach the wall
   -- you'd think we'd use a sensor, but no, check out preSolve in main.lua for where we handle that
   M.reach.fixture:setUserData{name = "reach", semisensor=true}
+  -- reach should also collide with everything hardbox does because of the semisensor weirdness
+  M.reach.fixture:setCategory(filterVals.category.player)
+  M.reach.fixture:setMask(
+    filterVals.category.friendly,
+    filterVals.category.projectile_player)
+  M.reach.fixture:setGroupIndex(0)
 
   -- set angular damping for spooder spinning
   M.body:setAngularDamping(0.1)

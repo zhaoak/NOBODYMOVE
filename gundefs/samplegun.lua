@@ -17,15 +17,17 @@ M.multishot = 1
 -- The default maximum angle of inaccuracy of this gun in radians
 -- (If you'd prefer to use degrees, simply convert a degree value using math.rad)
 -- Example: a value of `math.rad(15)` means the fired shot can be fired clockwise or counterclockwise
--- up to 15 degrees off from the angle you're aiming at, determined at random
+-- up to 15 degrees off from the angle you're aiming at, determined at random.
+-- This means that at inaccuracy of 15 degrees, the shot can go anywhere in a 30 degree cone.
 M.inaccuracy = math.rad(3)
 
 -- How much this gun's aim is thrown off after each shot.
 M.recoil = math.rad(5)
 
--- How quickly the gun spins around the spooder in radians/second.
--- Players can aim at any angle any time--but if the gun's aim hasn't caught up to the player's aim yet,
--- It won't shoot the right place!
+-- How quickly the gun can spin around the spooder in radians/second.
+-- Players can aim at any angle any time--
+-- but if their gun's aim hasn't caught up to their mouse/controller aim position yet,
+-- it won't shoot the right place!
 M.aimSpeed = math.rad(360)
 
 -- The firing pattern of the gun, must be of a predefined type:
@@ -48,7 +50,7 @@ M.cooldown = 1
 M.maxCooldown = 5
 
 -- How much backwards force is applied to the player when shooting this gun
-M.holderKnockback = 100
+M.holderKnockback = 25
 
 -- How much force is applied to players/objects hit by this gun's projectile
 M.hitKnockback = 25

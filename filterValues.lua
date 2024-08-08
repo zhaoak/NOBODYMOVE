@@ -14,17 +14,42 @@
 --           (filterA.maskBits & filterB.categoryBits) != 0 &&
 --          (filterA.categoryBits & filterB.maskBits) != 0;
 --
--- Box2D docs suggest you utilize this by using the `category` flag to describe what a fixture is,
--- while setting a fixture's `mask` flag to the result of a bitwise OR of all the category values you want the fixture to collide with.
--- For an example, see: http://www.iforce2d.net/b2dtut/collision-filtering
+--  Basically: set a category on a fixture to describe what it _is_,
+--  and pass args to it with `setMask` to describe what it should NOT collide with.
+--  Calling `setMask` with no args makes the fixture have _no_ masks (a maskBits value of 0x0000).
+--  Note that if you forget to call `setMask`, maskBits will be nil!
+--
+-- THE MOST IMPORTANT PART: Love's `setCategory` and `setMask` functions take number args that _represent_ the bitmasks,
+-- i.e. 1 = 0x0001, 2 = 0x0002, 3 = 0x0004, 4 = 0x0008, 5 = 0x0010... you get the idea.
+-- DON'T directly pass in bitmasks to them!
+--
+-- However, `Fixture:setFilterData()` *might* take bitmask values??? https://www.love2d.org/wiki/Fixture:setFilterData
+-- ?????
+-- ????????
+-- ???????????
+-- so basically, i'm avoiding using that one until i can test it
+-- (figuring all this out burned me out too much today)
 
 local M = { }
 
 M.category = {}
 
-M.category.terrain =       0x0001
-M.category.friendly =      0x0002
-M.category.enemy =         0x0004
-M.category.projectile =    0x0008
+M.category.terrain =            1
+M.category.friendly =           2
+M.category.enemy =              3
+M.category.projectile_enemy =   4
+M.category.projectile_player =  5
+M.category.player =             6
+
+-- We might need the bitmask literal values for later (when using the dreaded `Fixture:setFilterData()`,
+-- so here they are
+M.bitmasks = {}
+
+M.bitmasks.terrain =            0x0001
+M.bitmasks.friendly =           0x0002
+M.bitmasks.enemy =              0x0004
+M.bitmasks.projectile_enemy =   0x0008
+M.bitmasks.projectile_player =  0x0010
+M.bitmasks.player =             0x0020
 
 return M

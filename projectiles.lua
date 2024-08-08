@@ -3,6 +3,7 @@ local M = { }
 M.projectileList = {}
 
 local util = require'util'
+local filterVals = require'filterValues'
 
 -- {{{ defines
 M.bulletRadius = 5 -- how wide radius of bullet hitbox is
@@ -28,19 +29,40 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     newBullet.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
     newBullet.shape = love.physics.newCircleShape(M.bulletRadius)
     newBullet.fixture = love.physics.newFixture(newBullet.body, newBullet.shape, 1)
-    newBullet.fixture:setUserData({name="bullet",type="projectile", uid=util.gen_uid("projectile")})
+    newBullet.fixture:setUserData({name="bullet",type="projectile",proj_properties={},uid=util.gen_uid("projectile")})
     newBullet.fixture:setRestitution(0)
     newBullet.body:setBullet(true)
     newBullet.body:setGravityScale(0)
     newBullet.body:setMass(M.bulletMass)
-    table.insert(newProjectiles, newBullet)
 
-    -- calculate shot angle and randomness, apply forces to bullet
-    local inaccuracyAngleAdjustment = math.random(-1, 1) * gun.inaccuracy
+    -- set filterdata for new bullet
+    -- currently, player-fired projectiles never collide with each other, but we may change that
+    -- because core nukes are cool
+
+    -- this bullet has the category:
+    newBullet.fixture:setCategory(filterVals.category.projectile_player)
+    -- this bullet should NOT collide with:
+    newBullet.fixture:setMask(
+      filterVals.category.friendly, 
+      filterVals.category.player,
+      filterVals.category.projectile_player)
+
+    -- this bullet is in group:
+    newBullet.fixture:setGroupIndex(0)
+
+    -- adjust shot angle to account for gun inaccuracy
+    local rand = math.random()
+    -- give us a random modifier for the shot angle from -1*gun.inaccuracy to 1*gun.inaccuracy
+    local inaccuracyAngleAdjustment = gun.inaccuracy - (rand * gun.inaccuracy * 2)
+    print(inaccuracyAngleAdjustment)
     local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment
+
+    -- apply velocity to bullet
     local bulletVelocityX = math.sin(adjustedShotAngle)*M.bulletLaunchVelocity
     local bulletVelocityY = math.cos(adjustedShotAngle)*M.bulletLaunchVelocity
     newBullet.body:applyLinearImpulse(bulletVelocityX, bulletVelocityY)
+
+    table.insert(newProjectiles, newBullet)
   end
 
   for _, bullet in ipairs(newProjectiles) do
@@ -72,7 +94,8 @@ M.handleProjectileCollision = function(a, b, contact)
     end
   else
     -- both A and B are projectiles
-
+    print("ow!!")
+    contact:setEnabled(false)
   end
 end
 -- }}}

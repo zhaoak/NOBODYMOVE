@@ -3,7 +3,6 @@
 -- utilities
 local util = require'util'
 
-
 -- filewide vars
 local obj = {} -- all physics objects
 local phys = {} -- physics handlers
@@ -22,6 +21,9 @@ function love.load() -- {{{ init
   love.window.setVSync(true)
 
   love.physics.setMeter(64)
+
+  -- tumbledryer that randomness seed baby
+  math.randomseed(os.time())
 
   -- create the physics world
   world = love.physics.newWorld(0,10*64, false)
