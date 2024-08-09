@@ -1,7 +1,9 @@
 local M = { }
-local gunlist = {}
+
+M.gunlist = {} -- data for every gun existing in world, player or enemy, lives here
 
 local projectileLib = require'projectiles'
+local util = require'util'
 
 local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
   gun.current.cooldown = gun.cooldown
@@ -9,9 +11,9 @@ local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
   -- adding more chaos each time, hopefully
   local shot = {recoil=gun.holderKnockback, damage=0} -- stuff like spread, pellets, speed, etc everything idk yet
 
-    for _, mod in ipairs(gun.mods) do
-      shot = mod:apply(shot)
-    end
+  -- for _, mod in ipairs(gun.mods) do
+  --   shot = mod:apply(shot)
+  -- end
 
   if gun.type == "hitscan" then
     -- cast a ray etc
@@ -24,7 +26,8 @@ local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
   return shot.recoil
 end -- }}}
 
-local function draw (gun, player) -- {{{
+local function draw (gunId, player) -- {{{
+  local gun = M.gunlist[gunId]
   -- reset the colors
   love.graphics.setColor(1,1,1,1)
 
@@ -44,31 +47,39 @@ local function draw (gun, player) -- {{{
   love.graphics.draw(gun.gunSprite, player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, (math.pi/2) - player.currentAimAngle, 0.3, 0.3*flipGunSprite, 0, 15)
 end -- }}}
 
-
--- have each gun's base behaviors be secretly a mod (and not here)
--- would work great for grafting guns together
+-- This function creates a gun, adds it to `gunlist`, and returns its UID.
+-- Whoever is using the gun should then add that UID to a list of gun UIDs they own.
+-- To shoot/render the gun from outside this file, use `gunlib.gunlist[gunUID]:shoot()`.
 M.equipGun = function(gunName) -- {{{
 -- find gundef file by name
   local gun = require('gundefs/'..gunName)
 
+  -- set cooldown of new gun
   gun.current = {}
   gun.current.cooldown = gun.cooldown
 
+  -- set UID of new gun
+  gun.uid = util.gen_uid("guns")
+
   -- set default aim angle for gun
-  gun.aimAngle = 0
+  gun.current.aimAngle = 0
 
   -- add methods
   gun.shoot = shoot
   gun.draw = draw
   -- gun.modify = modify
 
-  -- add it to the list
-  table.insert(gunlist, gun)
-  return gun
+  -- add it to the list of all guns in world, then return its uid
+  M.gunlist[gun.uid] = gun
+  return gun.uid
 end -- }}}
 
+M.setup = function()
+  M.gunlist = {}
+end
+
 M.update = function (dt)
-  for _,gun in ipairs(gunlist) do
+  for _,gun in pairs(M.gunlist) do
     gun.current.cooldown = gun.current.cooldown - dt
   end
 end

@@ -51,7 +51,11 @@ end -- }}}
 function love.update(dt) -- {{{
   -- reset spood on rightclick
   if love.mouse.isDown(2) then
+    util.reset_uids("guns")
+    gunlib.setup()
     obj.player.setup(world)
+    -- print("player gun ids: "..util.tprint(obj.player.guns))
+    -- print("master gunlist: "..util.tprint(gunlib.gunlist))
   end
   
   -- center camera on spooder
@@ -77,7 +81,6 @@ function love.draw() -- {{{
   obj.projectiles.draw()
 
   -- draw effects (explosions, impacts, etc)
-  
 
   -- camera-affected debug rendering -- {{{
   if arg[2] == 'debug' then
@@ -133,7 +136,6 @@ function love.draw() -- {{{
 
   -- draw everything that doesn't move with the camera
   -- (HUD, other UI elements, etc)
-  
 
   -- non-camera affected debug rendering {{{
   if arg[2] == 'debug' then
@@ -141,8 +143,8 @@ function love.draw() -- {{{
 
     -- gun debug
     local gunNameDebugList = ""
-    for i, gun in ipairs(obj.player.guns) do
-      gunNameDebugList = gunNameDebugList..gun.name..", "
+    for _, gunId in pairs(obj.player.guns) do
+      gunNameDebugList = gunNameDebugList..gunlib.gunlist[gunId].name.." ("..gunlib.gunlist[gunId].current.cooldown..")"..", "
     end
 
     -- various debug info
@@ -165,7 +167,7 @@ function love.draw() -- {{{
     love.graphics.setColor(1,1,1)
     love.graphics.print("world coordinates x/y: "..obj.player.body:getX().." / "..obj.player.body:getY(), 0, windowSizeY - 20)
 
-  end 
+  end
 
   -- }}}
 end  -- }}}

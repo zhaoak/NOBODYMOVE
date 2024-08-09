@@ -4,12 +4,17 @@ local uids = {}
 M.gen_uid = function(namespace) -- {{{
   namespace = namespace or "global"
   if not uids[namespace] then -- create namespace if new
-    uids[namespace] = 0
-    return 0
+    uids[namespace] = 1
+    return 1
   else
     uids[namespace] = uids[namespace]+1
     return uids[namespace]
   end
+end -- }}}
+
+M.reset_uids = function(namespace) -- {{{
+  namespace = namespace or "global"
+  uids[namespace] = 1
 end -- }}}
 
 function M.tprint (tbl, indent) -- {{{
