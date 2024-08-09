@@ -33,8 +33,10 @@ M.setup = function (world) -- {{{
   -- tmp code for guns, player just has one test gun for now
   M.guns = {}
 
-  local gun1Id = gunlib.equipGun("samplegun")
+  -- local gun1Id = gunlib.equipGun("samplegun")
+  local gun2Id = gunlib.equipGun("sawedoff")
   table.insert(M.guns, gun1Id)
+  table.insert(M.guns, gun2Id)
 
   M.world = world -- stash for laters
   if M.body then M.body:destroy() end
@@ -157,6 +159,12 @@ M.shoot = function (x, y) -- {{{
 
       -- get the angle of the mouse from the gun
       local angle = math.atan2(x,y)
+
+      -- TODO: there's some weirdness with knockback kicking you in the wrong direction
+      -- when firing multiple guns at once/quickly. probably box2d weirdness with multiple impulses
+      -- applied in one step? it tends to not like that.
+      -- Maybe we'll change it so that it calculates all the impulses and combines them,
+      -- applying one combined impulse at the end
 
       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
       x = -math.sin(angle)*playerKnockback
@@ -386,6 +394,12 @@ function love.wheelmoved(_,y)
     M.body:applyAngularImpulse(-y*1000)
   end
 end
+
+-- debug functions {{{
+M.dumpPlayerGunIdTable = function()
+  print("player gun ids: "..util.tprint(M.guns))
+end
+-- }}}
 
 return M
 -- vim: foldmethod=marker

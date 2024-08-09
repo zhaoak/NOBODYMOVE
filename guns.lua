@@ -84,5 +84,11 @@ M.update = function (dt)
   end
 end
 
+-- debug functions {{{
+M.dumpGunTable = function()
+  print("master gunlist: "..util.tprint(M.gunlist))
+end
+-- }}}
+
 return M
 -- vim: foldmethod=marker
