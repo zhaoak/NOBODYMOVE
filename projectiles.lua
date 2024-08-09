@@ -54,7 +54,7 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     local rand = math.random()
     -- give us a random modifier for the shot angle from -1*gun.inaccuracy to 1*gun.inaccuracy
     local inaccuracyAngleAdjustment = gun.inaccuracy - (rand * gun.inaccuracy * 2)
-    print(inaccuracyAngleAdjustment)
+    -- print(inaccuracyAngleAdjustment)
     local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment
 
     -- apply velocity to bullet

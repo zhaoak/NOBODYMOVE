@@ -143,7 +143,7 @@ function love.draw() -- {{{
     local gunNameDebugList = ""
     for i, gun in ipairs(obj.player.guns) do
       gunNameDebugList = gunNameDebugList..gun.name
-      if i ~= table.getn(obj.player.guns) then
+      if i ~= table.next(obj.player.guns) then
         gunNameDebugList = gunNameDebugList..", "
       end
     end

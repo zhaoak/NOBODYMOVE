@@ -60,7 +60,6 @@ M.setup = function (world) -- {{{
     filterVals.category.friendly,
     filterVals.category.projectile_player)
   M.hardbox.fixture:setGroupIndex(0)
-  print(M.hardbox.fixture:getMask())
 
   -- reach is how far away the spood will latch to terrain from
   M.reach.shape = love.physics.newCircleShape(M.reachRadius)
@@ -177,7 +176,7 @@ M.handleTerrainEnteringRange = function(a, b, contact)
     else
       M.terrainInRange[fixtureAUserData.uid] = a
     end
-    util.printTerrainInRangeUserData(M.terrainInRange)
+    -- util.printTerrainInRangeUserData(M.terrainInRange)
 end
 
 M.handleTerrainLeavingRange = function(a, b, contact)
@@ -185,10 +184,10 @@ M.handleTerrainLeavingRange = function(a, b, contact)
     local fixtureBUserData = b:getUserData()
 
     if fixtureAUserData.name == "reach" then
-      print(fixtureBUserData.name.." leaving latchrange")
+      -- print(fixtureBUserData.name.." leaving latchrange")
       M.terrainInRange[fixtureBUserData.uid] = nil
     else
-      print(fixtureAUserData.name.." leaving latchrange")
+      -- print(fixtureAUserData.name.." leaving latchrange")
       M.terrainInRange[fixtureAUserData.uid] = nil
     end
 end
@@ -254,7 +253,7 @@ local function findFeetPos()
   local naturalFeetPos = {}
   for leg = 0,8 do
     local angle = (math.pi / 8) * leg
-    print(angle)
+    -- print(angle)
   end
 end
 findFeetPos()
