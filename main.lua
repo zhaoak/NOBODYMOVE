@@ -46,9 +46,9 @@ function love.load() -- {{{ init
   obj.player.setup(world)
   obj.projectiles.setup(world)
 
-  print("INITIAL GUNSTATE ==============================================")
-  gunlib.dumpGunTable()
-  obj.player.dumpPlayerGunIdTable()
+  -- print("INITIAL GUNSTATE ==============================================")
+  -- gunlib.dumpGunTable()
+  -- obj.player.dumpPlayerGunIdTable()
 
 end -- }}}
 
@@ -58,8 +58,8 @@ function love.update(dt) -- {{{
     util.reset_uids("guns")
     gunlib.setup()
     obj.player.setup(world)
-    gunlib.dumpGunTable()
-    obj.player.dumpPlayerGunIdTable()
+    -- gunlib.dumpGunTable()
+    -- obj.player.dumpPlayerGunIdTable()
   end
   
   -- center camera on spooder

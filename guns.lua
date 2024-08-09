@@ -1,15 +1,20 @@
 local M = { }
 
-M.gunlist = {} -- data for every gun existing in world, player or enemy, lives here
+M.gunlist = {} -- data for every gun existing in world, held by player or enemy, lives here
 
 local projectileLib = require'projectiles'
 local util = require'util'
 
+-- The shoot function for shooting a specific gun, which is passed in via arg.
+-- This function handles creating the projectiles from the gun,
+-- as well as returns the knockback force, so whoever shot the gun can calculate the knockback force.
+-- The code calling this function should fetch the gun they want to shoot from the gun masterlist via ID,
+-- then pass that gun in as an argument.
 local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
   gun.current.cooldown = gun.cooldown
   -- store the state of the shot, so mods can modify it as they go
   -- adding more chaos each time, hopefully
-  local shot = {recoil=gun.holderKnockback, damage=0} -- stuff like spread, pellets, speed, etc everything idk yet
+  local shot = {recoil=gun.holderKnockback, damage=gun.hitDamage} -- stuff like spread, pellets, speed, etc everything idk yet
 
   -- for _, mod in ipairs(gun.mods) do
   --   shot = mod:apply(shot)

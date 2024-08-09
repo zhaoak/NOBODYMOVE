@@ -25,7 +25,7 @@ M.latchedSurfaceNormalYCache = 0
 
 M.terrainInRange = {} -- using collision callbacks, when terrain enters/exits latchrange, it's added/removed here
 
-M.guns = {}
+M.guns = {} -- a list of gun UIDs, representing the guns the player is holding
 
 -- }}}
 
@@ -133,6 +133,9 @@ M.draw = function () -- {{{
 
 end -- }}}
 
+-- The spooder's shoot function.
+-- Tells the spooder to shoot every gun it has that isn't on cooldown.
+-- Also calculates and applies recoil from shooting spooder's guns.
 M.shoot = function (x, y) -- {{{
   local totalRecoil = 0
   -- attempt to fire every gun
