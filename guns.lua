@@ -4,7 +4,7 @@ local gunlist = {}
 local projectileLib = require'projectiles'
 
 local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
-  gun.cooldown = gun.maxCooldown
+  gun.current.cooldown = gun.cooldown
   -- store the state of the shot, so mods can modify it as they go
   -- adding more chaos each time, hopefully
   local shot = {recoil=gun.holderKnockback, damage=0} -- stuff like spread, pellets, speed, etc everything idk yet
@@ -51,9 +51,8 @@ M.equipGun = function(gunName) -- {{{
 -- find gundef file by name
   local gun = require('gundefs/'..gunName)
 
-  -- -- not sure how we'll do this with mods, prob just recalculate it on each mod change
-  -- -- tmp
-  gun.maxCooldown = gun.cooldown
+  gun.current = {}
+  gun.current.cooldown = gun.cooldown
 
   -- set default aim angle for gun
   gun.aimAngle = 0
@@ -70,7 +69,7 @@ end -- }}}
 
 M.update = function (dt)
   for _,gun in ipairs(gunlist) do
-    gun.cooldown = gun.cooldown - dt
+    gun.current.cooldown = gun.current.cooldown - dt
   end
 end
 

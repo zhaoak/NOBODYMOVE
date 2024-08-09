@@ -50,9 +50,6 @@ M.burstDelay = .2
 -- The delay time between shots in seconds, applies after each shot/burst
 M.cooldown = 1
 
--- Not sure what this one is tbh, lemme know pls spooder
-M.maxCooldown = 5
-
 -- How much backwards force is applied to the player when shooting this gun
 M.holderKnockback = 25
 

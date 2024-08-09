@@ -139,7 +139,7 @@ M.shoot = function (x, y) -- {{{
   local totalRecoil = 0
   -- attempt to fire every gun
   for i,gun in ipairs(M.guns) do
-    if gun.cooldown < 0 then
+    if gun.current.cooldown < 0 then
       local shotWorldOriginX = math.sin(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
       local shotWorldOriginY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
 

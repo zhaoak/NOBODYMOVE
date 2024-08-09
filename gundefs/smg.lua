@@ -11,7 +11,6 @@ M.fireMode = "auto"
 M.burstCount = 1
 M.burstDelay = .1
 M.cooldown = 0.1
-M.maxCooldown = 5
 M.holderKnockback = 5
 M.hitKnockback = 5
 M.hitDamage = 3
