@@ -142,10 +142,7 @@ function love.draw() -- {{{
     -- gun debug
     local gunNameDebugList = ""
     for i, gun in ipairs(obj.player.guns) do
-      gunNameDebugList = gunNameDebugList..gun.name
-      if i ~= table.next(obj.player.guns) then
-        gunNameDebugList = gunNameDebugList..", "
-      end
+      gunNameDebugList = gunNameDebugList..gun.name..", "
     end
 
     -- various debug info
