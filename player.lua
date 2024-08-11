@@ -152,7 +152,7 @@ M.shoot = function (x, y) -- {{{
       local playerKnockback = gun:shoot(M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, gun)
 
       -- if player is currently latched to something, greatly reduce knockback
-      if next(M.terrainInRange) ~= nil then
+      if M.grab then
         playerKnockback = playerKnockback * M.playerLatchedKnockbackReduction
       end
 
@@ -213,6 +213,7 @@ local function getGrab() -- {{{
   -- don't bother looking if in ragdoll mode
   if love.keyboard.isDown("space") then
     M.ragdoll = true
+    return nil
   else
     M.ragdoll = false
 
