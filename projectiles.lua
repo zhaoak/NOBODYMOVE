@@ -57,7 +57,7 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     -- give us a random modifier for the shot angle from -1*gun.inaccuracy to 1*gun.inaccuracy
     local inaccuracyAngleAdjustment = gun.inaccuracy - (rand * gun.inaccuracy * 2)
     -- print(inaccuracyAngleAdjustment)
-    local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment
+    local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment + gun.current.recoilAimPenaltyOffset
 
     -- apply velocity to bullet
     local bulletVelocityX = math.sin(adjustedShotAngle)*gun.projectileLaunchVelocity
@@ -115,14 +115,12 @@ end -- }}}
 -- for checking timed explosives, other effects
 M.update = function (dt)
   for i, proj in pairs(M.projectileList) do
-    print(proj.body:getLinearVelocity())
     if proj.fixture:getUserData().name == "bullet" then
       local bulletLinearVelocityX, bulletLinearVelocityY = proj.body:getLinearVelocity()
       if bulletLinearVelocityX < M.bulletDestructionVelocityThreshold and 
          bulletLinearVelocityY < M.bulletDestructionVelocityThreshold and
          bulletLinearVelocityX > -M.bulletDestructionVelocityThreshold and
          bulletLinearVelocityY > -M.bulletDestructionVelocityThreshold then
-        print("wut")
         local bulletToDestroy = proj
         M.projectileList[proj.fixture:getUserData().uid] = nil
         bulletToDestroy.body:destroy()

@@ -36,23 +36,34 @@ M.inaccuracy = math.rad(2)
 -- How much this gun's aim is thrown off after each shot.
 M.recoil = math.rad(5)
 
+-- How much the aim offset from recoil is recovered from every second.
+-- For example, if a gun has 5 degrees of recoil and 2.5 degrees of recoil recovery,
+-- the player's next shot will be unaffected by recoil after two seconds.
+-- Obviously, if cooldown is greater than recoil/recoilRecoverySpeed,
+-- recoil will never be a factor.
+M.recoilRecoverySpeed = math.rad(2.5)
+
 -- How quickly the gun can spin around the spooder in radians/second.
 -- Players can aim at any angle any time--
 -- but if their gun's aim hasn't caught up to their mouse/controller aim position yet,
 -- it won't shoot the right place!
+-- [not yet implemented]
 M.aimSpeed = math.rad(360)
 
 -- The firing pattern of the gun, must be of a predefined type:
 -- 'single' -- one click = gun shoots once per click
 -- 'burst'  -- one click = gun shoots a fixed number of times, then stops
 -- 'auto'   -- fires as long as shoot button held down
+-- [not yet implemented]
 M.fireMode = "single"
 
 -- How many projectiles to fire per burst if weapon has `fireMode = "burst"`
+-- [not yet implemented]
 M.burstCount = 1
 
 -- How long delay between shots in a burst is in seconds
 -- Obviously, only applies if `firemode = "burst"`
+-- [not yet implemented]
 M.burstDelay = .2
 
 -- The delay time between shots in seconds, applies after each shot/burst
@@ -65,10 +76,12 @@ M.holderKnockback = 25
 M.hitKnockback = 25
 
 -- How much damage a single projectile fired from this gun does
+-- [not yet implemented]
 M.hitDamage = 20
 
 -- Default mods applied to gun, before any player mods
 -- (some stock gun behavior is defined as mods)
+-- [not yet implemented]
 M.mods = {}
 
 -- How far in pixels to position gun away from player hardbox

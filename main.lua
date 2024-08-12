@@ -148,7 +148,7 @@ function love.draw() -- {{{
     -- gun debug
     local gunNameDebugList = ""
     for _, gunId in pairs(obj.player.guns) do
-      gunNameDebugList = gunNameDebugList..gunlib.gunlist[gunId].name.." ("..gunlib.gunlist[gunId].current.cooldown..")"..", "
+      gunNameDebugList = gunNameDebugList.."["..gunId.."]"..gunlib.gunlist[gunId].name.." ("..gunlib.gunlist[gunId].current.cooldown..")"..", "
     end
 
     -- various debug info

@@ -33,8 +33,8 @@ M.setup = function (world) -- {{{
   -- tmp code for guns, player just has one test gun for now
   M.guns = {}
 
-  -- local gun1Id = gunlib.equipGun("samplegun")
-  local gun2Id = gunlib.equipGun("sawedoff")
+  local gun1Id = gunlib.equipGun("smg")
+  local gun2Id = gunlib.equipGun("smg")
   table.insert(M.guns, gun1Id)
   table.insert(M.guns, gun2Id)
 
@@ -138,12 +138,9 @@ end -- }}}
 M.shoot = function (x, y) -- {{{
   local totalRecoil = 0
   -- attempt to fire every gun
-  -- print("pop!!!")
   for i,gunId in pairs(M.guns) do
-    -- print(i..","..gunId)
     -- get gun from master gunlist by UID
     local gun = gunlib.gunlist[gunId]
-    -- print(util.tprint(gun))
     if gun.current.cooldown < 0 then
       local shotWorldOriginX = math.sin(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
       local shotWorldOriginY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
