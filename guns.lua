@@ -5,17 +5,6 @@ M.gunlist = {} -- data for every gun existing in world, held by player or enemy,
 local projectileLib = require'projectiles'
 local util = require'util'
 
--- assorted utility functions {{{
-local function recoverFromRecoilPenalty(dt, gun)
-  if gun.current.recoilAimPenaltyOffset > (gun.recoilRecoverySpeed * dt) then
-    gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset - (gun.recoilRecoverySpeed * dt)
-  elseif gun.current.recoilAimPenaltyOffset < (-gun.recoilRecoverySpeed * dt) then
-    gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset + (gun.recoilRecoverySpeed * dt)
-  else
-    gun.current.recoilAimPenaltyOffset = 0
-  end
-end
--- }}}
 
 -- The shoot function for shooting a specific gun, which is passed in via arg.
 -- This function handles creating the projectiles from the gun,
@@ -85,7 +74,7 @@ end -- }}}
 -- To shoot/render the gun from outside this file, use `gunlib.gunlist[gunUID]:shoot()`.
 M.equipGun = function(gunName) -- {{{
 -- find gundef file by name
-  local gun = require('gundefs/'..gunName)
+  local gun = dofile('gundefs/'..gunName..".lua")
 
   -- set cooldown of new gun
   gun.current = {}
@@ -111,6 +100,17 @@ M.setup = function()
   M.gunlist = {}
 end
 
+-- assorted utility functions {{{
+local function recoverFromRecoilPenalty(dt, gun)
+  if gun.current.recoilAimPenaltyOffset > (gun.recoilRecoverySpeed * dt) then
+    gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset - (gun.recoilRecoverySpeed * dt)
+  elseif gun.current.recoilAimPenaltyOffset < (-gun.recoilRecoverySpeed * dt) then
+    gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset + (gun.recoilRecoverySpeed * dt)
+  else
+    gun.current.recoilAimPenaltyOffset = 0
+  end
+end
+-- }}}
 M.update = function (dt)
   for _,gun in pairs(M.gunlist) do
     gun.current.cooldown = gun.current.cooldown - dt
