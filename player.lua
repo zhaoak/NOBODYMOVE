@@ -34,9 +34,9 @@ M.setup = function (world) -- {{{
   M.guns = {}
 
   local gun1Id = gunlib.equipGun("sawedoff")
-  -- local gun2Id = gunlib.equipGun("smg")
+  local gun2Id = gunlib.equipGun("sawedoff")
   table.insert(M.guns, gun1Id)
-  -- table.insert(M.guns, gun2Id)
+  table.insert(M.guns, gun2Id)
 
   M.world = world -- stash for laters
   if M.body then M.body:destroy() end
@@ -136,43 +136,52 @@ end -- }}}
 -- Tells the spooder to shoot every gun it has that isn't on cooldown.
 -- Also calculates and applies recoil from shooting spooder's guns.
 M.shoot = function (x, y) -- {{{
-  local totalRecoil = 0
+  -- table for storing knockback values from each gun fired this tick
+  local knockbackValues = {}
+
   -- attempt to fire every gun
   for i,gunId in pairs(M.guns) do
     -- get gun from master gunlist by UID
     local gun = gunlib.gunlist[gunId]
+
     if gun.current.cooldown < 0 then
+      -- find the world origin location of each shot
+      -- this does not currently factor in recoil aim offset, but that's gonna get reworked anyway, so
       local shotWorldOriginX = math.sin(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
       local shotWorldOriginY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
 
+      -- gun's shoot function returns the amount of knockback on holder
       local playerKnockback = gun:shoot(M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, gun)
 
-      -- if player is currently latched to something, greatly reduce knockback
-      if M.grab then
-        playerKnockback = playerKnockback * M.playerLatchedKnockbackReduction
-      end
-
       -- normalize the points of the spood and target together
-      x = x - M.body:getX()
-      y = y - M.body:getY()
+      local normalizedX = x - M.body:getX()
+      local normalizedY = y - M.body:getY()
 
       -- get the angle of the mouse from the gun
-      local angle = math.atan2(x,y)
-
-      -- TODO: there's some weirdness with knockback kicking you in the wrong direction
-      -- when firing multiple guns at once/quickly. probably box2d weirdness with multiple impulses
-      -- applied in one step? it tends to not like that.
-      -- Maybe we'll change it so that it calculates all the impulses and combines them,
-      -- applying one combined impulse at the end
+      local angle = math.atan2(normalizedX,normalizedY)
 
       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
-      x = -math.sin(angle)*playerKnockback
-      y = -math.cos(angle)*playerKnockback
-      M.body:applyLinearImpulse(x,y)
-      -- M.body:applyLinearImpulse(x,y, M.body:getX()+2, M.body:getY())
-
+      -- store knockback values for combining with knockback values from all other guns fired this tick
+      table.insert(knockbackValues, {x = -math.sin(angle)*playerKnockback, y = -math.cos(angle)*playerKnockback})
     end
   end
+
+  local totalKnockbackX = 0
+  local totalKnockbackY = 0
+  for _, shotValues in pairs(knockbackValues) do
+    totalKnockbackX = totalKnockbackX + shotValues.x
+    totalKnockbackY = totalKnockbackY + shotValues.y
+    -- print(util.tprint(shotValues))
+  end
+
+  -- if player is currently latched to something, greatly reduce knockback
+  if M.grab then
+    totalKnockbackX = totalKnockbackX * M.playerLatchedKnockbackReduction
+    totalKnockbackY = totalKnockbackY * M.playerLatchedKnockbackReduction
+  end
+
+  -- finally, apply the combined impulse
+  M.body:applyLinearImpulse(totalKnockbackX,totalKnockbackY)
 end -- }}}
 
 -- Handlers for terrain entering/exiting player latch range {{{
