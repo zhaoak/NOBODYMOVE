@@ -148,7 +148,7 @@ function love.draw() -- {{{
     -- gun debug
     local gunNameDebugList = ""
     for _, gunId in pairs(obj.player.guns) do
-      gunNameDebugList = gunNameDebugList.."["..gunId.."]"..gunlib.gunlist[gunId].name.." ("..gunlib.gunlist[gunId].current.cooldown..")"..", "
+      gunNameDebugList = gunNameDebugList.."["..gunId.."]"..gunlib.gunlist[gunId].name.." ("..string.format("%.2f",gunlib.gunlist[gunId].current.cooldown)..")"..", "
     end
 
     -- various debug info
@@ -156,9 +156,9 @@ function love.draw() -- {{{
     love.graphics.setColor(1, 1, 1)
     local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = obj.player.body:getLinearVelocity()
     local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
-    love.graphics.print("spooder velocity, x/y/total/angular: "..tostring(spoodCurrentLinearVelocityX).." / "..tostring(spoodCurrentLinearVelocityY).." / "..tostring(spoodCurrentLinearVelocity).." / "..tostring(obj.player.body:getAngularVelocity()))
+    love.graphics.print("spooder velocity, x/y/total/angular: "..string.format("%.2f", spoodCurrentLinearVelocityX).." / "..string.format("%.2f", spoodCurrentLinearVelocityY).." / "..string.format("%.2f", spoodCurrentLinearVelocity).." / "..string.format("%.2f", obj.player.body:getAngularVelocity()))
     love.graphics.print("grabbing? "..tostring(obj.player.grab), 0, 20)
-    love.graphics.print("world-relative aim angle (0 = directly down, pi = directly up): "..tostring(obj.player.currentAimAngle), 0, 40)
+    love.graphics.print("world-relative aim angle (0 = directly down, pi = directly up): "..string.format("%.2f", obj.player.currentAimAngle), 0, 40)
     love.graphics.setColor(0, .75, .25)
     love.graphics.print("current guns: "..gunNameDebugList, 0, 60)
     if obj.player.grab then
@@ -169,7 +169,7 @@ function love.draw() -- {{{
     -- bottom left debug info
     local windowSizeX, windowSizeY = love.graphics.getDimensions()
     love.graphics.setColor(1,1,1)
-    love.graphics.print("world coordinates x/y: "..obj.player.body:getX().." / "..obj.player.body:getY(), 0, windowSizeY - 20)
+    love.graphics.print("world coordinates x/y: "..string.format("%.2f",obj.player.body:getX()).." / "..string.format("%.2f",obj.player.body:getY()), 0, windowSizeY - 20)
 
   end
 

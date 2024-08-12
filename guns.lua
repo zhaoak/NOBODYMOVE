@@ -41,7 +41,7 @@ local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
 end -- }}}
 
 local function draw (gunId, player) -- {{{
-  print("drawing gun w/id "..gunId)
+  -- print("drawing gun w/id "..gunId)
   local gun = M.gunlist[gunId]
   local adjustedAimAngle = player.currentAimAngle + gun.current.recoilAimPenaltyOffset
 
