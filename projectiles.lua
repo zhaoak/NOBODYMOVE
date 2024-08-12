@@ -7,8 +7,10 @@ local filterVals = require'filterValues'
 
 -- {{{ defines
 M.bulletRadius = 5 -- how wide radius of bullet hitbox is
-M.bulletLaunchVelocity = 300 -- muzzle velocity of bullet projectiles
 M.bulletMass = 0.2
+-- if a bullet is traveling less than this fast in on the X or Y axis,
+-- it will be destroyed that frame
+M.bulletDestructionVelocityThreshold = 50
 -- }}}
 
 M.setup = function(world) -- {{{
@@ -58,9 +60,12 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment
 
     -- apply velocity to bullet
-    local bulletVelocityX = math.sin(adjustedShotAngle)*M.bulletLaunchVelocity
-    local bulletVelocityY = math.cos(adjustedShotAngle)*M.bulletLaunchVelocity
+    local bulletVelocityX = math.sin(adjustedShotAngle)*gun.projectileLaunchVelocity
+    local bulletVelocityY = math.cos(adjustedShotAngle)*gun.projectileLaunchVelocity
     newBullet.body:applyLinearImpulse(bulletVelocityX, bulletVelocityY)
+
+    -- apply projectile's linear damping
+    newBullet.body:setLinearDamping(gun.projectileLinearDamping)
 
     table.insert(newProjectiles, newBullet)
   end
@@ -110,6 +115,19 @@ end -- }}}
 -- for checking timed explosives, other effects
 M.update = function (dt)
   for i, proj in pairs(M.projectileList) do
+    print(proj.body:getLinearVelocity())
+    if proj.fixture:getUserData().name == "bullet" then
+      local bulletLinearVelocityX, bulletLinearVelocityY = proj.body:getLinearVelocity()
+      if bulletLinearVelocityX < M.bulletDestructionVelocityThreshold and 
+         bulletLinearVelocityY < M.bulletDestructionVelocityThreshold and
+         bulletLinearVelocityX > -M.bulletDestructionVelocityThreshold and
+         bulletLinearVelocityY > -M.bulletDestructionVelocityThreshold then
+        print("wut")
+        local bulletToDestroy = proj
+        M.projectileList[proj.fixture:getUserData().uid] = nil
+        bulletToDestroy.body:destroy()
+      end
+    end
     -- print(proj.fixture:getUserData())
   end
 end

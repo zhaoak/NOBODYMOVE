@@ -16,7 +16,15 @@ M.multishot = 1
 
 -- How long in seconds before the projectiles fired should despawn
 -- (assuming they don't hit anything or aren't destroyed another way)
+-- [not yet implemented]
 M.projectileMaxLifetime = 30
+
+-- The amount of velocity to apply to projectiles from this gun
+M.projectileLaunchVelocity = 300
+
+-- How much the projectile decelerates over time.
+-- Useful for limiting the effective range of shotguns, for example.
+M.projectileLinearDamping = 0
 
 -- The default maximum angle of inaccuracy of this gun in radians
 -- (If you'd prefer to use degrees, simply convert a degree value using math.rad)

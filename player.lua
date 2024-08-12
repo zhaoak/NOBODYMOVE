@@ -50,8 +50,7 @@ M.setup = function (world) -- {{{
   M.hardbox.shape = love.physics.newCircleShape(M.hardboxRadius)
   M.hardbox.fixture = love.physics.newFixture(M.body, M.hardbox.shape)
   M.hardbox.fixture:setUserData{name = "hardbox", type = "playerhitbox"}
-  -- a lil bounce, as a treat
-  M.hardbox.fixture:setRestitution(0.2)
+  M.hardbox.fixture:setRestitution(0)
 
   -- collision filter data
   M.hardbox.fixture:setCategory(filterVals.category.player)
@@ -213,9 +212,11 @@ local function getGrab() -- {{{
   -- don't bother looking if in ragdoll mode
   if love.keyboard.isDown("space") then
     M.ragdoll = true
+    M.hardbox.fixture:setRestitution(0.5)
     return nil
   else
     M.ragdoll = false
+    M.hardbox.fixture:setRestitution(0)
 
     -- {{{ find closest reachable object
     -- shortestDistance on init should be larger than anything it'll be compared to,
