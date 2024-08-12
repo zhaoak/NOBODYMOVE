@@ -10,7 +10,7 @@ M.bulletRadius = 5 -- how wide radius of bullet hitbox is
 M.bulletMass = 0.2
 -- if a bullet is traveling less than this fast in on the X or Y axis,
 -- it will be destroyed that frame
-M.bulletDestructionVelocityThreshold = 50
+M.bulletDestructionVelocityThreshold = 250
 -- }}}
 
 M.setup = function(world) -- {{{
@@ -57,6 +57,7 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     -- give us a random modifier for the shot angle from -1*gun.inaccuracy to 1*gun.inaccuracy
     local inaccuracyAngleAdjustment = gun.inaccuracy - (rand * gun.inaccuracy * 2)
     -- print(inaccuracyAngleAdjustment)
+    -- then, apply the inaccuracy modifier and recoil modifier to the angle of the shot
     local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment + gun.current.recoilAimPenaltyOffset
 
     -- apply velocity to bullet
@@ -116,6 +117,7 @@ end -- }}}
 M.update = function (dt)
   for i, proj in pairs(M.projectileList) do
     if proj.fixture:getUserData().name == "bullet" then
+      -- if a bullet is travelling below a specific speed (see defines), destroy it
       local bulletLinearVelocityX, bulletLinearVelocityY = proj.body:getLinearVelocity()
       if bulletLinearVelocityX < M.bulletDestructionVelocityThreshold and 
          bulletLinearVelocityY < M.bulletDestructionVelocityThreshold and

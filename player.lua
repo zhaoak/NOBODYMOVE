@@ -33,10 +33,10 @@ M.setup = function (world) -- {{{
   -- tmp code for guns, player just has one test gun for now
   M.guns = {}
 
-  local gun1Id = gunlib.equipGun("smg")
-  local gun2Id = gunlib.equipGun("smg")
+  local gun1Id = gunlib.equipGun("sawedoff")
+  -- local gun2Id = gunlib.equipGun("smg")
   table.insert(M.guns, gun1Id)
-  table.insert(M.guns, gun2Id)
+  -- table.insert(M.guns, gun2Id)
 
   M.world = world -- stash for laters
   if M.body then M.body:destroy() end

@@ -26,7 +26,7 @@ local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
   gun.current.cooldown = gun.cooldown
   -- store the state of the shot, so mods can modify it as they go
   -- adding more chaos each time, hopefully
-  local shot = {recoil=gun.holderKnockback, damage=gun.hitDamage} -- stuff like spread, pellets, speed, etc everything idk yet
+  local shot = {holderKnockback=gun.holderKnockback, damage=gun.hitDamage} -- stuff like spread, pellets, speed, etc everything idk yet
 
   -- for _, mod in ipairs(gun.mods) do
   --   shot = mod:apply(shot)
@@ -48,14 +48,13 @@ local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
   -- then apply the penalty
   gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset + recoilAimPenalty
 
-  return shot.recoil
+  return shot.holderKnockback
 end -- }}}
 
 local function draw (gunId, player) -- {{{
+  print("drawing gun w/id "..gunId)
   local gun = M.gunlist[gunId]
   local adjustedAimAngle = player.currentAimAngle + gun.current.recoilAimPenaltyOffset
-  -- reset the colors
-  love.graphics.setColor(1,1,1,1)
 
   local spriteLocationOffsetX = math.sin(adjustedAimAngle) * (gun.playerHoldDistance + player.hardboxRadius)
   local spriteLocationOffsetY = math.cos(adjustedAimAngle) * (gun.playerHoldDistance + player.hardboxRadius)
@@ -65,13 +64,15 @@ local function draw (gunId, player) -- {{{
     flipGunSprite = -1
   end
   if arg[2] == "debug" then
-    love.graphics.setColor(1,0,0,0.2)
-    love.graphics.circle("fill", player.body:getX()+(math.sin(player.currentAimAngle) * (gun.playerHoldDistance + player.hardboxRadius)), player.body:getY()+(math.cos(player.currentAimAngle) * (gun.playerHoldDistance + player.hardboxRadius)), 5)
-    love.graphics.setColor(1,0.5,0,0.2)
+    -- draws the angle where the player is aiming with their mouse in red
+    love.graphics.setColor(1,0,0,1)
+    love.graphics.circle("fill", player.body:getX()+(math.sin(player.currentAimAngle) * player.reachRadius), player.body:getY()+(math.cos(player.currentAimAngle) * player.reachRadius), 5)
+    -- draws the gun's current aim angle, factoring in recoil penalty, in orange
+    love.graphics.setColor(1,0.5,0,0.6)
     love.graphics.circle("fill", player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, 5)
   end
 
-  -- reset the colors
+  -- reset the colors so gun sprite uses proper palette
   love.graphics.setColor(1,1,1,1)
 
   -- draw the gun sprite
@@ -90,14 +91,11 @@ M.equipGun = function(gunName) -- {{{
   gun.current = {}
   gun.current.cooldown = gun.cooldown
 
-  -- set recoil state of new gun
+  -- set recoil penalty state of new gun to zero on equip (no penalty)
   gun.current.recoilAimPenaltyOffset = 0
 
   -- set UID of new gun
   gun.uid = util.gen_uid("guns")
-
-  -- set default aim angle for gun
-  gun.current.aimAngle = 0
 
   -- add methods
   gun.shoot = shoot
@@ -116,13 +114,17 @@ end
 M.update = function (dt)
   for _,gun in pairs(M.gunlist) do
     gun.current.cooldown = gun.current.cooldown - dt
+
+    -- if player has managed to get recoil aim penalty past a full rotation counterclockwise or clockwise (impressive),
+    -- modulo the value so the recoil recovery doesn't spin more than a full rotation
     if gun.current.recoilAimPenaltyOffset > math.pi*2 then
       gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset % (2*math.pi)
     elseif gun.current.recoilAimPenaltyOffset < -math.pi*2 then
       gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset % (-2*math.pi)
     end
+
     recoverFromRecoilPenalty(dt, gun)
-    print(gun.uid.." : "..gun.current.recoilAimPenaltyOffset)
+    -- print(gun.uid.." : "..gun.current.recoilAimPenaltyOffset)
   end
 end
 
