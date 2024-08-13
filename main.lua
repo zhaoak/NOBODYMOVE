@@ -14,8 +14,10 @@ obj.playfield = require("maps.debugmap")
 obj.player = require("player")
 obj.projectiles = require("projectiles")
 
+-- import required modules
 local gunlib = require'guns'
 local cam = require'camera'
+local hud = require'ui.hud'
 
 function love.load() -- {{{ init
   local optionsTable = {
@@ -140,6 +142,7 @@ function love.draw() -- {{{
 
   -- draw everything that doesn't move with the camera
   -- (HUD, other UI elements, etc)
+  hud.drawHealthBar(obj.player.current.health)
 
   -- non-camera affected debug rendering {{{
   if arg[2] == 'debug' then

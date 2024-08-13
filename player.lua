@@ -12,6 +12,7 @@ M.hardboxRadius = 20
 M.latchboxRadius = M.hardboxRadius * 1.5
 M.reachRadius = M.hardboxRadius * 3
 M.maxWalkingSpeed = 300
+M.startingHealth = 100
 M.playerAcceleration = 20
 M.playerLatchedKnockbackReduction = 0.05
 M.ragdoll = true
@@ -33,14 +34,17 @@ M.setup = function (world) -- {{{
   -- tmp code for guns, player just has one test gun for now
   M.guns = {}
 
-  local gun1Id = gunlib.equipGun("sawedoff")
-  local gun2Id = gunlib.equipGun("sawedoff")
+  local gun1Id = gunlib.equipGun("smg")
+  local gun2Id = gunlib.equipGun("smg")
   table.insert(M.guns, gun1Id)
   table.insert(M.guns, gun2Id)
 
   M.world = world -- stash for laters
   if M.body then M.body:destroy() end
   M.contact = 0
+
+  M.current = {}
+  M.current.health = M.startingHealth
 
   -- add texture
   M.sprite = love.graphics.newImage("assets/playernormal.png")
