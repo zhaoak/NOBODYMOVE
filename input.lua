@@ -26,4 +26,25 @@ M.getCrossHair = function ()
   return camera.getCameraRelativeMousePos()
 end
 
+-- input callback functions {{{
+-- gamepad
+function love.gamepadpressed(joystick, button)
+  printJoystickInputs(joystick)
+  printGamepadButtonInputs(joystick, button)
+end
+-- }}}
+
+-- debug functions {{{
+function printJoystickInputs(joystick)
+  local lStickX, lStickY, lTrigger, rStickX, rStickY, rTrigger = joystick:getAxes()
+  print("lstick X / lstick Y / ltrigger / rightstick x / rightstick y / righttrigger")
+  print(lStickX.." / "..lStickY.." / "..lTrigger.." / "..rStickX.." / "..rStickY.." / "..rTrigger)
+end
+
+function printGamepadButtonInputs(joystick, button)
+  local joy
+  print("button: "..button)
+end
+-- }}}
+
 return M
