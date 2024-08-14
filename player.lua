@@ -1,8 +1,8 @@
 local gunlib = require'guns'
 local modlib = require'mods'
-local cam = require'camera'
 local util = require'util'
 local filterVals = require'filterValues'
+local input = require'input'
 
 -- {{{ defines
 local M = {reach={}, hardbox={}, latchbox={}}
@@ -30,16 +30,32 @@ M.guns = {} -- a list of gun UIDs, representing the guns the player is holding
 
 -- }}}
 
-M.setup = function (world) -- {{{
+M.setup = function () -- {{{
   -- tmp code for guns, player just has one test gun for now
   M.guns = {}
 
-  local gun1Id = gunlib.equipGun("smg")
-  local gun2Id = gunlib.equipGun("smg")
-  table.insert(M.guns, gun1Id)
-  table.insert(M.guns, gun2Id)
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
 
-  M.world = world -- stash for laters
   if M.body then M.body:destroy() end
   M.contact = 0
 
@@ -49,7 +65,7 @@ M.setup = function (world) -- {{{
   -- add texture
   M.sprite = love.graphics.newImage("assets/playernormal.png")
 
-  M.body = love.physics.newBody(world, 100,100, "dynamic")
+  M.body = love.physics.newBody(util.world, 100,100, "dynamic")
   -- hardbox is the physical collision box of the spooder
   M.hardbox.shape = love.physics.newCircleShape(M.hardboxRadius)
   M.hardbox.fixture = love.physics.newFixture(M.body, M.hardbox.shape)
@@ -114,7 +130,7 @@ M.draw = function () -- {{{
     love.graphics.setColor(0, 0, 0)
     if M.grab then
       -- use world so she can grab whatever's near
-      M.world:rayCast(x, y, x + -M.grab.normalX*200, y + -M.grab.normalY*200, function(fixture, colX,colY)
+      util.world:rayCast(x, y, x + -M.grab.normalX*200, y + -M.grab.normalY*200, function(fixture, colX,colY)
         local name = fixture:getUserData().name
         if name == "reach" or name == "hardbox" then
           return 1
@@ -161,7 +177,7 @@ M.shoot = function (x, y) -- {{{
       local normalizedX = x - M.body:getX()
       local normalizedY = y - M.body:getY()
 
-      -- get the angle of the mouse from the gun
+      -- get the angle of the crosshair from the gun
       local angle = math.atan2(normalizedX,normalizedY)
 
       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
@@ -220,7 +236,7 @@ local function getGrab() -- {{{
   local grab = nil
 
   -- don't bother looking if in ragdoll mode
-  if love.keyboard.isDown("space") then
+  if input.keyDown"ragdoll" then
     M.ragdoll = true
     M.hardbox.fixture:setRestitution(0.5)
     return nil
@@ -289,8 +305,8 @@ M.update = function(dt) -- {{{
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
 
   -- update current absolute aim angle
-  local camAdjustedMouseX, camAdjustedMouseY = cam.getCameraRelativeMousePos()
-  M.currentAimAngle = math.atan2(camAdjustedMouseX - M.body:getX(), camAdjustedMouseY - M.body:getY())
+  local aimX, aimY = input.getCrossHair()
+  M.currentAimAngle = math.atan2(aimX - M.body:getX(), aimY - M.body:getY())
 
   -- may be set later, reset every frame
   M.body:setGravityScale(1)
@@ -299,9 +315,15 @@ M.update = function(dt) -- {{{
 
   -- {{{ player input and movement
 
+  -- reset spood on rightclick
+  if input.keyDown'reset' then
+    gunlib.setup()
+    M.setup()
+  end
+
   -- shoot guns!
-  if love.mouse.isDown(1) then
-    M.shoot(camAdjustedMouseX, camAdjustedMouseY)
+  if input.keyDown'shoot' then
+    M.shoot(aimX, aimY)
   end
 
   -- {{{ wasd movement
@@ -313,28 +335,28 @@ M.update = function(dt) -- {{{
   end
 
   -- up
-  if M.grab and love.keyboard.isDown'w' then -- only allowed while grabbing
+  if M.grab and input.keyDown'up' then -- only allowed while grabbing
     if spoodCurrentLinearVelocityY >= -M.maxWalkingSpeed then
       M.body:applyLinearImpulse(0, -M.playerAcceleration)
     end
   end
 
   -- down
-  if love.keyboard.isDown's' and not M.ragdoll then
+  if input.keyDown'down' and not M.ragdoll then
     if spoodCurrentLinearVelocityY <= M.maxWalkingSpeed then
       M.body:applyLinearImpulse(0, M.playerAcceleration)
     end
   end
 
   -- left
-  if love.keyboard.isDown'a' and not M.ragdoll then
+  if input.keyDown'left' and not M.ragdoll then
     if spoodCurrentLinearVelocityX >= -M.maxWalkingSpeed then
       M.body:applyLinearImpulse(-M.playerAcceleration, 0)
     end
   end
 
   -- right
-  if love.keyboard.isDown'd' and not M.ragdoll then
+  if input.keyDown'right' and not M.ragdoll then
     if spoodCurrentLinearVelocityX <= M.maxWalkingSpeed then
       M.body:applyLinearImpulse(M.playerAcceleration, 0)
     end
@@ -355,15 +377,15 @@ M.update = function(dt) -- {{{
   -- possibly we'll just lower the move down speed
   -- but works for now
   -- if M.grab and --[[ spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and ]] not love.keyboard.isDown'w' then
-  if M.grab and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and  not love.keyboard.isDown'w' then
+  if M.grab and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and not input.keyDown'up' then
     M.body:setGravityScale(0)
   end
 
   -- {{{ linear damping
   -- If not holding any movement keys while grabbed on terrain, decelerate.
   -- You'll skid if you have a lot of velocity, and stop moving entirely if you're slow enough.
-  if M.grab and not love.keyboard.isDown'w' and not love.keyboard.isDown'a' and not love.keyboard.isDown's' and not love.keyboard.isDown'd' then
-    if math.abs(spoodCurrentLinearVelocity) < 1 and not love.mouse.isDown(1) then -- stinky! hacky: the recoil impulse gets canceled without this
+  if M.grab and not input.keyDown'up' and not input.keyDown'left' and not input.keyDown'down' and not input.keyDown'right' then
+    if math.abs(spoodCurrentLinearVelocity) < 1 and not input.keyDown'shoot' then -- stinky! hacky: the recoil impulse gets canceled without this
       M.body:setLinearVelocity(0, 0)
     else
       local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.05)
@@ -402,13 +424,6 @@ M.update = function(dt) -- {{{
   -- }}} input/movement
 
 end -- }}}
-
--- i live in spain withut the a
-function love.wheelmoved(_,y)
-  if M.ragdoll then
-    M.body:applyAngularImpulse(-y*1000)
-  end
-end
 
 -- debug functions {{{
 M.dumpPlayerGunIdTable = function()

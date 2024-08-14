@@ -12,11 +12,6 @@ M.gen_uid = function(namespace) -- {{{
   end
 end -- }}}
 
-M.reset_uids = function(namespace) -- {{{
-  namespace = namespace or "global"
-  uids[namespace] = 1
-end -- }}}
-
 function M.tprint (tbl, indent) -- {{{
   -- this one is stolen directly from stack overflow
   -- https://stackoverflow.com/questions/41942289/display-contents-of-tables-in-lua

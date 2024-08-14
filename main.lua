@@ -6,7 +6,6 @@ local util = require'util'
 -- filewide vars
 local obj = {} -- all physics objects
 local phys = {} -- physics handlers
-local world -- the physics world
 local nextFrameActions = {} -- uhhh ignore for now pls
 
 -- import physics objects
@@ -40,13 +39,13 @@ function love.load() -- {{{ init
   -- tumbledryer that randomness seed baby
   math.randomseed(os.time())
 
-  -- create the physics world
-  world = love.physics.newWorld(0,10*64, false)
-  world:setCallbacks( beginContact, endContact, preSolve, postSolve )
+  -- create the physics world stored in util and accessable everywhere
+  util.world = love.physics.newWorld(0,10*64, false)
+  util.world:setCallbacks( beginContact, endContact, preSolve, postSolve )
 
-  obj.playfield.setup(world)
-  obj.player.setup(world)
-  obj.projectiles.setup(world)
+  obj.playfield.setup(util.world)
+  obj.player.setup(util.world)
+  obj.projectiles.setup(util.world)
 
   -- print("INITIAL GUNSTATE ==============================================")
   -- gunlib.dumpGunTable()
@@ -55,15 +54,6 @@ function love.load() -- {{{ init
 end -- }}}
 
 function love.update(dt) -- {{{
-  -- reset spood on rightclick
-  if love.mouse.isDown(2) then
-    util.reset_uids("guns")
-    gunlib.setup()
-    obj.player.setup(world)
-    -- gunlib.dumpGunTable()
-    -- obj.player.dumpPlayerGunIdTable()
-  end
-  
   -- center camera on spooder
   local windowSizeX, windowSizeY = love.graphics.getDimensions()
   local adjustedCamPositionX = obj.player.body:getX() - ((windowSizeX / 2) * cam.scaleX)
@@ -73,7 +63,7 @@ function love.update(dt) -- {{{
   obj.player.update(dt)
   obj.projectiles.update(dt)
 
-  world:update(dt)
+  util.world:update(dt)
 end -- }}}
 
 function love.draw() -- {{{
@@ -108,7 +98,7 @@ function love.draw() -- {{{
     if not obj.player.ragdoll then
       love.graphics.setColor(0,0,20,1)
       love.graphics.circle("line", obj.player.body:getX(), obj.player.body:getY(), obj.player.reach.shape:getRadius())
-    end 
+    end
 
     if obj.player.grab then
       local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.hardbox.fixture, obj.player.grab.fixture)
