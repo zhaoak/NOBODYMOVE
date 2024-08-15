@@ -1,4 +1,5 @@
 local util = require("util")
+local filterValues = require("filterValues")
 
 -- defining a class for all NPCs
 local M = { }
@@ -69,17 +70,41 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
   }
 
   -- create physics objects for new npc
-  -- TODO: apply the rest of the body/fixture properties that get passed in
   self.body = love.physics.newBody(util.world, initialXPos, initialYPos, "dynamic")
   if physicsData.shape.shapeType == "circle" then
     self.shape = love.physics.newCircleShape(physicsData.shape.radius)
   elseif physicsData.shape.shapeType == "polygon" then
     self.shape = love.physics.newPolygonShape(unpack(physicsData.shape.points))
-  elseif physicsData.shape == "rectangle" then
+  elseif physicsData.shape.shapeType == "rectangle" then
     self.shape = love.physics.newRectangleShape(physicsData.shape.width, physicsData.shape.height)
   end
   self.fixture = love.physics.newFixture(self.body, self.shape, physicsData.fixture.density)
-  
+
+  if physicsData.body.angularDamping ~= nil then self.body:setAngularDamping(physicsData.body.angularDamping) end
+  if physicsData.body.fixedRotation ~= nil then self.body:setFixedRotation(physicsData.body.fixedRotation) end
+  if physicsData.body.gravityScale ~= nil then self.body:setGravityScale(physicsData.body.gravityScale) end
+  if physicsData.body.inertia ~= nil then self.body:setInertia(physicsData.body.inertia) end
+  if physicsData.body.linearDamping ~= nil then self.body:setLinearDamping(physicsData.body.linearDamping) end
+  if physicsData.body.mass ~= nil then self.body:setMass(physicsData.body.mass) end
+  if physicsData.fixture.density ~= nil then self.fixture:setDensity(physicsData.fixture.density) end
+  if physicsData.fixture.restitution ~= nil then self.fixture:setRestitution(physicsData.fixture.restitution) end
+  if physicsData.fixture.friction ~= nil then self.fixture:setFriction(physicsData.fixture.friction) end
+
+  -- set collision filter data
+  if userDataTable.team == "enemy" then
+    self.fixture:setCategory(filterValues.category.enemy)
+    self.fixture:setMask(filterValues.category.enemy, filterValues.category.projectile_enemy)
+    self.fixture:setGroupIndex(0)
+  elseif userDataTable.team == "friendly" then
+    self.fixture:setCategory(filterValues.category.friendly)
+    self.fixture:setMask(filterValues.category.friendly, filterValues.category.projectile_player)
+    self.fixture:setGroupIndex(0)
+  elseif userDataTable.team == "neutral" then
+    self.fixture:setCategory(filterValues.category.neutral)
+    self.fixture:setMask()
+    self.fixture:setGroupIndex(0)
+  end
+
   -- generate and assign a UID and userdata, then add npc to npc list
   self.uid = util.gen_uid("npc")
   self.fixture:setUserData{name = userDataTable.name, type = "npc", team = userDataTable.team, uid = self.uid}
@@ -90,7 +115,7 @@ end
 
 function M:draw()
   love.graphics.setColor(0.8, 0.3, 0.24, 1)
-  love.graphics.circle("fill", self.body:getX(), self.body:getY(), self.shape:getRadius())
+  love.graphics.polygon("fill", self.body:getWorldPoints(self.shape:getPoints()))
 end
 
 function M:drawAllNpcs()
