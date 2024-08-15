@@ -14,7 +14,7 @@ setmetatable(M, {
   end,
 })
 
--- Create a new NPC instance, give it a UID, and add it to the list of NPCs in the world.
+-- Create a new NPC instance, give it a UID, and add it to the list of NPCs in the world. Returns the new npc's UID.
 -- This constructor is also called by the enemy and friendly constructors, since they are extended from the npc class.
 -- Arguments:
 -- initialXPos, initialYPos (numbers, required): initial X and Y positions of the NPC in the world.
@@ -84,6 +84,8 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
   self.uid = util.gen_uid("npc")
   self.fixture:setUserData{name = userDataTable.name, type = "npc", team = userDataTable.team, uid = self.uid}
   M.npcList[self.uid] = self
+
+  return self.uid
 end
 
 function M:draw()
