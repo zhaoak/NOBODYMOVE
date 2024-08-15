@@ -56,6 +56,7 @@ setmetatable(M, {
 -- {
 --    name (string, required): name property to set in userdata
 --    team (string, required): who the npc is allied to, relative to the player. Must be one of: "friendly", "enemy", "neutral"
+--    health (number, required): how much health to give this npc
 -- }
 -- spriteData (table): sprite data. we don't have art yet so i'll get back to this
 function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spriteData)
@@ -66,7 +67,7 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
     fixture={restitution=0,density=1}
   }
   userDataTable = userDataTable or {
-    {name="someone forgot to name me",team="enemy"}
+    {name="someone forgot to name me",team="enemy",health=100}
   }
 
   -- create physics objects for new npc
@@ -107,7 +108,7 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
 
   -- generate and assign a UID and userdata, then add npc to npc list
   self.uid = util.gen_uid("npc")
-  self.fixture:setUserData{name = userDataTable.name, type = "npc", team = userDataTable.team, uid = self.uid}
+  self.fixture:setUserData{name = userDataTable.name, type = "npc", team = userDataTable.team, health = userDataTable.health, uid = self.uid}
   M.npcList[self.uid] = self
 
   return self.uid

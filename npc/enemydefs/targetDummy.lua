@@ -19,7 +19,10 @@ M.physicsData = {
   }
 }
 
-M.name = "Target Dummy"
+M.userDataTable = {
+  name = "Target Dummy",
+  health = 999999999
+}
 
 M.spriteData = nil
 

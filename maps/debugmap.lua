@@ -76,7 +76,7 @@ M.setup = function (world) -- {{{
   M.polygon.fixture:setMask()
   M.polygon.fixture:setGroupIndex(0)
 
-  M.dummyNpcUid = enemy(2000, 1750, targetDummy.physicsData, targetDummy.name, targetDummy.spriteData)
+  M.dummyNpcUid = enemy(2000, 1750, targetDummy.physicsData, targetDummy.userDataTable, targetDummy.spriteData)
 end -- }}}
 
 M.draw = function() -- {{{

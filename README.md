@@ -30,6 +30,8 @@ type (string): What sort of object it is. Used in determining how the object han
                 - "projectile" : something someone shot, probably from a gun.
 uid (number) : A unique ID given to each object of a given type.
 team (string): Who the object is allied with, relative to the player. Must be one of: "friendly", "enemy", "neutral".
+health (num) : How much health this entity has. Not applicable for terrain or projectiles.
+proj_properties (table) : the properties of a fired projectile (damage, etc). Only present for "projectile" type
 }
 ```
 

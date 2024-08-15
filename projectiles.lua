@@ -31,7 +31,7 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     newBullet.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
     newBullet.shape = love.physics.newCircleShape(M.bulletRadius)
     newBullet.fixture = love.physics.newFixture(newBullet.body, newBullet.shape, 1)
-    newBullet.fixture:setUserData({name="bullet",type="projectile",proj_properties={},uid=util.gen_uid("projectile")})
+    newBullet.fixture:setUserData({name="bullet",type="projectile",proj_properties={damage=gun.hitDamage},uid=util.gen_uid("projectile")})
     newBullet.fixture:setRestitution(0)
     newBullet.body:setBullet(true)
     newBullet.body:setGravityScale(0)
@@ -89,12 +89,22 @@ M.handleProjectileCollision = function(a, b, contact)
       -- then delete bullet from world and projectile list (unless it's a bouncy kind but stay basic for now)
       M.projectileList[fixtureAUserData.uid] = nil
       a:getBody():destroy()
+    elseif fixtureBUserData.type == "npc" and fixtureBUserData.team == "enemy" then
+      -- deal damage and destroy the projectile
+      fixtureBUserData.health = fixtureBUserData.health - fixtureAUserData.proj_properties.damage
+      M.projectileList[fixtureAUserData.uid] = nil
+      a:getBody():destroy()
     end
   elseif fixtureBUserData.type == "projectile" and fixtureAUserData.type ~= "projectile" then
     -- fixture B is projectile
     if fixtureAUserData.type == "terrain" then
       -- TODO: create impact decal/animation at terrain location
       -- then delete bullet from world (unless it's a bouncy kind but stay basic for now)
+      M.projectileList[fixtureBUserData.uid] = nil
+      b:getBody():destroy()
+    elseif fixtureAUserData.type == "npc" and fixtureAUserData.team == "enemy" then
+      -- deal damage and destroy the projectile
+      fixtureAUserData.health = fixtureAUserData.health - fixtureBUserData.proj_properties.damage
       M.projectileList[fixtureBUserData.uid] = nil
       b:getBody():destroy()
     end

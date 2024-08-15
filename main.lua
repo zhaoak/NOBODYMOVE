@@ -64,6 +64,8 @@ function love.update(dt) -- {{{
   obj.player.update(dt)
   obj.projectiles.update(dt)
   util.world:update(dt)
+
+  print(obj.npc.npcList[1].fixture:getUserData().health)
 end -- }}}
 
 function love.draw() -- {{{
