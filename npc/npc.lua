@@ -59,7 +59,7 @@ setmetatable(M, {
 --    health (number, required): how much health to give this npc
 -- }
 -- spriteData (table): sprite data. we don't have art yet so i'll get back to this
-function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spriteData)
+function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spriteData) -- {{{
   -- set default values
   physicsData = physicsData or {
     body={angularDamping=0,fixedRotation=false,gravityScale=1,linearDamping=0},
@@ -112,11 +112,19 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
   M.npcList[self.uid] = self
 
   return self.uid
-end
+end -- }}}
 
 function M:draw()
   love.graphics.setColor(0.8, 0.3, 0.24, 1)
   love.graphics.polygon("fill", self.body:getWorldPoints(self.shape:getPoints()))
+end
+
+-- damages NPC's health by damageAmount and triggers their pain animation.
+-- Can accept negative values to heal, but will still trigger pain animation.
+function M:hurt(damageAmount)
+  local newUserData = self.fixture:getUserData()
+  newUserData.health = newUserData.health - damageAmount
+  -- also trigger pain animation (we odn't have those yet)
 end
 
 function M:drawAllNpcs()

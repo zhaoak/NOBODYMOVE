@@ -4,6 +4,7 @@ M.projectileList = {}
 
 local util = require'util'
 local filterVals = require'filterValues'
+local npc = require'npc.npc'
 
 -- {{{ defines
 M.bulletRadius = 5 -- how wide radius of bullet hitbox is
@@ -91,10 +92,11 @@ M.handleProjectileCollision = function(a, b, contact)
       a:getBody():destroy()
     elseif fixtureBUserData.type == "npc" and fixtureBUserData.team == "enemy" then
       -- deal damage and destroy the projectile
-      fixtureBUserData.health = fixtureBUserData.health - fixtureAUserData.proj_properties.damage
+      npc.npcList[fixtureBUserData.uid]:hurt(fixtureAUserData.proj_properties.damage)
       M.projectileList[fixtureAUserData.uid] = nil
       a:getBody():destroy()
     end
+
   elseif fixtureBUserData.type == "projectile" and fixtureAUserData.type ~= "projectile" then
     -- fixture B is projectile
     if fixtureAUserData.type == "terrain" then
@@ -104,7 +106,7 @@ M.handleProjectileCollision = function(a, b, contact)
       b:getBody():destroy()
     elseif fixtureAUserData.type == "npc" and fixtureAUserData.team == "enemy" then
       -- deal damage and destroy the projectile
-      fixtureAUserData.health = fixtureAUserData.health - fixtureBUserData.proj_properties.damage
+      npc.npcList[fixtureAUserData.uid]:hurt(fixtureBUserData.proj_properties.damage)
       M.projectileList[fixtureBUserData.uid] = nil
       b:getBody():destroy()
     end
