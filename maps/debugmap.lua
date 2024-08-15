@@ -1,5 +1,6 @@
 local util = require'util'
 local filterVals = require'filterValues'
+local npc = require'npc.npc'
 
 local M = { }
 
@@ -72,6 +73,8 @@ M.setup = function (world) -- {{{
   M.polygon.fixture:setCategory(filterVals.category.terrain)
   M.polygon.fixture:setMask()
   M.polygon.fixture:setGroupIndex(0)
+
+  M.dummy = npc(2000, 1750, nil)
 end -- }}}
 
 M.draw = function() -- {{{

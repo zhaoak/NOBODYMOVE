@@ -12,6 +12,7 @@ local nextFrameActions = {} -- uhhh ignore for now pls
 obj.playfield = require("maps.debugmap")
 obj.player = require("player")
 obj.projectiles = require("projectiles")
+obj.npc = require("npc.npc")
 
 -- import required modules
 local gunlib = require'guns'
@@ -72,6 +73,8 @@ function love.draw() -- {{{
   cam.set()
   obj.playfield.draw()
   obj.player.draw()
+  obj.npc.drawAllNpcs()
+
 
   -- draw existing bullets and other projectiles
   obj.projectiles.draw()

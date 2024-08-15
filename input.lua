@@ -31,6 +31,7 @@ end
 function love.gamepadpressed(joystick, button)
   printJoystickInputs(joystick)
   printGamepadButtonInputs(joystick, button)
+  -- joystick:setVibration(0.3, 0.5) vrrrrrr
 end
 -- }}}
 
