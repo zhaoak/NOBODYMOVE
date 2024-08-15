@@ -1,6 +1,7 @@
 local util = require'util'
 local filterVals = require'filterValues'
 local npc = require'npc.npc'
+local enemy = require'npc.enemy'
 
 local M = { }
 
@@ -74,7 +75,7 @@ M.setup = function (world) -- {{{
   M.polygon.fixture:setMask()
   M.polygon.fixture:setGroupIndex(0)
 
-  M.dummy = npc(2000, 1750, nil)
+  M.dummyNpc = enemy(2000, 1750, nil, "dummy", nil)
 end -- }}}
 
 M.draw = function() -- {{{

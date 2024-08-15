@@ -12,4 +12,25 @@ Running the game will require different steps based on which operating system yo
 
 Note that there's no `.love` file yet, as the game isn't ready to be packaged and distributed; instead you should pass the `love` executable to the local folder containing this repository's files.
 
+## Userdata format
+
+Box2D (the physics engine we're using) lets you store arbitrary data in physics objects for use in handling game logic.
+
+We're storing a table in it, with the following format:
+
+```
+{
+name (string): The name of the entity. May be displayed to the player.
+type (string): What sort of object it is. Used in determining how the object handles collisions with other objects.
+               Must be one of the following values:
+                - "terrain"    : static, unmoving part of the map environment. Does not have team string.
+                - "prop"       : part of the map environment that moves or is otherwise dynamic.
+                - "npc"        : an enemy, friendly, or neutral non-player character
+                - "player"     : a player.
+                - "projectile" : something someone shot, probably from a gun.
+uid (number) : A unique ID given to each object of a given type.
+team (string): Who the object is allied with, relative to the player. Must be one of: "friendly", "enemy", "neutral".
+}
+```
+
 Copyright (c) 2024 Allie Zhao & Spider Forrest

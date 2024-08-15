@@ -63,7 +63,6 @@ function love.update(dt) -- {{{
   gunlib.update(dt)
   obj.player.update(dt)
   obj.projectiles.update(dt)
-
   util.world:update(dt)
 end -- }}}
 
