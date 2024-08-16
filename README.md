@@ -30,7 +30,7 @@ type (string): What sort of object it is. Used in determining how the object han
                 - "npc"        : an enemy, friendly, or neutral non-player character
                 - "player"     : a player.
                 - "projectile" : something someone shot, probably from a gun.
-name (string): The name of the entity. May be displayed to the player.
+name (string): The name of the entity. May be displayed to the player. Does not need to be unique.
 uid (number) : A unique ID given to each object of a given type (that is, UIDs are namespaced to specific types.)
 team (string): Who the object is allied with, relative to the player. Must be one of: "friendly", "enemy", "neutral".
 

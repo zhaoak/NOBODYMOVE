@@ -22,14 +22,14 @@ local dmgText = require'ui.damageNumbers'
 
 function love.load() -- {{{ init
   local optionsTable = {
-    fullscreen = true,
+    fullscreen = false,
     fullscreentype = "desktop",
     vsync = 1,
-    resizable = false,
+    resizable = true,
     borderless = false,
     display = 1,
     minwidth = 800,
-    minheight = 800
+    minheight = 600
   }
 
   love.window.setMode(1000,1000, optionsTable)
