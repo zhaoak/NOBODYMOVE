@@ -1,12 +1,18 @@
 local util = require("util")
 local filterValues = require("filterValues")
 
--- defining a class for all NPCs
+-- defining a class metatable for all NPCs
 local M = { }
 
+-- if instances can't find the method in their own table, check the NPC class metatable
 M.__index = M
+
+-- the megalist of every NPC currently existing in the world, keyed by UID
 M.npcList = {}
 
+-- If you don't know what I'm doing here, I'm creating a new class in Lua.
+-- Lua doesn't have builtin class functionality, so I'm using metamethods to implement it.
+-- See here for details: http://lua-users.org/wiki/ObjectOrientationTutorial
 setmetatable(M, {
   __call = function(cls, ...)
     local self = setmetatable({}, cls)
@@ -114,6 +120,7 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
   return self.uid
 end -- }}}
 
+-- Get a specific NPC's X and Y location in the world
 function M:getX()
   return self.body:getX()
 end
@@ -122,12 +129,13 @@ function M:getY()
   return self.body:getY()
 end
 
+-- Draw a specific NPC, instance method
 function M:draw()
-  love.graphics.setColor(0.8, 0.3, 0.24, 1)
+  love.graphics.setColor(0.5, 0.8, 0.8, 1)
   love.graphics.polygon("fill", self.body:getWorldPoints(self.shape:getPoints()))
 end
 
--- damages NPC's health by damageAmount and triggers their pain animation.
+-- damages an NPC's health by damageAmount and triggers their pain animation.
 -- Can accept negative values to heal, but will still trigger pain animation.
 function M:hurt(damageAmount)
   local newUserData = self.fixture:getUserData()
@@ -135,6 +143,7 @@ function M:hurt(damageAmount)
   -- also trigger pain animation (we odn't have those yet)
 end
 
+-- Draw all NPCs, static class method
 function M.drawAllNpcs()
   for uid, npc in pairs(M.npcList) do
     npc:draw()

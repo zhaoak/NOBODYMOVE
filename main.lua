@@ -67,7 +67,7 @@ function love.update(dt) -- {{{
   util.world:update(dt)
   dmgText.updateDamageNumberEvents(dt)
 
-  print(obj.npc.npcList[1].fixture:getUserData().health)
+  -- print(obj.npc.npcList[1].fixture:getUserData().health)
 end -- }}}
 
 function love.draw() -- {{{
