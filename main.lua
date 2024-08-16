@@ -18,6 +18,7 @@ obj.npc = require("npc.npc")
 local gunlib = require'guns'
 local cam = require'camera'
 local hud = require'ui.hud'
+local dmgText = require'ui.damageNumbers'
 
 function love.load() -- {{{ init
   local optionsTable = {
@@ -64,6 +65,7 @@ function love.update(dt) -- {{{
   obj.player.update(dt)
   obj.projectiles.update(dt)
   util.world:update(dt)
+  dmgText.updateDamageNumberEvents(dt)
 
   print(obj.npc.npcList[1].fixture:getUserData().health)
 end -- }}}
@@ -75,7 +77,7 @@ function love.draw() -- {{{
   obj.playfield.draw()
   obj.player.draw()
   obj.npc.drawAllNpcs()
-
+  dmgText.drawDamageNumberEvents()
 
   -- draw existing bullets and other projectiles
   obj.projectiles.draw()

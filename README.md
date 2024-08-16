@@ -16,11 +16,13 @@ Note that there's no `.love` file yet, as the game isn't ready to be packaged an
 
 Box2D (the physics engine we're using) lets you store arbitrary data in physics objects for use in handling game logic.
 
-We're storing a table in it, with the following format:
+We're storing a table in it, with the following format.
+
+(Note that some fields are only present for specific type values.)
 
 ```
 {
-name (string): The name of the entity. May be displayed to the player.
+ALL TYPES ===========================================
 type (string): What sort of object it is. Used in determining how the object handles collisions with other objects.
                Must be one of the following values:
                 - "terrain"    : static, unmoving part of the map environment. Does not have team string.
@@ -28,10 +30,16 @@ type (string): What sort of object it is. Used in determining how the object han
                 - "npc"        : an enemy, friendly, or neutral non-player character
                 - "player"     : a player.
                 - "projectile" : something someone shot, probably from a gun.
-uid (number) : A unique ID given to each object of a given type.
+name (string): The name of the entity. May be displayed to the player.
+uid (number) : A unique ID given to each object of a given type (that is, UIDs are namespaced to specific types.)
 team (string): Who the object is allied with, relative to the player. Must be one of: "friendly", "enemy", "neutral".
-health (num) : How much health this entity has. Not applicable for terrain or projectiles.
-proj_properties (table) : the properties of a fired projectile (damage, etc). Only present for "projectile" type
+
+PROP/NPC/PLAYER/PROJECTILE TYPES ONLY ===============
+health (num) : How much damage the entity can take before being destroyed/killed.
+
+PROJECTILE TYPES ONLY ===============================
+firedFrom (number): UID of gun this projectile was fired from.
+damage (number)   : how much damage to apply to a target directly hit by this projectile
 }
 ```
 

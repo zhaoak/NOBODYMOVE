@@ -5,6 +5,7 @@ M.projectileList = {}
 local util = require'util'
 local filterVals = require'filterValues'
 local npc = require'npc.npc'
+local dmgText = require'ui.damageNumbers'
 
 -- {{{ defines
 M.bulletRadius = 5 -- how wide radius of bullet hitbox is
@@ -32,7 +33,7 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     newBullet.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
     newBullet.shape = love.physics.newCircleShape(M.bulletRadius)
     newBullet.fixture = love.physics.newFixture(newBullet.body, newBullet.shape, 1)
-    newBullet.fixture:setUserData({name="bullet",type="projectile",proj_properties={damage=gun.hitDamage},uid=util.gen_uid("projectile")})
+    newBullet.fixture:setUserData({name="bullet",type="projectile",damage=gun.hitDamage,firedFrom=gun.uid,uid=util.gen_uid("projectile")})
     newBullet.fixture:setRestitution(0)
     newBullet.body:setBullet(true)
     newBullet.body:setGravityScale(0)
@@ -91,8 +92,9 @@ M.handleProjectileCollision = function(a, b, contact)
       M.projectileList[fixtureAUserData.uid] = nil
       a:getBody():destroy()
     elseif fixtureBUserData.type == "npc" and fixtureBUserData.team == "enemy" then
-      -- deal damage and destroy the projectile
-      npc.npcList[fixtureBUserData.uid]:hurt(fixtureAUserData.proj_properties.damage)
+      -- deal damage, destroy the projectile, and update damage numbers
+      dmgText.damageNumberEvent(fixtureAUserData.damage, fixtureBUserData.uid)
+      npc.npcList[fixtureBUserData.uid]:hurt(fixtureAUserData.damage)
       M.projectileList[fixtureAUserData.uid] = nil
       a:getBody():destroy()
     end
@@ -105,8 +107,9 @@ M.handleProjectileCollision = function(a, b, contact)
       M.projectileList[fixtureBUserData.uid] = nil
       b:getBody():destroy()
     elseif fixtureAUserData.type == "npc" and fixtureAUserData.team == "enemy" then
-      -- deal damage and destroy the projectile
-      npc.npcList[fixtureAUserData.uid]:hurt(fixtureBUserData.proj_properties.damage)
+      -- deal damage, destroy projectile, update damage numbers
+      dmgText.damageNumberEvent(fixtureBUserData.damage, fixtureAUserData.uid)
+      npc.npcList[fixtureAUserData.uid]:hurt(fixtureBUserData.damage)
       M.projectileList[fixtureBUserData.uid] = nil
       b:getBody():destroy()
     end

@@ -34,8 +34,8 @@ M.setup = function () -- {{{
   -- tmp code for guns, player just has one test gun for now
   M.guns = {}
 
-  table.insert(M.guns, gunlib.equipGun"sawedoff")
-  table.insert(M.guns, gunlib.equipGun"sawedoff")
+  table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"smg")
 
   if M.body then M.body:destroy() end
   M.contact = 0

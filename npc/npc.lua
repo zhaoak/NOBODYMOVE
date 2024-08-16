@@ -114,6 +114,14 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
   return self.uid
 end -- }}}
 
+function M:getX()
+  return self.body:getX()
+end
+
+function M:getY()
+  return self.body:getY()
+end
+
 function M:draw()
   love.graphics.setColor(0.8, 0.3, 0.24, 1)
   love.graphics.polygon("fill", self.body:getWorldPoints(self.shape:getPoints()))
@@ -127,7 +135,7 @@ function M:hurt(damageAmount)
   -- also trigger pain animation (we odn't have those yet)
 end
 
-function M:drawAllNpcs()
+function M.drawAllNpcs()
   for uid, npc in pairs(M.npcList) do
     npc:draw()
   end
