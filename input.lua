@@ -38,7 +38,7 @@ M.gamepadButtonBinds = {
   reset = "y"
 }
 
--- input-device-specific input checks {{{
+-- Input-device-specific input checks {{{
 -- check if a mouse button or keyboard key is down
 M.keyDown = function (bind)
   if type(M.kbMouseBinds[bind]) == "string" then
@@ -55,7 +55,7 @@ M.gamepadButtonDown = function (bind, joystick)
 end
 -- }}}
 
--- Game input check functions {{{
+-- Game command check functions {{{
 -- get if shoot input is currently down
 M.getShootDown = function()
   if M.keyDown("shoot") or M.gamepadButtonDown("shoot", M.connectedControllers.player1Joy) then
@@ -110,7 +110,6 @@ M.getMovementYAxisInput = function()
     return M.gamepadAxisTriggerValues.leftStickY
   end
 end
--- }}}
 
 -- aiming with controller stick is faked by simply returning mouse coords in a circle around spood body,
 -- with where on the circle based on controller stick position
@@ -129,8 +128,11 @@ M.getCrossHair = function (playerPosX, playerPosY)
     return camera.getCameraRelativeMousePos()
   end
 end
+-- }}}
 
--- get current gamepad stick values
+-- Update gamepad axis value functions {{{
+-- get a specific gamepad's current stick values
+-- (although currently only one gamepad at a time is supported)
 M.updateGamepadAxisTriggerInputs = function (joystick)
   if joystick ~= nil then
     local lStickX, lStickY, lTrigger, rStickX, rStickY, rTrigger = joystick:getAxes()
@@ -142,13 +144,21 @@ M.updateGamepadAxisTriggerInputs = function (joystick)
     M.gamepadAxisTriggerValues.rightTrigger = rTrigger
   end
 
-  -- if a joystick is connected, and being used for aim this tick, disable mouseaim
-  if joystick ~= nil and (M.gamepadAxisTriggerValues.rightStickX ~= 0 or M.gamepadAxisTriggerValues.rightStickY ~= 0) and M.mouseAimDisabled == false then
+  -- if a joystick for P1 is connected, and being used for aim this tick, disable mouseaim
+  if joystick == M.connectedControllers.player1Joy and (M.gamepadAxisTriggerValues.rightStickX ~= 0 or M.gamepadAxisTriggerValues.rightStickY ~= 0) and M.mouseAimDisabled == false then
     M.mouseAimDisabled = true
   end
 end
 
--- input callback functions {{{
+-- Update all joysticks axis values for this tick
+M.updateJoystickInputs = function ()
+  for playerController, joystick in pairs(M.connectedControllers) do
+    M.updateGamepadAxisTriggerInputs(joystick)
+  end
+end
+-- }}}
+
+-- Input callback functions {{{
 -- gamepad
 function love.gamepadpressed(joystick, button)
   printCurrentJoystickInputs(joystick)
@@ -176,7 +186,7 @@ function love.mousemoved()
 end
 -- }}}
 
--- debug functions {{{
+-- Debug functions {{{
 function printCurrentJoystickInputs(joystick)
   print("lstick X / lstick Y / ltrigger / rightstick x / rightstick y / righttrigger")
   print(M.gamepadAxisTriggerValues.leftStickX.." / "..M.gamepadAxisTriggerValues.leftStickY.." / "..M.gamepadAxisTriggerValues.leftTrigger.." / "..M.gamepadAxisTriggerValues.rightStickX.." / "..M.gamepadAxisTriggerValues.rightStickY.." / "..M.gamepadAxisTriggerValues.rightTrigger)

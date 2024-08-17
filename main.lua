@@ -6,7 +6,6 @@ local util = require'util'
 -- filewide vars
 local obj = {} -- all physics objects
 local phys = {} -- physics handlers
-local nextFrameActions = {} -- uhhh ignore for now pls
 
 -- import physics objects
 obj.playfield = require("maps.debugmap")
@@ -63,7 +62,7 @@ function love.update(dt) -- {{{
   local adjustedCamPositionY = obj.player.body:getY() - ((windowSizeY / 2) * cam.scaleY)
   cam.setPosition(adjustedCamPositionX, adjustedCamPositionY)
   gunlib.update(dt)
-  input.updateGamepadAxisTriggerInputs(input.connectedControllers.player1Joy)
+  input.updateJoystickInputs()
   obj.player.update(dt)
   obj.projectiles.update(dt)
   util.world:update(dt)
@@ -177,12 +176,6 @@ function love.draw() -- {{{
   -- }}}
 end  -- }}}
 
-
--- catch resize
--- love.resize = function (width,height)
---   obj.playfield.resize(width,height)
--- end
-
 -- physics collision callbacks {{{
 
 function beginContact(a, b, contact) -- {{{
@@ -231,6 +224,5 @@ function postSolve(a, b, contact, normalimpulse, tangentimpulse) -- {{{
 end -- }}}
 
 -- }}}
-
 
 -- vim: foldmethod=marker
