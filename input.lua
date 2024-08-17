@@ -29,8 +29,6 @@ M.gamepadButtonBinds = {
   reset = "y"
 }
 
-
-
 -- check if a mouse button or keyboard key is down
 M.keyDown = function (bind)
   if type(M.kbMouseBinds[bind]) == "string" then
@@ -45,13 +43,12 @@ M.gamepadButtonDown = function (bind)
   return love.joystick:isDown(M.gamepadButtonBinds[bind])
 end
 
--- get current gamepad stick values
-
 -- mous for now, add controller later
 M.getCrossHair = function ()
   return camera.getCameraRelativeMousePos()
 end
 
+-- get current gamepad stick values
 M.updateGamepadAxisTriggerInputs = function ()
   local lStickX, lStickY, lTrigger, rStickX, rStickY, rTrigger = joystick:getAxes()
   M.gamepadAxisTriggerValues.leftStickX = lStickX
@@ -65,17 +62,16 @@ end
 -- input callback functions {{{
 -- gamepad
 function love.gamepadpressed(joystick, button)
-  printJoystickInputs(joystick)
+  printCurrentJoystickInputs(joystick)
   printGamepadButtonInputs(joystick, button)
-  -- joystick:setVibration(0.3, 0.5) vrrrrrr
+  -- joystick:setVibration(1, 1) -- vrrrrrr
 end
 -- }}}
 
 -- debug functions {{{
-function printJoystickInputs(joystick)
-  local lStickX, lStickY, lTrigger, rStickX, rStickY, rTrigger = joystick:getAxes()
+function printCurrentJoystickInputs(joystick)
   print("lstick X / lstick Y / ltrigger / rightstick x / rightstick y / righttrigger")
-  print(lStickX.." / "..lStickY.." / "..lTrigger.." / "..rStickX.." / "..rStickY.." / "..rTrigger)
+  print(M.gamepadAxisTriggerValues.leftStickX.." / "..M.gamepadAxisTriggerValues.leftStickY.." / "..M.gamepadAxisTriggerValues.leftTrigger.." / "..M.gamepadAxisTriggerValues.rightStickX.." / "..M.gamepadAxisTriggerValues.rightStickY.." / "..M.gamepadAxisTriggerValues.rightTrigger)
 end
 
 function printGamepadButtonInputs(joystick, button)
