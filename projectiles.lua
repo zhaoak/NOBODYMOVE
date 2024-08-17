@@ -48,8 +48,9 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
     -- this bullet should NOT collide with:
     newBullet.fixture:setMask(
       filterVals.category.friendly,
-      filterVals.category.player,
-      filterVals.category.projectile_player)
+      filterVals.category.player_hardbox,
+      filterVals.category.projectile_player,
+      filterVals.category.terrain_bg)
 
     -- this bullet is in group:
     newBullet.fixture:setGroupIndex(0)

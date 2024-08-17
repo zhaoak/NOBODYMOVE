@@ -189,8 +189,8 @@ function beginContact(a, b, contact) -- {{{
   local fixtureAUserData = a:getUserData()
   local fixtureBUserData = b:getUserData()
 
-  -- if terrain comes in range of spooder's reach...
-  if (fixtureAUserData.name == "reach" and fixtureBUserData.type == "terrain") or (fixtureBUserData.name == "reach" and fixtureAUserData.type == "terrain") then
+  -- if climbable terrain comes in range of spooder's reach...
+  if (fixtureAUserData.name == "reach" and (fixtureBUserData.type == "terrain" or fixtureBUserData.type == "terrain_bg")) or (fixtureBUserData.name == "reach" and (fixtureAUserData.type == "terrain" or fixtureAUserData.type == "terrain_bg")) then
     -- ...then add the terrain to the cache of terrain items in latching range
     obj.player.handleTerrainEnteringRange(a, b, contact)
   end
@@ -205,8 +205,8 @@ function endContact(a, b, contact) -- {{{
   local fixtureAUserData = a:getUserData()
   local fixtureBUserData = b:getUserData()
 
-  -- when terrain leaves range of spooder's reach...
-  if (fixtureAUserData.name == "reach" and fixtureBUserData.type == "terrain") or (fixtureBUserData.name == "reach" and fixtureAUserData.type == "terrain") then
+  -- when climbable terrain leaves range of spooder's reach...
+  if (fixtureAUserData.name == "reach" and (fixtureBUserData.type == "terrain" or fixtureBUserData.type == "terrain_bg")) or (fixtureBUserData.name == "reach" and (fixtureAUserData.type == "terrain" or fixtureAUserData.type == "terrain_bg")) then
     -- ...remove the terrain from the cache of terrain items in latching range
     obj.player.handleTerrainLeavingRange(a, b, contact)
   end

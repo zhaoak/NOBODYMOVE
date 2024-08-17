@@ -26,10 +26,11 @@ ALL TYPES ===========================================
 type (string): What sort of object it is. Used in determining how the object handles collisions with other objects.
                Must be one of the following values:
                 - "terrain"    : solid, grab/climbable part of the map environment. Cannot be moved through, and collides w/bullets. Does not have team string.
-                - "terrain_bg" : grab/climbable like terrain, but does not collide with anything. Visually, players can "walk" on its area like they're moving along a background wall or surface.
+                - "terrain_bg" : grab/climbable like terrain, but does not collide with anything. Visually, players can "walk" on its area like they're moving along a background wall or surface. **Shares a UID namespace ("terrain") with terrain type. This is necessary for player latch handling.**
                 - "prop"       : part of the map environment that is subject to physics interactions (gravity, bullet knockback, etc).
                 - "npc"        : an enemy, friendly, or neutral non-player character
-                - "player"     : a player.
+                - "player_hardbox": a player's world collision box (the thing that gets hit by bullets and collides with terrain.)
+-               - "player_reach": a player's leg reach. is a Box2D shape/fixture pair so we can use collision event data from it, but does not actually collide with anything.
                 - "projectile" : something someone shot, probably from a gun.
 name (string): The name of the entity. May be displayed to the player. Does not need to be unique.
 uid (number) : A unique ID given to each object of a given type (that is, UIDs are namespaced to specific types.)

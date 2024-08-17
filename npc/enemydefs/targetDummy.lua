@@ -4,8 +4,8 @@ M.physicsData = {
   body = {
     angularDamping = 1,
     fixedRotation = true,
-    gravityScale = 2,
-    linearDamping = 1
+    gravityScale = 1,
+    linearDamping = 5
   },
   shape = {
     shapeType = "rectangle",

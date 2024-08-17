@@ -6,7 +6,7 @@ local targetDummy = require'npc.enemydefs.targetDummy'
 
 local M = { }
 
-M.color = {1,1,1,1}
+M.color = {0.5,0.5,0.5,1}
 
 local width = 3000
 local height = 2000
@@ -76,6 +76,14 @@ M.setup = function (world) -- {{{
   M.polygon.fixture:setMask()
   M.polygon.fixture:setGroupIndex(0)
 
+  M.climbableBg = {}
+  M.climbableBg.shape = love.physics.newRectangleShape(1600, height-800, width*0.2, height*0.3, 0)
+  M.climbableBg.fixture = love.physics.newFixture(M.body, M.climbableBg.shape)
+  M.climbableBg.fixture:setUserData{name = "climbableBg", type = "terrain_bg", uid = util.gen_uid("terrain")}
+  M.climbableBg.fixture:setCategory(filterVals.category.terrain_bg)
+  M.climbableBg.fixture:setMask(filterVals.category.player_hardbox)
+  M.climbableBg.fixture:setGroupIndex(0)
+
   M.dummyNpcUid = enemy(2000, 1750, targetDummy.physicsData, targetDummy.userDataTable, targetDummy.spriteData)
 end -- }}}
 
@@ -100,12 +108,14 @@ M.draw = function() -- {{{
     love.graphics.rectangle(mode, 0, 0, width, height) -- origin in the top left corner
     love.graphics.pop()
   end
-  drawRotatedRectange("line", topLeftWorldPointX, topLeftWorldPointY, width/3, height*0.5, math.rad(30))
+  drawRotatedRectange("fill", topLeftWorldPointX, topLeftWorldPointY, width/3, height*0.5, math.rad(30))
 
   local circleX, circleY = M.circle.shape:getPoint()
-  love.graphics.circle("line", circleX, circleY, M.circle.shape:getRadius())
+  love.graphics.circle("fill", circleX, circleY, M.circle.shape:getRadius())
 
-  love.graphics.polygon("line", M.body:getWorldPoints(M.polygon.shape:getPoints()))
+  love.graphics.polygon("fill", M.body:getWorldPoints(M.polygon.shape:getPoints()))
+
+  love.graphics.polygon("line", M.body:getWorldPoints(M.climbableBg.shape:getPoints()))
 end -- }}}
 
 return M

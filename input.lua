@@ -33,7 +33,7 @@ M.kbMouseBinds = {
 
 -- Same, but for gamepad buttons.
 M.gamepadButtonBinds = {
-  ragdoll = "leftstick",
+  ragdoll = "leftshoulder",
   shoot = "rightshoulder",
   reset = "y"
 }
@@ -146,14 +146,13 @@ M.updateGamepadAxisTriggerInputs = function (joystick)
   if joystick ~= nil and (M.gamepadAxisTriggerValues.rightStickX ~= 0 or M.gamepadAxisTriggerValues.rightStickY ~= 0) and M.mouseAimDisabled == false then
     M.mouseAimDisabled = true
   end
-  print(M.mouseAimDisabled)
 end
 
 -- input callback functions {{{
 -- gamepad
 function love.gamepadpressed(joystick, button)
   printCurrentJoystickInputs(joystick)
-  -- printGamepadButtonInputs(joystick, button)
+  printGamepadButtonInputs(joystick, button)
   -- joystick:setVibration(1, 1) -- vrrrrrr
 end
 

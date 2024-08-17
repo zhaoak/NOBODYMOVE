@@ -40,8 +40,9 @@ M.category.friendly =           3
 M.category.enemy =              4
 M.category.projectile_enemy =   5
 M.category.projectile_player =  6
-M.category.player =             7
-M.category.neutral =            8
+M.category.player_hardbox =     7
+M.category.player_reach =       8
+M.category.neutral =            9
 
 
 -- We might need the bitmask literal values for later (when using the dreaded `Fixture:setFilterData()`,

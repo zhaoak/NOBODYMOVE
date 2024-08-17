@@ -35,7 +35,7 @@ M.setup = function () -- {{{
   M.guns = {}
 
   table.insert(M.guns, gunlib.equipGun"sawedoff")
-  -- table.insert(M.guns, gunlib.equipGun"smg")
+  table.insert(M.guns, gunlib.equipGun"sawedoff")
 
   if M.body then M.body:destroy() end
   M.contact = 0
@@ -50,14 +50,15 @@ M.setup = function () -- {{{
   -- hardbox is the physical collision box of the spooder
   M.hardbox.shape = love.physics.newCircleShape(M.hardboxRadius)
   M.hardbox.fixture = love.physics.newFixture(M.body, M.hardbox.shape)
-  M.hardbox.fixture:setUserData{name = "hardbox", type = "playerhitbox"}
+  M.hardbox.fixture:setUserData{name = "hardbox", type = "player_hardbox"}
   M.hardbox.fixture:setRestitution(0)
 
   -- collision filter data
-  M.hardbox.fixture:setCategory(filterVals.category.player)
+  M.hardbox.fixture:setCategory(filterVals.category.player_hardbox)
   M.hardbox.fixture:setMask(
     filterVals.category.friendly,
-    filterVals.category.projectile_player)
+    filterVals.category.projectile_player,
+    filterVals.category.terrain_bg)
   M.hardbox.fixture:setGroupIndex(0)
 
   -- reach is how far away the spood will latch to terrain from
@@ -65,9 +66,9 @@ M.setup = function () -- {{{
   M.reach.fixture = love.physics.newFixture(M.body, M.reach.shape, 0)
   -- the reach shape is just to detect when the spood can reach the wall
   -- you'd think we'd use a sensor, but no, check out preSolve in main.lua for where we handle that
-  M.reach.fixture:setUserData{name = "reach", semisensor=true, type = "playerreach"}
+  M.reach.fixture:setUserData{name = "reach", semisensor=true, type = "player_reach"}
   -- reach should also collide with everything hardbox does because of the semisensor weirdness
-  M.reach.fixture:setCategory(filterVals.category.player)
+  M.reach.fixture:setCategory(filterVals.category.player_reach)
   M.reach.fixture:setMask(
     filterVals.category.friendly,
     filterVals.category.projectile_player)
