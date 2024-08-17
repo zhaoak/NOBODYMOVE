@@ -33,6 +33,11 @@ M.getCameraRelativeMousePos = function()
   return love.mouse.getX() * M.scaleX + M.x, love.mouse.getY() * M.scaleY + M.y
 end
 
+-- Returns the X and Y value of arbitrary world coordinates, adjusted by the current camera transformations.
+M.getCameraAdjustedWorldPosition = function(worldPosX, worldPosY)
+  return worldPosX * M.scaleX + M.x, worldPosY * M.scaleY + M.y
+end
+
 -- All the functions below this point should only be called in `love.update()`,
 -- and are used to manipulate the camera.
 -- ==============================================

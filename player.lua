@@ -286,7 +286,7 @@ M.update = function(dt) -- {{{
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
 
   -- update current absolute aim angle
-  local aimX, aimY = input.getCrossHair()
+  local aimX, aimY = input.getCrossHair(M.body:getX(), M.body:getY())
   M.currentAimAngle = math.atan2(aimX - M.body:getX(), aimY - M.body:getY())
 
   -- may be set later, reset every frame

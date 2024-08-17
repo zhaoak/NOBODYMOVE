@@ -17,6 +17,9 @@ M.connectedControllers = {
   player2Joy = nil
 }
 
+-- since mouse position is always present, we need a way to tell when to use controller rstick vs mouse aim
+M.mouseAimDisabled = false
+
 -- File for handling keyboard and gamepad inputs and translating them into game inputs.
 M.kbMouseBinds = {
   up = 'w',
@@ -105,9 +108,23 @@ M.getMovementYAxisInput = function()
 end
 -- }}}
 
--- mous for now, add controller later
-M.getCrossHair = function ()
-  return camera.getCameraRelativeMousePos()
+-- aiming with controller stick is faked by simply returning mouse coords in a circle around spood body,
+-- with where on the circle based on controller stick position
+local fakeAimAngleCacheX, fakeAimAngleCacheY = 1, 0
+M.getCrossHair = function (playerPosX, playerPosY)
+  if M.mouseAimDisabled then
+    local fakeAimX, fakeAimY = playerPosX, playerPosY
+    if M.gamepadAxisTriggerValues.rightStickX ~= 0 and M.gamepadAxisTriggerValues.rightStickY ~= 0 then
+      fakeAimAngleCacheX, fakeAimAngleCacheY = M.gamepadAxisTriggerValues.rightStickX, M.gamepadAxisTriggerValues.rightStickY
+    end
+    fakeAimX = fakeAimX + (fakeAimAngleCacheX * 4)
+    fakeAimY = fakeAimY + (fakeAimAngleCacheY * 4)
+    -- print(fakeAimX.." / "..fakeAimY)
+    return fakeAimX, fakeAimY
+  else
+    -- print(camera.getCameraRelativeMousePos())
+    return camera.getCameraRelativeMousePos()
+  end
 end
 
 -- get current gamepad stick values
@@ -119,13 +136,17 @@ M.updateGamepadAxisTriggerInputs = function (joystick)
   M.gamepadAxisTriggerValues.rightStickY = rStickY or 0
   M.gamepadAxisTriggerValues.leftTrigger = lTrigger or -1
   M.gamepadAxisTriggerValues.rightTrigger = rTrigger or -1
+
+  if (rStickX ~= 0 or rStickY ~= 0) and M.mouseAimDisabled == false then
+    M.mouseAimDisabled = true
+  end
 end
 
 -- input callback functions {{{
 -- gamepad
 function love.gamepadpressed(joystick, button)
-  -- printCurrentJoystickInputs(joystick)
-  printGamepadButtonInputs(joystick, button)
+  printCurrentJoystickInputs(joystick)
+  -- printGamepadButtonInputs(joystick, button)
   -- joystick:setVibration(1, 1) -- vrrrrrr
 end
 
@@ -134,6 +155,11 @@ function love.joystickadded(joystick)
   if M.connectedControllers.player1Joy == nil then
     M.connectedControllers.player1Joy = joystick
   end
+end
+
+-- if player moves mouse, assume they want to use mouseaim
+function love.mousemoved()
+  M.mouseAimDisabled = false
 end
 -- }}}
 
