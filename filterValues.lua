@@ -35,22 +35,25 @@ local M = { }
 M.category = {}
 
 M.category.terrain =            1
-M.category.friendly =           2
-M.category.enemy =              3
-M.category.projectile_enemy =   4
-M.category.projectile_player =  5
-M.category.player =             6
-M.category.neutral =            7
+M.category.terrain_bg =         2
+M.category.friendly =           3
+M.category.enemy =              4
+M.category.projectile_enemy =   5
+M.category.projectile_player =  6
+M.category.player =             7
+M.category.neutral =            8
+
 
 -- We might need the bitmask literal values for later (when using the dreaded `Fixture:setFilterData()`,
 -- so here they are
+-- they're probably not up to date with the values above
 M.bitmasks = {}
 
-M.bitmasks.terrain =            0x0001
-M.bitmasks.friendly =           0x0002
-M.bitmasks.enemy =              0x0004
-M.bitmasks.projectile_enemy =   0x0008
-M.bitmasks.projectile_player =  0x0010
-M.bitmasks.player =             0x0020
+-- M.bitmasks.terrain =            0x0001
+-- M.bitmasks.friendly =           0x0002
+-- M.bitmasks.enemy =              0x0004
+-- M.bitmasks.projectile_enemy =   0x0008
+-- M.bitmasks.projectile_player =  0x0010
+-- M.bitmasks.player =             0x0020
 
 return M

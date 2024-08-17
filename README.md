@@ -25,8 +25,9 @@ We're storing a table in it, with the following format.
 ALL TYPES ===========================================
 type (string): What sort of object it is. Used in determining how the object handles collisions with other objects.
                Must be one of the following values:
-                - "terrain"    : static, unmoving part of the map environment. Does not have team string.
-                - "prop"       : part of the map environment that moves or is otherwise dynamic.
+                - "terrain"    : solid, grab/climbable part of the map environment. Cannot be moved through, and collides w/bullets. Does not have team string.
+                - "terrain_bg" : grab/climbable like terrain, but does not collide with anything. Visually, players can "walk" on its area like they're moving along a background wall or surface.
+                - "prop"       : part of the map environment that is subject to physics interactions (gravity, bullet knockback, etc).
                 - "npc"        : an enemy, friendly, or neutral non-player character
                 - "player"     : a player.
                 - "projectile" : something someone shot, probably from a gun.

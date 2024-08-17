@@ -129,15 +129,19 @@ end
 
 -- get current gamepad stick values
 M.updateGamepadAxisTriggerInputs = function (joystick)
-  local lStickX, lStickY, lTrigger, rStickX, rStickY, rTrigger = joystick:getAxes()
-  M.gamepadAxisTriggerValues.leftStickX = lStickX or 0
-  M.gamepadAxisTriggerValues.leftStickY = lStickY or 0
-  M.gamepadAxisTriggerValues.rightStickX = rStickX or 0
-  M.gamepadAxisTriggerValues.rightStickY = rStickY or 0
-  M.gamepadAxisTriggerValues.leftTrigger = lTrigger or -1
-  M.gamepadAxisTriggerValues.rightTrigger = rTrigger or -1
+  print(joystick)
+  if joystick ~= nil then
+    local lStickX, lStickY, lTrigger, rStickX, rStickY, rTrigger = joystick:getAxes()
+    M.gamepadAxisTriggerValues.leftStickX = lStickX or 0
+    M.gamepadAxisTriggerValues.leftStickY = lStickY or 0
+    M.gamepadAxisTriggerValues.rightStickX = rStickX or 0
+    M.gamepadAxisTriggerValues.rightStickY = rStickY or 0
+    M.gamepadAxisTriggerValues.leftTrigger = lTrigger or -1
+    M.gamepadAxisTriggerValues.rightTrigger = rTrigger or -1
+  end
 
-  if (rStickX ~= 0 or rStickY ~= 0) and M.mouseAimDisabled == false then
+  -- if a joystick is connected, and being used for aim, disable mouseaim
+  if joystick ~= nil and (M.gamepadAxisTriggerValues.rightStickX ~= 0 or M.gamepadAxisTriggerValues.rightStickY ~= 0) and M.mouseAimDisabled == false then
     M.mouseAimDisabled = true
   end
 end
