@@ -14,7 +14,7 @@ M.reachRadius = M.hardboxRadius * 3
 M.maxWalkingSpeed = 300
 M.startingHealth = 100
 M.playerAcceleration = 20
-M.playerLatchedKnockbackReduction = 0.05
+M.playerLatchedKnockbackReduction = 0.5
 M.ragdoll = true
 M.currentAimAngle = 0 -- relative to world; i.e. 0 means aiming straight down from player perspective of world
 
@@ -35,7 +35,7 @@ M.setup = function () -- {{{
   M.guns = {}
 
   table.insert(M.guns, gunlib.equipGun"sawedoff")
-  table.insert(M.guns, gunlib.equipGun"sawedoff")
+  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
 
   if M.body then M.body:destroy() end
   M.contact = 0
