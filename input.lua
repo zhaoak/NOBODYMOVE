@@ -86,6 +86,8 @@ M.getMovementXAxisInput = function()
     return -1
   elseif M.keyDown("right") then
     return 1
+  elseif M.connectedControllers.player1Joy == nil then
+    return 0
   else
     -- if no kb+mouse X-axis movement input, use controller value
     return M.gamepadAxisTriggerValues.leftStickX
@@ -101,6 +103,8 @@ M.getMovementYAxisInput = function()
     return -1
   elseif M.keyDown("down") then
     return 1
+  elseif M.connectedControllers.player1Joy == nil then
+    return 0
   else
     -- if no kb+mouse Y-axis movement input, use controller value
     return M.gamepadAxisTriggerValues.leftStickY
@@ -117,33 +121,32 @@ M.getCrossHair = function (playerPosX, playerPosY)
     if M.gamepadAxisTriggerValues.rightStickX ~= 0 and M.gamepadAxisTriggerValues.rightStickY ~= 0 then
       fakeAimAngleCacheX, fakeAimAngleCacheY = M.gamepadAxisTriggerValues.rightStickX, M.gamepadAxisTriggerValues.rightStickY
     end
-    fakeAimX = fakeAimX + (fakeAimAngleCacheX * 4)
-    fakeAimY = fakeAimY + (fakeAimAngleCacheY * 4)
-    -- print(fakeAimX.." / "..fakeAimY)
+    fakeAimX = fakeAimX + ((fakeAimAngleCacheX or M.gamepadAxisTriggerValues.rightStickX) * 4)
+    fakeAimY = fakeAimY + ((fakeAimAngleCacheY or M.gamepadAxisTriggerValues.rightStickY) * 4)
     return fakeAimX, fakeAimY
   else
-    -- print(camera.getCameraRelativeMousePos())
+    -- if mouseaim not disabled, just use mouse position
     return camera.getCameraRelativeMousePos()
   end
 end
 
 -- get current gamepad stick values
 M.updateGamepadAxisTriggerInputs = function (joystick)
-  print(joystick)
   if joystick ~= nil then
     local lStickX, lStickY, lTrigger, rStickX, rStickY, rTrigger = joystick:getAxes()
-    M.gamepadAxisTriggerValues.leftStickX = lStickX or 0
-    M.gamepadAxisTriggerValues.leftStickY = lStickY or 0
-    M.gamepadAxisTriggerValues.rightStickX = rStickX or 0
-    M.gamepadAxisTriggerValues.rightStickY = rStickY or 0
-    M.gamepadAxisTriggerValues.leftTrigger = lTrigger or -1
-    M.gamepadAxisTriggerValues.rightTrigger = rTrigger or -1
+    M.gamepadAxisTriggerValues.leftStickX = lStickX
+    M.gamepadAxisTriggerValues.leftStickY = lStickY
+    M.gamepadAxisTriggerValues.rightStickX = rStickX
+    M.gamepadAxisTriggerValues.rightStickY = rStickY
+    M.gamepadAxisTriggerValues.leftTrigger = lTrigger
+    M.gamepadAxisTriggerValues.rightTrigger = rTrigger
   end
 
-  -- if a joystick is connected, and being used for aim, disable mouseaim
+  -- if a joystick is connected, and being used for aim this tick, disable mouseaim
   if joystick ~= nil and (M.gamepadAxisTriggerValues.rightStickX ~= 0 or M.gamepadAxisTriggerValues.rightStickY ~= 0) and M.mouseAimDisabled == false then
     M.mouseAimDisabled = true
   end
+  print(M.mouseAimDisabled)
 end
 
 -- input callback functions {{{
@@ -156,9 +159,16 @@ end
 
 -- gamepad connected/present on application start
 function love.joystickadded(joystick)
+  -- for now, autoassign to player 1
   if M.connectedControllers.player1Joy == nil then
     M.connectedControllers.player1Joy = joystick
   end
+end
+
+-- gamepad removed
+function love.joystickremoved(joystick)
+  -- on removal, remove joystick from table of connected controllers
+  M.connectedControllers.player1Joy = nil
 end
 
 -- if player moves mouse, assume they want to use mouseaim
