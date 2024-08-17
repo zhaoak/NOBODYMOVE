@@ -19,6 +19,7 @@ local gunlib = require'guns'
 local cam = require'camera'
 local hud = require'ui.hud'
 local dmgText = require'ui.damageNumbers'
+local input = require'input'
 
 function love.load() -- {{{ init
   local optionsTable = {
@@ -62,6 +63,7 @@ function love.update(dt) -- {{{
   local adjustedCamPositionY = obj.player.body:getY() - ((windowSizeY / 2) * cam.scaleY)
   cam.setPosition(adjustedCamPositionX, adjustedCamPositionY)
   gunlib.update(dt)
+  input.updateGamepadAxisTriggerInputs(input.connectedControllers.player1Joy)
   obj.player.update(dt)
   obj.projectiles.update(dt)
   util.world:update(dt)

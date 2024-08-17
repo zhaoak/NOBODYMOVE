@@ -217,7 +217,7 @@ local function getGrab() -- {{{
   local grab = nil
 
   -- don't bother looking if in ragdoll mode
-  if input.keyDown"ragdoll" then
+  if input.getRagdollDown() then
     M.ragdoll = true
     M.hardbox.fixture:setRestitution(0.5)
     return nil
@@ -303,11 +303,11 @@ M.update = function(dt) -- {{{
   end
 
   -- shoot guns!
-  if input.keyDown'shoot' then
+  if input.getShootDown() then
     M.shoot(aimX, aimY)
   end
 
-  -- {{{ wasd movement
+  -- {{{ directional movement
   -- While within grabbing range of terrain, spood can move any arbitrary direction in the air--
   -- but not when no terrain is in range. There's also a max speed you can accelerate to while grabbed.
 
@@ -315,31 +315,32 @@ M.update = function(dt) -- {{{
     M.playerAcceleration = M.playerAcceleration / 4
   end
 
+
   -- up
-  if M.grab and input.keyDown'up' then -- only allowed while grabbing
+  if M.grab and input.getMovementYAxisInput() < 0 then -- only allowed while grabbing
     if spoodCurrentLinearVelocityY >= -M.maxWalkingSpeed then
-      M.body:applyLinearImpulse(0, -M.playerAcceleration)
+      M.body:applyLinearImpulse(0, M.playerAcceleration*input.getMovementYAxisInput())
     end
   end
 
   -- down
-  if input.keyDown'down' and not M.ragdoll then
+  if input.getMovementYAxisInput() > 0 and not M.ragdoll then
     if spoodCurrentLinearVelocityY <= M.maxWalkingSpeed then
-      M.body:applyLinearImpulse(0, M.playerAcceleration)
+      M.body:applyLinearImpulse(0, M.playerAcceleration*input.getMovementYAxisInput())
     end
   end
 
   -- left
-  if input.keyDown'left' and not M.ragdoll then
+  if input.getMovementXAxisInput() < 0 and not M.ragdoll then
     if spoodCurrentLinearVelocityX >= -M.maxWalkingSpeed then
-      M.body:applyLinearImpulse(-M.playerAcceleration, 0)
+      M.body:applyLinearImpulse(M.playerAcceleration*input.getMovementXAxisInput(), 0)
     end
   end
 
   -- right
-  if input.keyDown'right' and not M.ragdoll then
+  if input.getMovementXAxisInput() > 0 and not M.ragdoll then
     if spoodCurrentLinearVelocityX <= M.maxWalkingSpeed then
-      M.body:applyLinearImpulse(M.playerAcceleration, 0)
+      M.body:applyLinearImpulse(M.playerAcceleration*input.getMovementXAxisInput(), 0)
     end
   end
 
@@ -358,15 +359,17 @@ M.update = function(dt) -- {{{
   -- possibly we'll just lower the move down speed
   -- but works for now
   -- if M.grab and --[[ spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and ]] not love.keyboard.isDown'w' then
-  if M.grab and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and not input.keyDown'up' then
+  
+  -- if you're currently grabbed, not already falling, and not pressing down, cancel gravity when grabbed
+  if M.grab and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and input.getMovementYAxisInput() >= 0 then
     M.body:setGravityScale(0)
   end
 
   -- {{{ linear damping
-  -- If not holding any movement keys while grabbed on terrain, decelerate.
+  -- If not doing any movement inputs while grabbed on terrain, decelerate.
   -- You'll skid if you have a lot of velocity, and stop moving entirely if you're slow enough.
-  if M.grab and not input.keyDown'up' and not input.keyDown'left' and not input.keyDown'down' and not input.keyDown'right' then
-    if math.abs(spoodCurrentLinearVelocity) < 1 and not input.keyDown'shoot' then -- stinky! hacky: the recoil impulse gets canceled without this
+  if M.grab and input.getMovementXAxisInput() == 0 and input.getMovementYAxisInput() == 0 then
+    if math.abs(spoodCurrentLinearVelocity) < 1 and not input.getShootDown() then -- stinky! hacky: the recoil impulse gets canceled without this
       M.body:setLinearVelocity(0, 0)
     else
       local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.05)
