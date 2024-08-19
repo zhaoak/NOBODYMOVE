@@ -1,3 +1,4 @@
+local gunlib = require'guns'
 local M = { }
 
 M.drawHealthBar = function(playerCurrentHealth) -- {{{
@@ -7,6 +8,11 @@ M.drawHealthBar = function(playerCurrentHealth) -- {{{
   love.graphics.print("health: ", 5, windowSizeY - 60, 0, 2, 2, 0, 0)
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.print(healthNumberDisplay, 100, windowSizeY - 60, 0, 2, 2, 0, 0)
+end
+-- }}}
+
+M.drawGunList = function(gunList) -- {{{
+  
 end
 -- }}}
 

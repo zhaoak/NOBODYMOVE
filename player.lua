@@ -13,10 +13,11 @@ M.latchboxRadius = M.hardboxRadius * 1.5
 M.reachRadius = M.hardboxRadius * 3
 M.maxWalkingSpeed = 300
 M.startingHealth = 100
-M.playerAcceleration = 20
+M.playerAcceleration = 10
 M.playerLatchedKnockbackReduction = 0.5
 M.ragdoll = true
 M.currentAimAngle = 0 -- relative to world; i.e. 0 means aiming straight down from player perspective of world
+M.playerMaxGuns = 8 -- the absolute cap on how many guns a player is allowed to hold at once
 
 M.rayImpactOffsetXCache = 0
 M.rayImpactOffsetYCache = 0

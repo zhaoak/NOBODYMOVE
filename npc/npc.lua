@@ -4,6 +4,10 @@ local filterValues = require("filterValues")
 -- defining a class metatable for all NPCs
 local M = { }
 
+-- assorted defines {{{
+M.hitflashDuration = 0.1
+-- }}}
+
 -- if instances can't find the method in their own table, check the NPC class metatable
 M.__index = M
 
@@ -120,6 +124,7 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
   return self.uid
 end -- }}}
 
+-- npc utility methods {{{
 -- Get a specific NPC's X and Y location in the world
 function M:getX()
   return self.body:getX()
@@ -129,18 +134,20 @@ function M:getY()
   return self.body:getY()
 end
 
--- Draw a specific NPC, instance method
-function M:draw()
-  love.graphics.setColor(0.5, 0.8, 0.8, 1)
-  love.graphics.polygon("fill", self.body:getWorldPoints(self.shape:getPoints()))
-end
-
 -- damages an NPC's health by damageAmount and triggers their pain animation.
 -- Can accept negative values to heal, but will still trigger pain animation.
 function M:hurt(damageAmount)
   local newUserData = self.fixture:getUserData()
   newUserData.health = newUserData.health - damageAmount
   -- also trigger pain animation (we odn't have those yet)
+end
+
+-- }}}
+
+-- Draw a specific NPC, instance method
+function M:draw()
+  love.graphics.setColor(0.5, 0.8, 0.8, 1)
+  love.graphics.polygon("fill", self.body:getWorldPoints(self.shape:getPoints()))
 end
 
 -- Draw all NPCs, static class method
