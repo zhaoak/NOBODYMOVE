@@ -140,6 +140,7 @@ function love.draw() -- {{{
   -- draw everything that doesn't move with the camera
   -- (HUD, other UI elements, etc)
   hud.drawHealthBar(obj.player.current.health)
+  hud.drawGunList(obj.player.guns)
 
   -- non-camera affected debug rendering {{{
   if arg[2] == 'debug' then
@@ -165,6 +166,8 @@ function love.draw() -- {{{
       local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.hardbox.fixture, obj.player.grab.fixture)
       love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 80)
     end
+    if obj.player.ungrabGraceTimer <= 0 then love.graphics.setColor(.75, .05, .05, 1) end
+    love.graphics.print("leave-grab grace timer: "..obj.player.ungrabGraceTimer, 0, 100)
 
     -- bottom left debug info
     local windowSizeX, windowSizeY = love.graphics.getDimensions()

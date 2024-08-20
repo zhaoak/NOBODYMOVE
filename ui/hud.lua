@@ -11,10 +11,16 @@ M.drawHealthBar = function(playerCurrentHealth) -- {{{
 end
 -- }}}
 
-M.drawGunList = function(gunList) -- {{{
+-- gunlist on hud draw functions {{{
+M.drawGunList = function(gunList)
   
 end
+
+M.drawGunListItem = function(gun)
+
+end
 -- }}}
+
 
 return M
 -- vim: foldmethod=marker

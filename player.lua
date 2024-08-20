@@ -18,6 +18,10 @@ M.playerLatchedKnockbackReduction = 0.5
 M.ragdoll = true
 M.currentAimAngle = 0 -- relative to world; i.e. 0 means aiming straight down from player perspective of world
 M.playerMaxGuns = 8 -- the absolute cap on how many guns a player is allowed to hold at once
+-- the amount of time in seconds you have for controlling like you're grabbed even after you stop grabbing
+-- think of how in most platformers, you can jump even if you're a bit late and your character is no longer standing on the ground after running off an edge
+M.ungrabGracePeriod = 0.3
+M.ungrabGraceTimer = M.ungrabGracePeriod
 
 M.rayImpactOffsetXCache = 0
 M.rayImpactOffsetYCache = 0
@@ -52,7 +56,8 @@ M.setup = function () -- {{{
   M.hardbox.shape = love.physics.newCircleShape(M.hardboxRadius)
   M.hardbox.fixture = love.physics.newFixture(M.body, M.hardbox.shape)
   M.hardbox.fixture:setUserData{name = "hardbox", type = "player_hardbox"}
-  M.hardbox.fixture:setRestitution(0)
+  M.hardbox.fixture:setRestitution(0.2)
+  M.hardbox.fixture:setFriction(0.4)
 
   -- collision filter data
   M.hardbox.fixture:setCategory(filterVals.category.player_hardbox)
@@ -287,6 +292,13 @@ M.update = function(dt) -- {{{
   local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
 
+  -- update grace period timer, reset if grabbing
+  if not M.grab then 
+    M.ungrabGraceTimer = M.ungrabGraceTimer - dt
+  else
+    M.ungrabGraceTimer = M.ungrabGracePeriod
+  end
+
   -- update current absolute aim angle
   local aimX, aimY = input.getCrossHair(M.body:getX(), M.body:getY())
   M.currentAimAngle = math.atan2(aimX - M.body:getX(), aimY - M.body:getY())
@@ -313,7 +325,7 @@ M.update = function(dt) -- {{{
   -- While within grabbing range of terrain, spood can move any arbitrary direction in the air--
   -- but not when no terrain is in range. There's also a max speed you can accelerate to while grabbed.
 
-  if not M.grab then -- If player is in the air, reduce how much velocity they can apply
+  if not M.grab and M.ungrabGraceTimer <= 0 then -- If player is in the air and grace timer has run out, reduce how much velocity they can apply
     M.playerAcceleration = M.playerAcceleration / 4
   end
 
@@ -347,7 +359,7 @@ M.update = function(dt) -- {{{
   end
 
   -- Set velocity back to normal if it's been halved for air movement
-  if not M.grab then
+  if not M.grab and M.ungrabGraceTimer <= 0 then
     M.playerAcceleration = M.playerAcceleration * 4 -- this is some accelerated backhop type code
   end
   -- }}}
@@ -362,8 +374,9 @@ M.update = function(dt) -- {{{
   -- but works for now
   -- if M.grab and --[[ spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and ]] not love.keyboard.isDown'w' then
   
-  -- if you're currently grabbed, not already falling, and not pressing down, cancel gravity when grabbed
-  if M.grab and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and input.getMovementYAxisInput() >= 0 then
+  -- if you're currently grabbed, not already falling, and not pressing down, cancel gravity when grabbed this tick
+  -- (or, if you've just left a grab and the grace timer hasn't run out yet)
+  if (M.grab and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and input.getMovementYAxisInput() >= 0) or M.ungrabGraceTimer >= 0 then
     M.body:setGravityScale(0)
   end
 
@@ -374,7 +387,7 @@ M.update = function(dt) -- {{{
     if math.abs(spoodCurrentLinearVelocity) < 1 and not input.getShootDown() then -- stinky! hacky: the recoil impulse gets canceled without this
       M.body:setLinearVelocity(0, 0)
     else
-      local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.05)
+      local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.03)
       local decelerationForceY = -(spoodCurrentLinearVelocityY * 0.05)
       M.body:applyLinearImpulse(decelerationForceX, decelerationForceY)
     end

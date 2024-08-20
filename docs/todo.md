@@ -12,3 +12,5 @@ List of features still needing to be added to spoodergame
 - leg kinematics climbing/shooting code
 
 - enemy design, AI
+
+- map brush helper/generation functions
