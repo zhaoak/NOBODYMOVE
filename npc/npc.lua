@@ -139,6 +139,8 @@ end
 function M:hurt(damageAmount)
   local newUserData = self.fixture:getUserData()
   newUserData.health = newUserData.health - damageAmount
+  self.fixture:setUserData(newUserData)
+  print(self.fixture:getUserData().health)
   -- also trigger pain animation (we odn't have those yet)
 end
 
