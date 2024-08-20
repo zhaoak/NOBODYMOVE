@@ -22,7 +22,7 @@ M.drawGunList = function(gunList)
 end
 
 M.drawGunListItem = function(gun, topLeftPosX, topLeftPosY)
-  love.graphics.setColor(1, 1, 1, 0.7) 
+  love.graphics.setColor(1, 1, 1, 0.7)
   love.graphics.line(topLeftPosX, topLeftPosY, topLeftPosX+100, topLeftPosY)
   love.graphics.setColor(1, 1, 1, 1)
   if gun.current.cooldown >= 0 then love.graphics.setColor(0.6, 0.6, 0.6, 0.3) end

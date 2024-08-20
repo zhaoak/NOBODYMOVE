@@ -233,6 +233,7 @@ local function getGrab() -- {{{
   if input.getRagdollDown() then
     M.ragdoll = true
     M.hardbox.fixture:setRestitution(0.5)
+    M.ungrabGraceTimer = -1
     return nil
   else
     M.ragdoll = false
