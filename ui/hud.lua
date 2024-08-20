@@ -13,11 +13,21 @@ end
 
 -- gunlist on hud draw functions {{{
 M.drawGunList = function(gunList)
-  
+  local windowSizeX, windowSizeY = love.graphics.getDimensions()
+  local gunListYPosOffset = 100
+  for i, gunId in pairs(gunList) do
+    M.drawGunListItem(gunlib.gunlist[gunId], 5, gunListYPosOffset)
+    gunListYPosOffset = gunListYPosOffset + 110
+  end
 end
 
-M.drawGunListItem = function(gun)
-
+M.drawGunListItem = function(gun, topLeftPosX, topLeftPosY)
+  love.graphics.setColor(1, 1, 1, 0.7) 
+  love.graphics.line(topLeftPosX, topLeftPosY, topLeftPosX+100, topLeftPosY)
+  love.graphics.setColor(1, 1, 1, 1)
+  if gun.current.cooldown >= 0 then love.graphics.setColor(0.6, 0.6, 0.6, 0.3) end
+  love.graphics.print(gun.name, topLeftPosX, topLeftPosY+5)
+  love.graphics.draw(gun.gunSprite, topLeftPosX, topLeftPosY+25)
 end
 -- }}}
 
