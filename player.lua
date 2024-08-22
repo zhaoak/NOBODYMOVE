@@ -13,7 +13,7 @@ M.latchboxRadius = M.hardboxRadius * 1.5
 M.reachRadius = M.hardboxRadius * 3
 M.maxWalkingSpeed = 300
 M.startingHealth = 100
-M.playerAcceleration = 10
+M.playerAcceleration = 15
 M.playerLatchedKnockbackReduction = 0.5
 M.ragdoll = true
 M.currentAimAngle = 0 -- relative to world; i.e. 0 means aiming straight down from player perspective of world
@@ -41,12 +41,12 @@ M.setup = function () -- {{{
 
   table.insert(M.guns, gunlib.equipGun"sawedoff")
   table.insert(M.guns, gunlib.equipGun"sawedoff")
-  table.insert(M.guns, gunlib.equipGun"sawedoff")
-  table.insert(M.guns, gunlib.equipGun"sawedoff")
-  table.insert(M.guns, gunlib.equipGun"sawedoff")
-  table.insert(M.guns, gunlib.equipGun"sawedoff")
-  table.insert(M.guns, gunlib.equipGun"sawedoff")
-  table.insert(M.guns, gunlib.equipGun"sawedoff")
+  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
+  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
+  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
+  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
+  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
+  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
 
   if M.body then M.body:destroy() end
   M.contact = 0
@@ -63,7 +63,7 @@ M.setup = function () -- {{{
   M.hardbox.fixture = love.physics.newFixture(M.body, M.hardbox.shape)
   M.hardbox.fixture:setUserData{name = "hardbox", type = "player_hardbox"}
   M.hardbox.fixture:setRestitution(0.2)
-  M.hardbox.fixture:setFriction(0.4)
+  M.hardbox.fixture:setFriction(2)
 
   -- collision filter data
   M.hardbox.fixture:setCategory(filterVals.category.player_hardbox)
@@ -90,8 +90,7 @@ M.setup = function () -- {{{
   M.body:setAngularDamping(0.1)
 
   -- set spooder mass
-  M.body:setMass(0.3)
-
+  M.body:setMass(0.4)
 
 end -- }}}
 
@@ -383,7 +382,7 @@ M.update = function(dt) -- {{{
   
   -- if you're currently grabbed, not already falling, and not pressing down, cancel gravity when grabbed this tick
   -- (or, if you've just left a grab and the grace timer hasn't run out yet)
-  if (M.grab and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and input.getMovementYAxisInput() >= 0) or M.ungrabGraceTimer >= 0 then
+  if (M.grab and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and input.getMovementYAxisInput() >= 0) then
     M.body:setGravityScale(0)
   end
 

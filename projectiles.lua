@@ -80,6 +80,7 @@ M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRela
 end
 -- }}}
 
+M.hitctr = 0
 -- projectile collision handling {{{
 M.handleProjectileCollision = function(a, b, contact)
   local fixtureAUserData = a:getUserData()
@@ -97,6 +98,8 @@ M.handleProjectileCollision = function(a, b, contact)
       dmgText.damageNumberEvent(fixtureAUserData.damage, fixtureBUserData.uid)
       npc.npcList[fixtureBUserData.uid]:hurt(fixtureAUserData.damage)
       M.projectileList[fixtureAUserData.uid] = nil
+      M.hitctr = M.hitctr + 1
+      print(M.hitctr )
       a:getBody():destroy()
     end
 
@@ -112,6 +115,8 @@ M.handleProjectileCollision = function(a, b, contact)
       dmgText.damageNumberEvent(fixtureBUserData.damage, fixtureAUserData.uid)
       npc.npcList[fixtureAUserData.uid]:hurt(fixtureBUserData.damage)
       M.projectileList[fixtureBUserData.uid] = nil
+      M.hitctr = M.hitctr + 1
+      print("hit!!")
       b:getBody():destroy()
     end
   else
