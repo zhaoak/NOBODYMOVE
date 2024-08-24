@@ -169,6 +169,10 @@ function love.draw() -- {{{
     if obj.player.ungrabGraceTimer <= 0 then love.graphics.setColor(.75, .05, .05, 1) end
     love.graphics.print("leave-grab grace timer: "..obj.player.ungrabGraceTimer, 0, 100)
 
+    love.graphics.setColor(0.75, .05, .05)
+    if obj.player.dashTimer <= 0 and obj.player.dashUsed == false then love.graphics.setColor(0, .75, .25, 1) end
+    love.graphics.print("dash cooldown timer: "..obj.player.dashTimer, 0, 120)
+
     -- bottom left debug info
     local windowSizeX, windowSizeY = love.graphics.getDimensions()
     love.graphics.setColor(1,1,1)

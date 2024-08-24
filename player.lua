@@ -23,6 +23,10 @@ M.playerMaxGuns = 8 -- the absolute cap on how many guns a player is allowed to 
 M.ungrabGracePeriod = 0.3
 M.ungrabGraceTimer = M.ungrabGracePeriod
 
+M.dashUsed = false -- whether or not the player has used their dash 
+M.dashForce = 150 -- how much force to apply on each axis when player uses dash
+M.dashCooldownPeriod = 1 -- how long in seconds it takes for the dash to be available after being used
+
 M.rayImpactOffsetXCache = 0
 M.rayImpactOffsetYCache = 0
 M.rayImpactFractionCache = 0
@@ -53,6 +57,9 @@ M.setup = function () -- {{{
 
   M.current = {}
   M.current.health = M.startingHealth
+
+  M.dashUsed = false
+  M.dashTimer = 0
 
   -- add texture
   M.sprite = love.graphics.newImage("assets/playernormal.png")
@@ -233,6 +240,11 @@ local function getGrab() -- {{{
     M.ragdoll = true
     M.hardbox.fixture:setRestitution(0.5)
     M.ungrabGraceTimer = -1
+    if M.dashUsed == false and M.dashTimer <= 0 and (input.getMovementXAxisInput() ~= 0 or input.getMovementYAxisInput() ~= 0) then
+      M.dashUsed = true
+      M.dashTimer = M.dashCooldownPeriod
+      M.body:applyLinearImpulse(M.dashForce * input.getMovementXAxisInput(), M.dashForce * input.getMovementYAxisInput())
+    end
     return nil
   else
     M.ragdoll = false
@@ -275,6 +287,7 @@ local function getGrab() -- {{{
           -- tmp debug
           grab.p = {}
           grab.p.x1, grab.p.y1, grab.p.x2, grab.p.x2 = contact:getPositions()
+          M.dashUsed = false
         end
       end
     end -- }}}
@@ -297,6 +310,8 @@ M.update = function(dt) -- {{{
   -- cache current frame spood velocity
   local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
   local spoodCurrentLinearVelocity = math.sqrt((spoodCurrentLinearVelocityX^2) + (spoodCurrentLinearVelocityY^2))
+
+  M.dashTimer = M.dashTimer - dt
 
   -- update grace period timer, reset if grabbing
   if not M.grab then 
@@ -334,7 +349,6 @@ M.update = function(dt) -- {{{
   if not M.grab and M.ungrabGraceTimer <= 0 then -- If player is in the air and grace timer has run out, reduce how much velocity they can apply
     M.playerAcceleration = M.playerAcceleration / 4
   end
-
 
   -- up
   if M.grab and input.getMovementYAxisInput() < 0 then -- only allowed while grabbing
@@ -425,7 +439,7 @@ M.update = function(dt) -- {{{
   end -- }}}
 
   -- }}} counter ext forces
-
+  
   -- }}} input/movement
 
 end -- }}}
