@@ -23,6 +23,7 @@ M.playerMaxGuns = 8 -- the absolute cap on how many guns a player is allowed to 
 M.ungrabGracePeriod = 0.3
 M.ungrabGraceTimer = M.ungrabGracePeriod
 
+-- experimental player airdash ability: recovers after grabbing terrain and cooldown done
 M.dashUsed = false -- whether or not the player has used their dash 
 M.dashForce = 150 -- how much force to apply on each axis when player uses dash
 M.dashCooldownPeriod = 1 -- how long in seconds it takes for the dash to be available after being used
