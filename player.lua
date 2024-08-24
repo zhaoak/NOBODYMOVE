@@ -325,6 +325,8 @@ M.update = function(dt) -- {{{
     M.ungrabGraceTimer = M.ungrabGracePeriod
   end
 
+  M.body:setLinearDamping(0)
+
   -- update current absolute aim angle
   local aimX, aimY = input.getCrossHair(M.body:getX(), M.body:getY())
   M.currentAimAngle = math.atan2(aimX - M.body:getX(), aimY - M.body:getY())
@@ -350,6 +352,9 @@ M.update = function(dt) -- {{{
   -- {{{ directional movement
   -- While within grabbing range of terrain, spood can move any arbitrary direction in the air--
   -- but not when no terrain is in range. There's also a max speed you can accelerate to while grabbed.
+  --
+  -- if grabbed, set damping value
+  if M.grab then M.body:setLinearDamping(2.5) end
 
   if not M.grab and M.ungrabGraceTimer <= 0 then -- If player is in the air and grace timer has run out, reduce how much velocity they can apply
     M.playerAcceleration = M.playerAcceleration / 4
