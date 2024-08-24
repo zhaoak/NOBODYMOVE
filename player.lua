@@ -71,7 +71,7 @@ M.setup = function () -- {{{
   M.hardbox.fixture = love.physics.newFixture(M.body, M.hardbox.shape)
   M.hardbox.fixture:setUserData{name = "hardbox", type = "player_hardbox"}
   M.hardbox.fixture:setRestitution(0.2)
-  M.hardbox.fixture:setFriction(2)
+  M.hardbox.fixture:setFriction(1)
 
   -- collision filter data
   M.hardbox.fixture:setCategory(filterVals.category.player_hardbox)
