@@ -25,7 +25,7 @@ M.ungrabGraceTimer = M.ungrabGracePeriod
 
 -- experimental player airdash ability: recovers after grabbing terrain and cooldown done
 M.dashUsed = false -- whether or not the player has used their dash 
-M.dashForce = 150 -- how much force to apply on each axis when player uses dash
+M.dashForce = 115 -- how much force to apply on each axis when player uses dash
 M.dashCooldownPeriod = 1 -- how long in seconds it takes for the dash to be available after being used
 
 M.rayImpactOffsetXCache = 0
@@ -409,9 +409,8 @@ M.update = function(dt) -- {{{
     M.body:setGravityScale(0)
   end
 
-  -- {{{ linear damping
-  -- If not doing any movement inputs while grabbed on terrain, decelerate.
-  -- You'll skid if you have a lot of velocity, and stop moving entirely if you're slow enough.
+  -- {{{ brakes
+  -- If not doing any movement inputs while grabbed on terrain, decelerate to a stop.
   if M.grab and input.getMovementXAxisInput() == 0 and input.getMovementYAxisInput() == 0 then
     if math.abs(spoodCurrentLinearVelocity) < 1 and not input.getShootDown() then -- stinky! hacky: the recoil impulse gets canceled without this
       M.body:setLinearVelocity(0, 0)
