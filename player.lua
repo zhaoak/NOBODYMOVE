@@ -244,6 +244,10 @@ local function getGrab() -- {{{
     if M.dashUsed == false and M.dashTimer <= 0 and (input.getMovementXAxisInput() ~= 0 or input.getMovementYAxisInput() ~= 0) then
       M.dashUsed = true
       M.dashTimer = M.dashCooldownPeriod
+      local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
+      if spoodCurrentLinearVelocityY > 0 then
+        M.body:setLinearVelocity(spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY*0.25)
+      end
       M.body:applyLinearImpulse(M.dashForce * input.getMovementXAxisInput(), M.dashForce * input.getMovementYAxisInput())
     end
     return nil
@@ -395,9 +399,8 @@ M.update = function(dt) -- {{{
   -- but works for now
   -- if M.grab and --[[ spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and ]] not love.keyboard.isDown'w' then
   
-  -- if you're currently grabbed, not already falling, and not pressing down, cancel gravity when grabbed this tick
-  -- (or, if you've just left a grab and the grace timer hasn't run out yet)
-  if (M.grab and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and input.getMovementYAxisInput() >= 0) then
+  -- if you're currently grabbed and not already climbing, cancel gravity when grabbed this tick
+  if (M.grab and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1) then
     M.body:setGravityScale(0)
   end
 

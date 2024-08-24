@@ -20,6 +20,12 @@ M.connectedControllers = {
 -- since mouse position is always present, we need a way to tell when to use controller rstick vs mouse aim
 M.mouseAimDisabled = false
 
+-- joystick deadzone settings
+M.movementJoystickThresholdX = 0.30
+M.movementJoystickThresholdY = 0.30
+M.aimJoystickThresholdX = 0.05
+M.aimJoystickThresholdY = 0.05
+
 -- File for handling keyboard and gamepad inputs and translating them into game inputs.
 M.kbMouseBinds = {
   up = 'w',
@@ -131,14 +137,21 @@ end
 -- }}}
 
 -- Update gamepad axis value functions {{{
+
 -- get a specific gamepad's current stick values
+-- if an axis is within deadzone threshold, returns zero
 -- (although currently only one gamepad at a time is supported)
 M.updateGamepadAxisTriggerInputs = function (joystick)
   if joystick ~= nil then
     local lStickX, lStickY, lTrigger, rStickX, rStickY, rTrigger = joystick:getAxes()
+    
+    if lStickX < M.movementJoystickThresholdX and lStickX > -M.movementJoystickThresholdX then lStickX = 0 end
     M.gamepadAxisTriggerValues.leftStickX = lStickX
+    if lStickY < M.movementJoystickThresholdY and lStickY > -M.movementJoystickThresholdY then lStickY = 0 end
     M.gamepadAxisTriggerValues.leftStickY = lStickY
+    if rStickX < M.aimJoystickThresholdX and rStickX > -M.aimJoystickThresholdX then rStickX = 0 end
     M.gamepadAxisTriggerValues.rightStickX = rStickX
+    if rStickY < M.aimJoystickThresholdY and rStickY > -M.aimJoystickThresholdY then rStickY = 0 end
     M.gamepadAxisTriggerValues.rightStickY = rStickY
     M.gamepadAxisTriggerValues.leftTrigger = lTrigger
     M.gamepadAxisTriggerValues.rightTrigger = rTrigger
