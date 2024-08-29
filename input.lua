@@ -33,14 +33,18 @@ M.kbMouseBinds = {
   left = 'a',
   right = 'd',
   ragdoll = "space",
-  shoot = 1,
-  reset = 2,
+  shootFG1 = 1, -- "FG" is short for firegroup
+  shootFG2 = 2,
+  shootFG3 = 3,
+  reset = 'r',
 }
 
 -- Same, but for gamepad buttons.
 M.gamepadButtonBinds = {
   ragdoll = "leftshoulder",
-  shoot = "rightshoulder",
+  shootFG1 = "rightshoulder",
+  shootFG2 = "righttrigger",
+  shootFG3 = "lefttrigger",
   reset = "y"
 }
 
@@ -57,14 +61,27 @@ end
 -- check if a gamepad button is down
 M.gamepadButtonDown = function (bind, joystick)
   if joystick == nil then return false end
-  return joystick:isGamepadDown(M.gamepadButtonBinds[bind])
+
+  if M.gamepadButtonBinds[bind] == "righttrigger" or M.gamepadButtonBinds[bind] == "lefttrigger" then
+    if M.gamepadButtonBinds[bind] == "righttrigger" then
+      if M.gamepadAxisTriggerValues.rightTrigger >= 0 then return true else return false end
+    elseif M.gamepadButtonBinds[bind] == "lefttrigger" then
+      if M.gamepadAxisTriggerValues.leftTrigger >= 0 then return true else return false end
+    end
+  else
+    return joystick:isGamepadDown(M.gamepadButtonBinds[bind])
+  end
 end
 -- }}}
 
 -- Game command check functions {{{
 -- get if shoot input is currently down
-M.getShootDown = function()
-  if M.keyDown("shoot") or M.gamepadButtonDown("shoot", M.connectedControllers.player1Joy) then
+-- args:
+-- `firegroup`(number): the firegroup the player is attempting to shoot, 1-8
+-- if no firegroup specified, default to FG1
+M.getShootDown = function(firegroup)
+  firegroup = firegroup or 1
+  if M.keyDown("shootFG"..firegroup) or M.gamepadButtonDown("shootFG"..firegroup, M.connectedControllers.player1Joy) then
     return true
   else
     return false
