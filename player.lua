@@ -345,7 +345,6 @@ M.update = function(dt) -- {{{
 
   -- check if player currently trying to shoot, iterating thru all 8 firegroups
   for fg=1, M.playerMaxGuns, 1 do
-    print(fg)
     if input.getShootDown(fg) then
       M.shoot(aimX, aimY, fg)
     end

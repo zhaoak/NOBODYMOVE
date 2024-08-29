@@ -207,6 +207,8 @@ M.updateJoystickInputs = function ()
   end
 end
 
+-- Reset to false every tick
+-- (when the player shoots a gun, the var is set to true)
 M.updateShootingThisTick = function ()
   M.shootingThisTick = false
 end
@@ -221,8 +223,8 @@ end
 -- Input callback functions {{{
 -- gamepad
 function love.gamepadpressed(joystick, button)
-  printCurrentJoystickInputs(joystick)
-  printGamepadButtonInputs(joystick, button)
+  -- printCurrentJoystickInputs(joystick)
+  -- printGamepadButtonInputs(joystick, button)
   -- joystick:setVibration(1, 1) -- vrrrrrr
 end
 
