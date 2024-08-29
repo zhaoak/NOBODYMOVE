@@ -44,14 +44,11 @@ M.setup = function () -- {{{
   -- tmp code for guns, player just has one test gun for now
   M.guns = {}
 
-  table.insert(M.guns, gunlib.equipGun"sawedoff")
-  table.insert(M.guns, gunlib.equipGun"sawedoff")
-  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
-  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
-  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
-  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
-  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
-  -- table.insert(M.guns, gunlib.equipGun"sawedoff")
+  table.insert(M.guns, gunlib.equipGun("sawedoff", 1))
+  table.insert(M.guns, gunlib.equipGun("sawedoff", 1))
+  table.insert(M.guns, gunlib.equipGun("smg", 2))
+  table.insert(M.guns, gunlib.equipGun("smg", 2))
+  table.insert(M.guns, gunlib.equipGun("samplegun", 3))
 
   if M.body then M.body:destroy() end
   M.contact = 0
@@ -154,9 +151,11 @@ M.draw = function () -- {{{
 end -- }}}
 
 -- The spooder's shoot function.
--- Tells the spooder to shoot every gun it has that isn't on cooldown.
+-- Tells the spooder to shoot every gun it has in a given firegroup that isn't on cooldown.
 -- Also calculates and applies recoil from shooting spooder's guns.
-M.shoot = function (x, y) -- {{{
+M.shoot = function (x, y, firegroup) -- {{{
+  firegroup = firegroup or 1 -- if no firegroup provided, default to 1
+
   -- table for storing knockback values from each gun fired this tick
   local knockbackValues = {}
 
@@ -165,7 +164,7 @@ M.shoot = function (x, y) -- {{{
     -- get gun from master gunlist by UID
     local gun = gunlib.gunlist[gunId]
 
-    if gun.current.cooldown < 0 then
+    if gun.current.cooldown < 0 and gun.current.firegroup == firegroup then
       -- find the world origin location of each shot
       -- this does not currently factor in recoil aim offset, but that's gonna get reworked anyway, so
       local shotWorldOriginX = math.sin(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
@@ -344,9 +343,12 @@ M.update = function(dt) -- {{{
     M.setup()
   end
 
-  -- shoot guns!
-  if input.getShootDown() then
-    M.shoot(aimX, aimY)
+  -- check if player currently trying to shoot, iterating thru all 8 firegroups
+  for fg=1, M.playerMaxGuns, 1 do
+    print(fg)
+    if input.getShootDown(fg) then
+      M.shoot(aimX, aimY, fg)
+    end
   end
 
   -- {{{ directional movement
@@ -412,7 +414,7 @@ M.update = function(dt) -- {{{
   -- {{{ brakes
   -- If not doing any movement inputs while grabbed on terrain, decelerate to a stop.
   if M.grab and input.getMovementXAxisInput() == 0 and input.getMovementYAxisInput() == 0 then
-    if math.abs(spoodCurrentLinearVelocity) < 1 and not input.getShootDown() then -- stinky! hacky: the recoil impulse gets canceled without this
+    if math.abs(spoodCurrentLinearVelocity) < 1 and not input.getShotGunThisTick() then -- stinky! hacky: the recoil impulse gets canceled without this
       M.body:setLinearVelocity(0, 0)
     else
       local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.03)

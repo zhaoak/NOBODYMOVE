@@ -1,6 +1,9 @@
 local M = {}
 local camera = require'camera'
 
+-- Whether the player is shooting or not this tick
+M.shootingThisTick = false
+
 -- Table holding this tick's axis/trigger values
 M.gamepadAxisTriggerValues = {
   leftStickX = 0,
@@ -36,6 +39,11 @@ M.kbMouseBinds = {
   shootFG1 = 1, -- "FG" is short for firegroup
   shootFG2 = 2,
   shootFG3 = 3,
+  shootFG4 = 4,
+  shootFG5 = 5,
+  shootFG6 = nil,
+  shootFG7 = nil,
+  shootFG8 = nil,
   reset = 'r',
 }
 
@@ -45,12 +53,19 @@ M.gamepadButtonBinds = {
   shootFG1 = "rightshoulder",
   shootFG2 = "righttrigger",
   shootFG3 = "lefttrigger",
+  shootFG4 = nil,
+  shootFG5 = nil,
+  shootFG6 = nil,
+  shootFG7 = nil,
+  shootFG8 = nil,
   reset = "y"
 }
 
 -- Input-device-specific input checks {{{
 -- check if a mouse button or keyboard key is down
 M.keyDown = function (bind)
+  if M.kbMouseBinds[bind] == nil then return false end
+
   if type(M.kbMouseBinds[bind]) == "string" then
     return love.keyboard.isDown(M.kbMouseBinds[bind])
   else
@@ -61,6 +76,7 @@ end
 -- check if a gamepad button is down
 M.gamepadButtonDown = function (bind, joystick)
   if joystick == nil then return false end
+  if M.gamepadButtonBinds[bind] == nil then return false end
 
   if M.gamepadButtonBinds[bind] == "righttrigger" or M.gamepadButtonBinds[bind] == "lefttrigger" then
     if M.gamepadButtonBinds[bind] == "righttrigger" then
@@ -78,14 +94,18 @@ end
 -- get if shoot input is currently down
 -- args:
 -- `firegroup`(number): the firegroup the player is attempting to shoot, 1-8
--- if no firegroup specified, default to FG1
 M.getShootDown = function(firegroup)
-  firegroup = firegroup or 1
   if M.keyDown("shootFG"..firegroup) or M.gamepadButtonDown("shootFG"..firegroup, M.connectedControllers.player1Joy) then
+    M.shootingThisTick = true
     return true
   else
     return false
   end
+end
+
+-- get if player has shot a gun this tick
+M.getShotGunThisTick = function()
+  return M.shootingThisTick
 end
 
 -- get if ragdoll input is currently down
@@ -185,6 +205,16 @@ M.updateJoystickInputs = function ()
   for playerController, joystick in pairs(M.connectedControllers) do
     M.updateGamepadAxisTriggerInputs(joystick)
   end
+end
+
+M.updateShootingThisTick = function ()
+  M.shootingThisTick = false
+end
+
+-- Update everything in input that needs to be updated every tick
+M.update = function ()
+  M.updateShootingThisTick()
+  M.updateJoystickInputs()
 end
 -- }}}
 

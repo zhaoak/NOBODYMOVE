@@ -62,7 +62,7 @@ function love.update(dt) -- {{{
   local adjustedCamPositionY = obj.player.body:getY() - ((windowSizeY / 2) * cam.scaleY)
   cam.setPosition(adjustedCamPositionX, adjustedCamPositionY)
   gunlib.update(dt)
-  input.updateJoystickInputs()
+  input.update()
   obj.player.update(dt)
   obj.projectiles.update(dt)
   util.world:update(dt)

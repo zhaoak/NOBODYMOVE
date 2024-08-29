@@ -72,13 +72,18 @@ end -- }}}
 -- This function creates a gun, adds it to `gunlist`, and returns its UID.
 -- Whoever is using the gun should then add that UID to a list of gun UIDs they own.
 -- To shoot/render the gun from outside this file, use `gunlib.gunlist[gunUID]:shoot()`.
-M.equipGun = function(gunName) -- {{{
+M.equipGun = function(gunName, firegroup) -- {{{
 -- find gundef file by name
   local gun = dofile('gundefs/'..gunName..".lua")
 
   -- set cooldown of new gun
+  -- `gun.current` holds all data about the gun that can change during gameplay
+  -- (cooldown, firegroup, etc)
   gun.current = {}
   gun.current.cooldown = gun.cooldown
+
+  -- set firegroup of new gun, default to 1
+  gun.current.firegroup = firegroup or 1
 
   -- set recoil penalty state of new gun to zero on equip (no penalty)
   gun.current.recoilAimPenaltyOffset = 0
