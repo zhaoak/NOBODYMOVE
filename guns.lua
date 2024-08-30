@@ -17,8 +17,8 @@ local function createProjectiles (gun, x, y, worldRelativeAimAngle)
 end
 
 -- The shoot function for shooting a specific gun, which is passed in via arg.
--- This function handles creating the projectiles from the gun,
--- as well as returns the knockback force, so whoever shot the gun can calculate the knockback force.
+-- This function handles creating the projectiles from the gun and resetting its cooldown,
+-- as well as returning the knockback force, so whoever shot the gun can apply it to themself.
 -- The code calling this function should fetch the gun they want to shoot from the gun masterlist via ID,
 -- then pass that gun in as an argument.
 local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
@@ -58,19 +58,25 @@ local function draw (gunId, player) -- {{{
     flipGunSprite = -1
   end
   if arg[2] == "debug" then
-    -- draws the angle where the player is aiming with their mouse in red
+    -- draws the angle where the player is aiming with their mouse as a line in red
     love.graphics.setColor(1,0,0,1)
-    love.graphics.circle("fill", player.body:getX()+(math.sin(player.currentAimAngle) * player.reachRadius), player.body:getY()+(math.cos(player.currentAimAngle) * player.reachRadius), 5)
+    local aimX1 = player.body:getX()+(math.sin(player.currentAimAngle) * player.hardboxRadius)
+    local aimX2 = player.body:getX()+(math.sin(player.currentAimAngle) * player.reachRadius)
+    local aimY1 = player.body:getY()+(math.cos(player.currentAimAngle) * player.hardboxRadius)
+    local aimY2 = player.body:getY()+(math.cos(player.currentAimAngle) * player.reachRadius)
+    love.graphics.line(aimX1, aimY1, aimX2, aimY2)
     -- draws the gun's current aim angle, factoring in recoil penalty, in orange
     love.graphics.setColor(1,0.5,0,0.6)
-    love.graphics.circle("fill", player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, 5)
+    local recoilX2 = player.body:getX()+(math.sin(player.currentAimAngle) * player.reachRadius)
+    local recoilY2 = player.body:getY()+(math.cos(player.currentAimAngle) * player.reachRadius)
+    love.graphics.line(player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, player.body:getX()+(spriteLocationOffsetX*2), player.body:getY()+(spriteLocationOffsetY*2))
   end
 
   -- reset the colors so gun sprite uses proper palette
   love.graphics.setColor(1,1,1,1)
 
   -- draw the gun sprite
-  -- y-origin arg has a small positive offset to line up testgun sprite's barrel with actual aim angle, this is temporary and will need to vary with other guns
+  -- y-origin arg has a small positive offset to line up testgun sprite's barrel with actual aim angle, this is temporary and will need to vary with other gun sprites
   love.graphics.draw(gun.gunSprite, player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, (math.pi/2) - adjustedAimAngle, 0.3, 0.3*flipGunSprite, 0, 15)
 end -- }}}
 
@@ -127,6 +133,7 @@ end
 
 M.update = function (dt) -- {{{
   for _,gun in pairs(M.gunlist) do
+    -- decrement each gun's cooldown timer
     gun.current.cooldown = gun.current.cooldown - dt
     
     -- iterate through each gun's burstQueue, decrementing timers and shooting the gun if timer is up

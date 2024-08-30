@@ -177,7 +177,7 @@ function love.draw() -- {{{
     local windowSizeX, windowSizeY = love.graphics.getDimensions()
     love.graphics.setColor(1,1,1)
     love.graphics.print("world coordinates x/y: "..string.format("%.2f",obj.player.body:getX()).." / "..string.format("%.2f",obj.player.body:getY()), 0, windowSizeY - 20)
-
+    love.graphics.print("FPS over last second: "..tostring(love.timer.getFPS()), 0, windowSizeY - 40)
   end
 
   -- }}}

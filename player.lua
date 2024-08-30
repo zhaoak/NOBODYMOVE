@@ -154,7 +154,7 @@ M.draw = function () -- {{{
 end -- }}}
 
 -- shooting-related functions {{{
--- The spooder's shoot function.
+-- The spooder's shoot function. Called every tick, so long as a shoot button for a particular firegroup is down.
 -- Tells the spooder to shoot every gun it has in a given firegroup that isn't on cooldown.
 -- Also calculates knockback on player from shooting spooder's guns, which is applied in the update step.
 -- x and y are the positions of the crosshair at time of shooting
@@ -182,7 +182,7 @@ M.shoot = function (x, y, firegroup)
       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
       M.addToThisTickPlayerKnockback(knockbackX, knockbackY)
 
-      -- if the gun should burst-fire, add the future shots to its burstQueue
+      -- if the gun should burst-fire multiple shots, add the future shots to its burstQueue
       if gun.burstCount > 1 then
         for queuedBurstShot = gun.burstCount - 1, 1, -1 do
           table.insert(gun.current.burstQueue, {firesIn=gun.burstDelay*queuedBurstShot, shotBy=M})
