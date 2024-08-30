@@ -40,7 +40,6 @@ M.latchedSurfaceNormalYCache = 0
 M.terrainInRange = {} -- using collision callbacks, when terrain enters/exits latchrange, it's added/removed here
 
 M.guns = {} -- a list of gun UIDs, representing the guns the player is holding
-M.guns.burstQueue = {} -- a list of shoot events queued to fire in future ticks from burst fire guns
 
 -- }}}
 
@@ -49,9 +48,9 @@ M.setup = function () -- {{{
   M.guns = {}
 
   table.insert(M.guns, gunlib.equipGun("sawedoff", 1))
-  table.insert(M.guns, gunlib.equipGun("sawedoff", 1))
+  -- table.insert(M.guns, gunlib.equipGun("sawedoff", 1))
   table.insert(M.guns, gunlib.equipGun("smg", 2))
-  table.insert(M.guns, gunlib.equipGun("smg", 2))
+  -- table.insert(M.guns, gunlib.equipGun("smg", 2))
   table.insert(M.guns, gunlib.equipGun("burstpistol", 3))
 
   if M.body then M.body:destroy() end
@@ -158,6 +157,7 @@ end -- }}}
 -- The spooder's shoot function.
 -- Tells the spooder to shoot every gun it has in a given firegroup that isn't on cooldown.
 -- Also calculates knockback on player from shooting spooder's guns, which is applied in the update step.
+-- x and y are the positions of the crosshair at time of shooting
 M.shoot = function (x, y, firegroup)
   firegroup = firegroup or 1 -- if no firegroup provided, default to 1
 
@@ -181,6 +181,14 @@ M.shoot = function (x, y, firegroup)
 
       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
       M.addToThisTickPlayerKnockback(knockbackX, knockbackY)
+
+      -- if the gun should burst-fire, add the future shots to its burstQueue
+      if gun.burstCount > 1 then
+        for queuedBurstShot = gun.burstCount - 1, 1, -1 do
+          table.insert(gun.current.burstQueue, {firesIn=gun.burstDelay*queuedBurstShot, shotBy=M})
+        end
+      end
+
     end
   end
 end
@@ -330,8 +338,10 @@ M.update = function(dt) -- {{{
 
   M.body:setLinearDamping(0)
 
-  -- update current absolute aim angle
+  -- update current absolute aim angle, cache of current crosshair position
   local aimX, aimY = input.getCrossHair(M.body:getX(), M.body:getY())
+  M.crosshairCacheX = aimX
+  M.crosshairCacheY = aimY
   M.currentAimAngle = math.atan2(aimX - M.body:getX(), aimY - M.body:getY())
 
   -- may be set later, reset every frame
@@ -353,8 +363,6 @@ M.update = function(dt) -- {{{
       M.shoot(aimX, aimY, fg)
     end
   end
-
-  -- trigger any queued burst shots
 
   -- {{{ directional movement
   -- While within grabbing range of terrain, spood can move any arbitrary direction in the air--

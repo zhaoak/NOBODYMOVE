@@ -10,7 +10,6 @@ M.inaccuracy = math.rad(8)
 M.recoil = math.rad(10)
 M.recoilRecoverySpeed = math.rad(50)
 M.aimSpeed = math.rad(180)
-M.fireMode = "auto"
 M.burstCount = 1
 M.burstDelay = .1
 M.cooldown = 0.1

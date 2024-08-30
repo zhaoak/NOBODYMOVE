@@ -17,7 +17,7 @@ M.name = "samplegun"
 M.type = "bullet"
 
 -- How many projectiles are created and fired simultaneously on every shoot event
--- This stat is what shotguns use to fire multiple projectiles
+-- This stat is what shotguns use to fire multiple projectiles per shot
 M.multishot = 1
 
 -- How long in seconds before the projectiles fired should despawn
@@ -60,19 +60,17 @@ M.aimSpeed = math.rad(360)
 -- A burst is a finite number of shoot events queued to fire one after the other when the player shoots once
 -- Unlike multishot, each projectile is shot following the previous in the burst after a short delay, whose length is specified by burstDelay
 -- This is independent of multishot: if multishot is 4 and burstCount is 3, the gun will shoot 3 bursts of four projectiles per shot
--- To make a gun not burstfire, simply set its burstCount to 1
+-- To make a gun not burstfire multiple times, simply set its burstCount to 1
 -- Even if a gun's burstCount is 1, it must have a burstDelay property, as players can modify the gun's burstCount
 -- =============================================================
 
 -- How many projectiles to fire per burst
--- [not yet implemented]
 M.burstCount = 1
 
 -- How long delay between shots in a burst is in seconds
--- [not yet implemented]
 M.burstDelay = .2
 
--- The delay time between shots in seconds, timer starts once player shoots
+-- The delay time between bursts in seconds, timer starts once player shoots
 -- this essentially acts as both reload and fire rate
 -- Not to be confused with burstDelay; burstDelay is the delay between shots in a burst,
 -- whereas this is how long the delay between bursts of shots is 

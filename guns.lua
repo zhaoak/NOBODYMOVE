@@ -6,7 +6,7 @@ local projectileLib = require'projectiles'
 local util = require'util'
 
 -- utility function for creating the projectiles fired from guns
-local function createProjectile (gun, x, y, worldRelativeAimAngle)
+local function createProjectiles (gun, x, y, worldRelativeAimAngle)
   if gun.type == "hitscan" then
     -- cast a ray etc
   end
@@ -31,7 +31,7 @@ local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
   --   shot = mod:apply(shot)
   -- end
 
-  createProjectile(gun, x, y, worldRelativeAimAngle)
+  createProjectiles(gun, x, y, worldRelativeAimAngle)
 
   -- apply recoil penalty to gun's aim
   -- randomly select either -1 or +1, to randomly select if recoil will apply clockwise or counterclockwise
@@ -90,6 +90,9 @@ M.equipGun = function(gunName, firegroup) -- {{{
   -- set firegroup of new gun, default to 1 if not specified
   gun.current.firegroup = firegroup or 1
 
+  -- create burstQueue for new gun
+  gun.current.burstQueue = {}
+
   -- set recoil penalty state of new gun to zero on equip (no penalty)
   gun.current.recoilAimPenaltyOffset = 0
 
@@ -121,9 +124,30 @@ local function recoverFromRecoilPenalty(dt, gun)
   end
 end
 -- }}}
-M.update = function (dt)
+
+M.update = function (dt) -- {{{
   for _,gun in pairs(M.gunlist) do
     gun.current.cooldown = gun.current.cooldown - dt
+    
+    -- iterate through each gun's burstQueue, decrementing timers and shooting the gun if timer is up
+    local next = next
+    if next(gun.current.burstQueue) ~= nil then
+      for i, queuedShot in ipairs(gun.current.burstQueue) do
+        queuedShot.firesIn = queuedShot.firesIn - dt
+        -- if queued shot is ready to fire...
+        if queuedShot.firesIn <= 0 then
+          -- then calculate where it should spawn the projectile(s)
+          local shotWorldOriginX = math.sin(queuedShot.shotBy.currentAimAngle) * (gun.playerHoldDistance + queuedShot.shotBy.hardboxRadius)
+          local shotWorldOriginY = math.cos(queuedShot.shotBy.currentAimAngle) * (gun.playerHoldDistance + queuedShot.shotBy.hardboxRadius)
+          -- then shoot the gun and apply the knockback to whoever shot it
+          local shotKnockback = gun:shoot(queuedShot.shotBy.body:getX()+shotWorldOriginX, queuedShot.shotBy.body:getY()+shotWorldOriginY, queuedShot.shotBy.currentAimAngle)
+          local knockbackX, knockbackY = queuedShot.shotBy.calculateShotKnockback(shotKnockback, queuedShot.shotBy.crosshairCacheX, queuedShot.shotBy.crosshairCacheY)
+          queuedShot.shotBy.addToThisTickPlayerKnockback(knockbackX, knockbackY)
+          -- finally, remove the fired shot from the queue
+          gun.current.burstQueue[i] = nil
+        end
+      end
+    end
 
     -- if player has managed to get recoil aim penalty past a full rotation counterclockwise or clockwise (impressive),
     -- modulo the value so the recoil recovery doesn't spin more than a full rotation
@@ -136,7 +160,7 @@ M.update = function (dt)
 
     -- print(gun.uid.." : "..gun.current.recoilAimPenaltyOffset)
   end
-end
+end -- }}}
 
 -- debug functions {{{
 M.dumpGunTable = function()
