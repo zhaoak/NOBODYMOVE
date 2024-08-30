@@ -185,33 +185,18 @@ M.shoot = function (x, y, firegroup) -- {{{
 
       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
       -- store knockback values for combining with knockback values from all other guns fired this tick
-      table.insert(knockbackValues, {x = -math.sin(angle)*playerKnockback, y = -math.cos(angle)*playerKnockback})
+      -- table.insert(knockbackValues, {x = -math.sin(angle)*playerKnockback, y = -math.cos(angle)*playerKnockback})
+      M.addToThisTickPlayerKnockback(-math.sin(angle)*playerKnockback, -math.cos(angle)*playerKnockback)
     end
   end
-
-  local totalKnockbackX = 0
-  local totalKnockbackY = 0
-  for _, shotValues in pairs(knockbackValues) do
-    totalKnockbackX = totalKnockbackX + shotValues.x
-    totalKnockbackY = totalKnockbackY + shotValues.y
-    -- print(util.tprint(shotValues))
-  end
-
-  -- if player is currently latched to something, greatly reduce knockback
-  if M.grab then
-    totalKnockbackX = totalKnockbackX * M.playerLatchedKnockbackReduction
-    totalKnockbackY = totalKnockbackY * M.playerLatchedKnockbackReduction
-  end
-
-  -- finally, apply the combined impulse
-  M.body:applyLinearImpulse(totalKnockbackX,totalKnockbackY)
 end -- }}}
 
 -- apply knockback from shots to player
--- if player shoots multiple guns per tick, they'll both call this function
--- then, the total knockback will be summed and applied in the update tick
-M.addOnShotKnockbackToPlayer = function(knockbackX, knockbackY)
-
+-- if player shoots multiple guns per tick, each of those shots will call this function
+-- then, the total knockback will applied in the update tick
+M.addToThisTickPlayerKnockback = function(knockbackX, knockbackY)
+  M.thisTickTotalKnockbackX = M.thisTickTotalKnockbackX + knockbackX
+  M.thisTickTotalKnockbackY = M.thisTickTotalKnockbackY + knockbackY
 end
 
 -- Handlers for terrain entering/exiting player latch range {{{
@@ -460,6 +445,22 @@ M.update = function(dt) -- {{{
   -- }}} counter ext forces
   
   -- }}} input/movement
+
+  -- player knockback calculation+application {{{
+
+  -- if player is currently latched to something, greatly reduce knockback
+  if M.grab then
+    M.thisTickTotalKnockbackX = M.thisTickTotalKnockbackX * M.playerLatchedKnockbackReduction
+    M.thisTickTotalKnockbackY = M.thisTickTotalKnockbackY * M.playerLatchedKnockbackReduction
+  end
+
+  -- apply the combined impulse
+  M.body:applyLinearImpulse(M.thisTickTotalKnockbackX,M.thisTickTotalKnockbackY)
+
+  -- finally, reset the knockback to zero for the next tick's calculations
+  M.thisTickTotalKnockbackX = 0
+  M.thisTickTotalKnockbackY = 0
+  -- }}}
 
 end -- }}}
 
