@@ -1,6 +1,11 @@
 -- sample gun with very boring values,
 -- also includes comments explaining what each value does
 -- Note that most of these values can be changed by the player via mods
+--
+-- GENERAL NOTES ON GUNS:
+--    - if the fire button is held down, all guns fire as soon as their cooldown timer is off.
+--    - this basically means all guns are automatic.
+--    - to limit how fast a gun can shoot, use the cooldown stat.
 
 local M = { }
 
@@ -51,18 +56,10 @@ M.recoilRecoverySpeed = math.rad(2.5)
 -- [not yet implemented]
 M.aimSpeed = math.rad(360)
 
--- The firing pattern of the gun, must be of a predefined type
--- note that if shoot button is continuously held down, all guns shoot as soon as their cooldown is over
--- this means that all guns are functionally automatic
--- 'standard'   -- fires as long as shoot button held down
--- 'burst'  -- one click = gun shoots a burst of projectiles with a slight delay between each every shot
--- [not yet implemented]
-M.fireMode = "single"
-
 -- Burst fire settings
--- A burst is a cluster of projectiles fired on a shoot event
--- Unlike multishot, each projectile is shot following the previous in the burst after a short delay, specified by burstDelay
--- This stacks with multishot: if multishot is 4 and burstCount is 3, the gun will shoot 3 bursts of four projectiles per shot
+-- A burst is a finite number of shoot events queued to fire one after the other when the player shoots once
+-- Unlike multishot, each projectile is shot following the previous in the burst after a short delay, whose length is specified by burstDelay
+-- This is independent of multishot: if multishot is 4 and burstCount is 3, the gun will shoot 3 bursts of four projectiles per shot
 -- To make a gun not burstfire, simply set its burstCount to 1
 -- Even if a gun's burstCount is 1, it must have a burstDelay property, as players can modify the gun's burstCount
 -- =============================================================
@@ -72,11 +69,15 @@ M.fireMode = "single"
 M.burstCount = 1
 
 -- How long delay between shots in a burst is in seconds
--- Obviously, only applies if `firemode = "burst"`
 -- [not yet implemented]
 M.burstDelay = .2
 
 -- The delay time between shots in seconds, timer starts once player shoots
+-- this essentially acts as both reload and fire rate
+-- Not to be confused with burstDelay; burstDelay is the delay between shots in a burst,
+-- whereas this is how long the delay between bursts of shots is 
+-- This timer is reset after every shot, including shots triggered as part of bursts
+-- Therefore, the _last_ shot in a burst is when the cooldown starts counting down, not the first
 M.cooldown = 1
 
 -- How much backwards force is applied to the player when shooting this gun

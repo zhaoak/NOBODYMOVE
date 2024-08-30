@@ -40,6 +40,7 @@ M.latchedSurfaceNormalYCache = 0
 M.terrainInRange = {} -- using collision callbacks, when terrain enters/exits latchrange, it's added/removed here
 
 M.guns = {} -- a list of gun UIDs, representing the guns the player is holding
+M.guns.burstQueue = {} -- a list of shoot events queued to fire in future ticks from burst fire guns
 
 -- }}}
 
@@ -51,7 +52,7 @@ M.setup = function () -- {{{
   table.insert(M.guns, gunlib.equipGun("sawedoff", 1))
   table.insert(M.guns, gunlib.equipGun("smg", 2))
   table.insert(M.guns, gunlib.equipGun("smg", 2))
-  table.insert(M.guns, gunlib.equipGun("samplegun", 3))
+  table.insert(M.guns, gunlib.equipGun("burstpistol", 3))
 
   if M.body then M.body:destroy() end
   M.contact = 0
@@ -153,10 +154,11 @@ M.draw = function () -- {{{
 
 end -- }}}
 
+-- shooting-related functions {{{
 -- The spooder's shoot function.
 -- Tells the spooder to shoot every gun it has in a given firegroup that isn't on cooldown.
--- Also calculates and applies recoil from shooting spooder's guns.
-M.shoot = function (x, y, firegroup) -- {{{
+-- Also calculates knockback on player from shooting spooder's guns, which is applied in the update step.
+M.shoot = function (x, y, firegroup)
   firegroup = firegroup or 1 -- if no firegroup provided, default to 1
 
   -- table for storing knockback values from each gun fired this tick
@@ -175,21 +177,28 @@ M.shoot = function (x, y, firegroup) -- {{{
 
       -- gun's shoot function returns the amount of knockback on holder
       local playerKnockback = gun:shoot(M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, gun)
-
-      -- normalize the points of the spood and target together
-      local normalizedX = x - M.body:getX()
-      local normalizedY = y - M.body:getY()
-
-      -- get the angle of the crosshair from the gun
-      local angle = math.atan2(normalizedX,normalizedY)
+      local knockbackX, knockbackY = M.calculateShotKnockback(playerKnockback, x, y)
 
       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
-      -- store knockback values for combining with knockback values from all other guns fired this tick
-      -- table.insert(knockbackValues, {x = -math.sin(angle)*playerKnockback, y = -math.cos(angle)*playerKnockback})
-      M.addToThisTickPlayerKnockback(-math.sin(angle)*playerKnockback, -math.cos(angle)*playerKnockback)
+      M.addToThisTickPlayerKnockback(knockbackX, knockbackY)
     end
   end
-end -- }}}
+end
+
+-- calculate the knockback from a shot
+M.calculateShotKnockback = function (gunKnockbackOnPlayer, crosshairPosX, crosshairPosY)
+  -- normalize the points of the spood and target together
+  local normalizedX = crosshairPosX - M.body:getX()
+  local normalizedY = crosshairPosY - M.body:getY()
+
+  -- get the angle of the crosshair from the gun
+  local angle = math.atan2(normalizedX,normalizedY)
+
+  -- calculate and return knockback on X and Y axes
+  local knockbackX = -math.sin(angle)*gunKnockbackOnPlayer
+  local knockbackY = -math.cos(angle)*gunKnockbackOnPlayer
+  return knockbackX, knockbackY
+end
 
 -- apply knockback from shots to player
 -- if player shoots multiple guns per tick, each of those shots will call this function
@@ -197,7 +206,7 @@ end -- }}}
 M.addToThisTickPlayerKnockback = function(knockbackX, knockbackY)
   M.thisTickTotalKnockbackX = M.thisTickTotalKnockbackX + knockbackX
   M.thisTickTotalKnockbackY = M.thisTickTotalKnockbackY + knockbackY
-end
+end -- }}}
 
 -- Handlers for terrain entering/exiting player latch range {{{
 M.handleTerrainEnteringRange = function(a, b, contact)
@@ -332,7 +341,7 @@ M.update = function(dt) -- {{{
 
   -- {{{ player input and movement
 
-  -- reset spood on rightclick
+  -- reset spood
   if input.keyDown'reset' then
     gunlib.setup()
     M.setup()
@@ -344,6 +353,8 @@ M.update = function(dt) -- {{{
       M.shoot(aimX, aimY, fg)
     end
   end
+
+  -- trigger any queued burst shots
 
   -- {{{ directional movement
   -- While within grabbing range of terrain, spood can move any arbitrary direction in the air--

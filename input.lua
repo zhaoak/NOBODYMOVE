@@ -173,7 +173,7 @@ M.getCrossHair = function (playerPosX, playerPosY)
 end
 -- }}}
 
--- Update gamepad axis value functions {{{
+-- Update functions {{{
 
 -- get a specific gamepad's current stick values
 -- if an axis is within deadzone threshold, returns zero
