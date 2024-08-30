@@ -11,7 +11,8 @@ M.name = "samplegun"
 -- (normal bullet vs laser vs explosive projectile, etc)
 M.type = "bullet"
 
--- How many projectiles are created for each shot before mods
+-- How many projectiles are created and fired simultaneously on every shoot event
+-- This stat is what shotguns use to fire multiple projectiles
 M.multishot = 1
 
 -- How long in seconds before the projectiles fired should despawn
@@ -50,14 +51,23 @@ M.recoilRecoverySpeed = math.rad(2.5)
 -- [not yet implemented]
 M.aimSpeed = math.rad(360)
 
--- The firing pattern of the gun, must be of a predefined type:
--- 'single' -- one click = gun shoots once per click
--- 'burst'  -- one click = gun shoots a fixed number of times, then stops
--- 'auto'   -- fires as long as shoot button held down
+-- The firing pattern of the gun, must be of a predefined type
+-- note that if shoot button is continuously held down, all guns shoot as soon as their cooldown is over
+-- this means that all guns are functionally automatic
+-- 'standard'   -- fires as long as shoot button held down
+-- 'burst'  -- one click = gun shoots a burst of projectiles with a slight delay between each every shot
 -- [not yet implemented]
 M.fireMode = "single"
 
--- How many projectiles to fire per burst if weapon has `fireMode = "burst"`
+-- Burst fire settings
+-- A burst is a cluster of projectiles fired on a shoot event
+-- Unlike multishot, each projectile is shot following the previous in the burst after a short delay, specified by burstDelay
+-- This stacks with multishot: if multishot is 4 and burstCount is 3, the gun will shoot 3 bursts of four projectiles per shot
+-- To make a gun not burstfire, simply set its burstCount to 1
+-- Even if a gun's burstCount is 1, it must have a burstDelay property, as players can modify the gun's burstCount
+-- =============================================================
+
+-- How many projectiles to fire per burst
 -- [not yet implemented]
 M.burstCount = 1
 
@@ -66,17 +76,16 @@ M.burstCount = 1
 -- [not yet implemented]
 M.burstDelay = .2
 
--- The delay time between shots in seconds, applies after each shot/burst
+-- The delay time between shots in seconds, timer starts once player shoots
 M.cooldown = 1
 
 -- How much backwards force is applied to the player when shooting this gun
 M.holderKnockback = 25
 
--- How much force is applied to players/objects hit by this gun's projectile
+-- How much force is applied to players/objects hit by one of this gun's projectiles
 M.hitKnockback = 25
 
 -- How much damage a single projectile fired from this gun does
--- [not yet implemented]
 M.hitDamage = 20
 
 -- Default mods applied to gun, before any player mods

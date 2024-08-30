@@ -5,6 +5,16 @@ M.gunlist = {} -- data for every gun existing in world, held by player or enemy,
 local projectileLib = require'projectiles'
 local util = require'util'
 
+-- utility function for creating the projectiles fired from guns
+local function createProjectile (gun, x, y, worldRelativeAimAngle)
+  if gun.type == "hitscan" then
+    -- cast a ray etc
+  end
+
+  if gun.type == "bullet" then
+    projectileLib.createBulletShot(gun, x, y, worldRelativeAimAngle)
+  end
+end
 
 -- The shoot function for shooting a specific gun, which is passed in via arg.
 -- This function handles creating the projectiles from the gun,
@@ -21,13 +31,7 @@ local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
   --   shot = mod:apply(shot)
   -- end
 
-  if gun.type == "hitscan" then
-    -- cast a ray etc
-  end
-
-  if gun.type == "bullet" then
-    projectileLib.createBulletShot(gun, x, y, worldRelativeAimAngle)
-  end
+  createProjectile(gun, x, y, worldRelativeAimAngle)
 
   -- apply recoil penalty to gun's aim
   -- randomly select either -1 or +1, to randomly select if recoil will apply clockwise or counterclockwise
@@ -39,6 +43,7 @@ local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
 
   return shot.holderKnockback
 end -- }}}
+
 
 local function draw (gunId, player) -- {{{
   -- print("drawing gun w/id "..gunId)
@@ -82,7 +87,7 @@ M.equipGun = function(gunName, firegroup) -- {{{
   gun.current = {}
   gun.current.cooldown = gun.cooldown
 
-  -- set firegroup of new gun, default to 1
+  -- set firegroup of new gun, default to 1 if not specified
   gun.current.firegroup = firegroup or 1
 
   -- set recoil penalty state of new gun to zero on equip (no penalty)
@@ -127,8 +132,8 @@ M.update = function (dt)
     elseif gun.current.recoilAimPenaltyOffset < -math.pi*2 then
       gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset % (-2*math.pi)
     end
-
     recoverFromRecoilPenalty(dt, gun)
+
     -- print(gun.uid.." : "..gun.current.recoilAimPenaltyOffset)
   end
 end

@@ -28,6 +28,9 @@ M.dashUsed = false -- whether or not the player has used their dash
 M.dashForce = 115 -- how much force to apply on each axis when player uses dash
 M.dashCooldownPeriod = 1 -- how long in seconds it takes for the dash to be available after being used
 
+M.thisTickTotalKnockbackX = 0
+M.thisTickTotalKnockbackY = 0
+
 M.rayImpactOffsetXCache = 0
 M.rayImpactOffsetYCache = 0
 M.rayImpactFractionCache = 0
@@ -203,6 +206,13 @@ M.shoot = function (x, y, firegroup) -- {{{
   -- finally, apply the combined impulse
   M.body:applyLinearImpulse(totalKnockbackX,totalKnockbackY)
 end -- }}}
+
+-- apply knockback from shots to player
+-- if player shoots multiple guns per tick, they'll both call this function
+-- then, the total knockback will be summed and applied in the update tick
+M.addOnShotKnockbackToPlayer = function(knockbackX, knockbackY)
+
+end
 
 -- Handlers for terrain entering/exiting player latch range {{{
 M.handleTerrainEnteringRange = function(a, b, contact)
