@@ -29,6 +29,39 @@ List of features still needing to be added to spoodergame
         - this is so you have a way to leave while latched to stuff, and is more analogous to a normal "jump" mechanic familiar to more players (but still preserves the complexity and utility of ragdoll mode)
 - this may not be necessary if player has airdash available
 
+- uwoooaaaaaaaah hey we're revising the gun mod system, here's notes on that -- ALL THE STUFF ABT THE GUN MOD SYSTEM BELOW IS ROUGH DRAFT STUFF, THIS ONE IS THE ACTUAL PLAN
+    - guns themselves are just things that hold mods; guns have no underlying stats, the mods determine all stats
+        - guns do spawn in roguelike mode with mods already in them, these will probably be mostly preset to show player how to make different kinds of guns, but players can edit them
+    - _shoot projectile_ mods of different types each have their own cooldown, accuracy, and some other stats, which are all combined and applied when shot in a single event
+        - these stats can vary with rarity, get dem purples
+        - these types of mods will probably be named and styled to appear to be actual gun parts, like a new barrel slapped onto the gun sprite for a "shoot a bullet" mod
+    - in the gun mod UI, what you see is rows of _events_ containing individual _mods_, each of which is labelled with a _trigger event_
+        - when an event's _trigger event_ occurs, every _mod_ in the event is evaluated and runs; order of mods in an event does not matter
+            - if the _event_ contains multiple _shoot projectile_ mods, all of them will be shot at once
+            - if the _event_ contains any _trigger event_ mods, those mods are _armed_, meaning the game starts listening for when their conditions are met
+                - once an _armed_ trigger event mod's condition is met, it runs the new _event_ it's set to trigger
+                - when you put a _trigger event_ mod in a mod slot in an event, it creates a new _event_ that will be triggered by that mod; you can put mods in the newly created event
+                - this is to allow the player to create chain reactions, for example:
+                    - `on click fire event triggers --> 
+                        - "shoot bullet" mod and "trigger on projectile hits terrain" mod triggers event
+                    - "trigger on projectile hits terrain" event -->
+                        - "projectile explodes" mod
+                - this would make the gun shoot a bullet on pressing fire, and that bullet will explode upon hitting terrain.
+            - if the _event_ contains _projectile tweak_ mods, they'll apply to all the projectiles shot in the event, but not to projectiles in any subsequently triggered events (the functions have scope)
+                - projectile tweaks include exploding on hit, status effects on hit, ricochet off terrain, etc
+            - if the _event_ contains _misc effect_ mods, their effects activate when the event triggers
+    - so, our categories of mods are:
+        - _shoot projectile_ mods, which create projectile(s)
+            - example: "shoot bullet (0.3s cooldown, 3 deg. inaccuracy, 300 launch velocity, 3 damage)
+            - projectiles of different types have very differently skewed stats, with bullets doing low damage with low cooldown, 
+        - _trigger event_ mods, which activate another event when their specified condition is met
+            - example: "on projectile hits terrain, trigger new event"
+        - _projectile tweak_ mods, which change the behavior and stats of projectiles fired in the same event as the tweak mod
+            - example: "in this event: +100% projectile damage, -50% projectile speed"
+        - _misc effect_ mods, which do unique things that aren't specific enough to fall into another category
+            - example: "make all projectiles of type bullet fired from this gun explode on activation"
+
+- ALL THIS STUFF IS OLD I"M JUST LEAVING IT HERE FOR IF WE WANNA REFER TO IT LATER
 - gun mod system implementation here is some ideas
     - a gun's mod screen looks like a series of rows, where each row is a _sequence_ of _mod slots_ the player can slot mods they pick up into
     - each sequence of _mod slots_ is "read" left to right, and the order of mods determines the order the gun performs each action
@@ -115,3 +148,5 @@ List of features still needing to be added to spoodergame
                     - projectile splits into multiple flak shards when mod triggered, these flak shards explode when hitting enemies
                         - the sequence for this could be: `on-press-shoot (starts sequence) --> next-projectile-explodes-on-hitting-terrain (looks for next shoot-projectile mod, finds and applies to flak-shard hybrid mod) --> next-projectile-splits-into-multiple-flak-projectiles (looks for next shoot-projectile mod) --> on-projectile-hits-terrain (looks for next shoot-projectile mod) --> shoot bullet`
                     - congratulations on designing bullet callback hell
+
+
