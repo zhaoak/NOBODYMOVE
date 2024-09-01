@@ -35,7 +35,7 @@ List of features still needing to be added to spoodergame
     - _shoot projectile_ mods of different types each have their own cooldown, accuracy, and some other stats, which are all combined and applied when shot in a single event
         - these stats can vary with rarity, get dem purples
         - these types of mods will probably be named and styled to appear to be actual gun parts, like a new barrel slapped onto the gun sprite for a "shoot a bullet" mod
-    - in the gun mod UI, what you see is rows of _events_ containing individual _mods_, each of which is labelled with a _trigger event_
+    - in the gun mod UI, what you see is rows of _events_, each of which is labelled with a _trigger event_ and contains individual _mods_
         - when an event's _trigger event_ occurs, every _mod_ in the event is evaluated and runs; order of mods in an event does not matter
             - if the _event_ contains multiple _shoot projectile_ mods, all of them will be shot at once
             - if the _event_ contains any _trigger event_ mods, those mods are _armed_, meaning the game starts listening for when their conditions are met
