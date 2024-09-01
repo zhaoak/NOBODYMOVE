@@ -30,26 +30,26 @@ List of features still needing to be added to spoodergame
 - this may not be necessary if player has airdash available
 
 - gun mod system implementation here is some ideas
-    - a gun's mod screen looks like a series of rows of _sequences_ of _mod slots_ the player can slot mods they pick up into
-    - each row of _mod slots_ is "read" left to right in a _sequence_, and the order of mods determines the order the gun performs each action
-        - a _sequence_ is a chain of mods triggered by an initial "on-event" mod, which is always the first mod in the sequence
+    - a gun's mod screen looks like a series of rows, where each row is a _sequence_ of _mod slots_ the player can slot mods they pick up into
+    - each sequence of _mod slots_ is "read" left to right, and the order of mods determines the order the gun performs each action
+        - a _sequence_ is a chain of mods triggered by an initial "on-gun-event" mod, which is always the first mod in the sequence
         - see mod categories section for details on mod types and how they interact
-        - so for example, a simple mod sequence that makes a gun's bullets shoot when clicked and explode when they hit terrain would go: `on-press-shoot event mod --> projectile-on-hit-terrain projectile event mod --> projectile-action-explode projectile action mod --> shoot-bullet-mod`
-        - sequences _probably_ should have their effects on gun stats, next fired projectiles, etc, always end when the sequence finishes executing, effects from the previously executed sequence should not persist when the same first on-event mod is triggered again
+        - so for example, a simple mod sequence that makes a gun's bullets shoot when clicked and explode when they hit terrain would go: `on-press-shoot gun event mod --> projectile-on-hit-terrain projectile event mod --> projectile-action-explode projectile action mod --> shoot-bullet-mod`
+        - sequences _probably_ should have their effects on gun stats, next sequence's fired projectiles, etc, always end when the sequence finishes executing, effects from the previously executed sequence should not persist when the same first on-event mod is triggered again
             - while this is cool metaknowledge in noita it's also wiki shit that's obtuse if you don't look it up and not immediately obvious that it works like that
         - mod effects in sequences should never be able to directly change other guns, only the one the mod is installed in
-        - all guns have a locked "on press shoot" mod in the first row of sequences, this is the only mod all guns always come with (but is not the only event mod that can be chained off of)
+        - all guns have a locked "on press shoot" mod as their first sequence, this is the only mod/sequence all guns always come with (but is not the only event mod that can be chained off of)
 
     - All mod slots can have one of three states, dictating how the player can interact with them: stock, locked, and open   
         - _all_ projectiles/multishot/burstfire/other unique gun behavior is implemented as mods preinstalled on guns you find, these are _stock_ mods and only apply if the player doesn't put another mod in the same slot on top of them; player's also can't remove stock mods from the gun and take them
             - for example, a shotgun would have its first slot be a locked "on press shoot" on-event mod, then the next slots after it would define what the gun does when you press shoot, with stock behavior being to multishot a few bullets, and the player can add more stuff after/over/before the multishot
-        - some guns have _locked_ mod slots that are part of sequences which cannot be changed at all; this is for guns that the designer (me) wants to force to have specific traits, like a minigun that always takes time to rev up or the dueling pistol that aims on pressing shoot and fires on release
+        - some guns have _locked_ mod slots/sequences containing specific mods which cannot be changed at all; this is for guns that the designer (me) wants to force to have specific traits, like a minigun that always takes time to rev up before shooting or the dueling pistol that aims on pressing shoot and fires on release
             - in sandbox/spidergrind, these can of course be unlocked/changed
         - otherwise, a mod/mod slot is _open_, meaning any mod can be swapped in/out of it freely when editing
             - open mods are the ones collected and used by the player
     - all guns have infinite mod slots, but all mods have a _point cost_ that subtracts from a gun's total mod point capacity
         - ooor maybe there should be limited slots? not sure yet, we'll have to work that out when it's time to actually balance things
-    - separate mods into categories depending on how they change behavior, categories don't have to be always mutually exclusive necessarily
+    - separate mods into categories depending on what they do, categories don't have to be one-per-mod
     - categories allow mods to know which mods they should be applying their own effects to (eg. projectile tweak/on-event/action mods, on trigger, look for the next mod with the "shoot projectile mod" category in the sequence, ignoring non-applicable mods that come before it)
         - mods can be "hybrids", meaning they have multiple categories and do one or more things from both categories while only taking one mod slot
             - examples in the categories below list some possible hybrids
@@ -58,8 +58,7 @@ List of features still needing to be added to spoodergame
 
             - non-projectile "event trigger" mods, that trigger the next mod in the sequence's action upon the event listed on the mod happening
                 - event mods can be either "on-event" (the triggering event on them _starts_ the effects of a sequence of mods and cannot be triggered by a previous mod) or "chained" (the event can't trigger on its own, it needs a triggering event on its left-hand side to trigger its effect)
-                - when an event mod triggers, it looks to the mod to its right to find out what action to actually perform
-                - it's looking for the next shoot, tweak, or action mod
+                - when an event mod triggers, it looks to the mod to its right to find out what to do next
                 - these "on-event" gun mods are usually tied to a method the gun owns in code (like `shoot()` or `releaseShoot()`, meaning they're what will start mod sequence execution, only on-event mods can start a sequence
                 - examples of "on-event" gun mods:
                     - an "on cooldown refresh" mod, triggers sequence when gun's cooldown is done
@@ -70,10 +69,10 @@ List of features still needing to be added to spoodergame
                     - a hybrid chained-event gun mod and projectile-tweak mod that delays execution of the next mod by two seconds, but increases the next projectile's speed and damage
                     - a "apply effect of (next tweak mod's stats*5) in sequence for two seconds when this event mod triggered" mod
 
-            - "shoot projectile of type X" mods (bullet, laser, grenade, etc)
-                - this resets the gun's cooldown timer whenever it executes
+            - "shoot projectile of type X" and "burst-fire projectile of type X" mods (bullet, laser, grenade, etc)
+                - anytime the gun shoots a projectile, its cooldown resets 
                 - if cooldown isn't over before gun tries to execute shoot mod, entire sequence fails and sequence execution is aborted
-                - the same type of "shoot projectile" mods stack if put in the same mod slot; so multiple standard "shoot +1 projectile of X type" mods combine to multishot that type of projectile, multiple "burst fire +1 projectile of X type" stack to burst fire more and more shots
+                - the same type of "shoot projectile" mods stack if put in the same mod slot; so multiple standard "shoot +1 projectile of X type" mods combine to multishot that type of projectile, multiple "burst fire +1 projectile of X type" stack to burst fire more and more shots in the burst
                 - if there are multiple "shoot projectile of X type" mods after one event triggers both of them and the shoot projectile mods _don't_ stack, they'll both trigger on the same event
                     - this means that it's possible to have a gun shoot both a grenade and bullet when you press shoot, meaning the bullet hits the grenade immediately and explodes it directly in the player's face
                         - this is intended behavior
