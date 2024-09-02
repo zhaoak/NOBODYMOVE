@@ -23,11 +23,12 @@ end
 
 M.drawGunListItem = function(gun, topLeftPosX, topLeftPosY)
   love.graphics.setColor(1, 1, 1, 0.7)
-  love.graphics.line(topLeftPosX, topLeftPosY, topLeftPosX+(gun.current.cooldown/gun.cooldown)*100, topLeftPosY)
+  love.graphics.line(topLeftPosX, topLeftPosY, topLeftPosX+100, topLeftPosY)
   love.graphics.setColor(1, 1, 1, 1)
   if gun.current.cooldown >= 0 then love.graphics.setColor(0.6, 0.6, 0.6, 0.3) end
   love.graphics.print(gun.name, topLeftPosX, topLeftPosY+5)
-  love.graphics.draw(gun.gunSprite, topLeftPosX, topLeftPosY+25)
+  local gunSprite = love.graphics.newImage("assets/generic_gun.png")
+  love.graphics.draw(gunSprite, topLeftPosX, topLeftPosY+25)
 end
 -- }}}
 

@@ -13,7 +13,7 @@ M.seededGuns = {
     tier = 1,
     events = {
       { trigger_event="onPressShoot",
-        triggers_mods=proj.smallBullet()
+        triggers_mods={proj.smallBullet()}
       },
     }
   },
@@ -22,7 +22,7 @@ M.seededGuns = {
     tier = 1,
     events = {
       { trigger_event="onPressShoot",
-        triggers_mods=proj.mediumBullet()
+        triggers_mods={proj.mediumBullet()}
       },
     }
   },
@@ -32,7 +32,7 @@ M.seededGuns = {
     tier = 2,
     events = {
       { trigger_event="onPressShoot",
-        triggers_mods=proj.mediumBullet()
+        triggers_mods={proj.mediumBullet()}
       },
     }
   },

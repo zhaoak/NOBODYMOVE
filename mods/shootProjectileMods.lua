@@ -5,78 +5,82 @@ local M = { }
 
 -- Small caliber bullet: low cooldown/knockback/damage, medium speed, poor accuracy
 M.smallBullet = function()
-  local projectileTable = {}
-  projectileTable.modCategory = "shoot"
-  projectileTable.projectileType = "smallbullet"
-  projectileTable.shapeType = "circle"
-  projectileTable.shapeData = { radius=3 }
-  projectileTable.cooldown = 0.05
-  projectileTable.holderKnockback = 2
-  projectileTable.hitKnockback = 2
-  projectileTable.hitDamage = 3
-  projectileTable.inaccuracy = math.rad(5)
-  projectileTable.launchVelocity = 250
-  projectileTable.linearDamping = 0
-  projectileTable.gravityScale = 0
-  projectileTable.mass = 0.2
-  return projectileTable
+  local modTable = {}
+  modTable.modCategory = "shoot"
+  modTable.displayName = "Shoot small bullet"
+  modTable.projType = "smallbullet"
+  modTable.projShapeType = "circle"
+  modTable.projShapeData = { radius=3 }
+  modTable.projCooldown = 0.05
+  modTable.holderKnockback = 2
+  modTable.projHitKnockback = 2
+  modTable.projHitDamage = 3
+  modTable.projInaccuracy = math.rad(5)
+  modTable.projLaunchVelocity = 250
+  modTable.projLinearDamping = 0
+  modTable.projGravityScale = 0
+  modTable.projMass = 0.2
+  return modTable
 end
 
 -- Medium caliber bullet: low-mid cooldown/knockback/damage, med-high speed, decent accuracy
 M.mediumBullet = function()
-  local projectileTable = {}
-  projectileTable.modCategory = "shoot"
-  projectileTable.projectileType = "mediumbullet"
-  projectileTable.shapeType = "circle"
-  projectileTable.shapeData = { radius=5 }
-  projectileTable.cooldown = 0.15
-  projectileTable.holderKnockback = 4
-  projectileTable.hitKnockback = 6
-  projectileTable.hitDamage = 5
-  projectileTable.inaccuracy = math.rad(2)
-  projectileTable.launchVelocity = 350
-  projectileTable.linearDamping = 0
-  projectileTable.gravityScale = 0
-  projectileTable.mass = 0.3
-  return projectileTable
+  local modTable = {}
+  modTable.modCategory = "shoot"
+  modTable.displayName = "Shoot medium bullet"
+  modTable.projType = "mediumbullet"
+  modTable.projShapeType = "circle"
+  modTable.projShapeData = { radius=5 }
+  modTable.projCooldown = 0.15
+  modTable.holderKnockback = 4
+  modTable.projHitKnockback = 6
+  modTable.projHitDamage = 5
+  modTable.projInaccuracy = math.rad(2)
+  modTable.projLaunchVelocity = 350
+  modTable.projLinearDamping = 0
+  modTable.projGravityScale = 0
+  modTable.projMass = 0.3
+  return modTable
 end
 
 -- Large caliber bullet: medium cooldown/knockback/damage, high speed, great accuracy 
 M.largeBullet = function()
-  local projectileTable = {}
-  projectileTable.modCategory = "shoot"
-  projectileTable.type = "largebullet"
-  projectileTable.shapeType = "circle"
-  projectileTable.shapeData = { radius=7 }
-  projectileTable.cooldown = 0.35
-  projectileTable.holderKnockback = 8
-  projectileTable.hitKnockback = 10
-  projectileTable.hitDamage = 10
-  projectileTable.inaccuracy = math.rad(0.5)
-  projectileTable.launchVelocity = 500
-  projectileTable.linearDamping = 0
-  projectileTable.gravityScale = 0
-  projectileTable.mass = 0.5
-  return projectileTable
+  local modTable = {}
+  modTable.modCategory = "shoot"
+  modTable.displayName = "Shoot large bullet"
+  modTable.projType = "largebullet"
+  modTable.projShapeType = "circle"
+  modTable.projShapeData = { radius=7 }
+  modTable.projCooldown = 0.35
+  modTable.holderKnockback = 8
+  modTable.projHitKnockback = 10
+  modTable.projHitDamage = 10
+  modTable.projInaccuracy = math.rad(0.5)
+  modTable.projLaunchVelocity = 500
+  modTable.projLinearDamping = 0
+  modTable.projGravityScale = 0
+  modTable.projMass = 0.5
+  return modTable
 end
 
 -- Oversize caliber bullet: high cooldown/knockback/damage/speed, great accuracy
 M.oversizeBullet = function()
-  local projectileTable = {}
-  projectileTable.modCategory = "shoot"
-  projectileTable.type = "oversizebullet"
-  projectileTable.shapeType = "circle"
-  projectileTable.shapeData = { radius=9 }
-  projectileTable.cooldown = 0.7
-  projectileTable.holderKnockback = 30
-  projectileTable.hitKnockback = 45
-  projectileTable.hitDamage = 30
-  projectileTable.inaccuracy = math.rad(0.5)
-  projectileTable.launchVelocity = 700
-  projectileTable.linearDamping = 0
-  projectileTable.gravityScale = 0
-  projectileTable.mass = 0.8
-  return projectileTable
+  local modTable = {}
+  modTable.modCategory = "shoot"
+  modTable.displayName = "Shoot oversize bullet"
+  modTable.projType = "oversizebullet"
+  modTable.projShapeType = "circle"
+  modTable.projShapeData = { radius=9 }
+  modTable.projCooldown = 0.7
+  modTable.holderKnockback = 30
+  modTable.projHitKnockback = 45
+  modTable.projHitDamage = 30
+  modTable.projInaccuracy = math.rad(0.5)
+  modTable.projLaunchVelocity = 700
+  modTable.projLinearDamping = 0
+  modTable.projGravityScale = 0
+  modTable.projMass = 0.8
+  return modTable
 end
 
 return M

@@ -19,36 +19,56 @@ local function createProjectiles (gun, x, y, worldRelativeAimAngle)
 end
 
 -- The shoot function for shooting a specific gun, which is passed in via arg.
--- This function handles creating the projectiles from the gun and resetting its cooldown,
+-- This function handles creating the projectiles from the gun's mods and resetting its cooldown,
 -- as well as returning the knockback force, so whoever shot the gun can apply it to themself.
 -- The code calling this function should fetch the gun they want to shoot from the gun masterlist via ID,
 -- then pass that gun in as an argument.
 -- args:
 -- gun (gun object): the gun to shoot
+-- triggerEvent(string): the string identifier of the event causing the gun to shoot, used to find which mods to apply
 -- x, y (numbers): world coordinates to spawn the projectiles at
 -- worldRelativeAimAngle: angle gun is aiming at/being aimed at, the player/item/enemy calling this func should have this value available
 -- resetCooldown(bool): whether or not to reset the gun's cooldown timer; some shots triggered by events are 'bonus' shots and don't reset cooldown
-local function shoot (gun, x, y, worldRelativeAimAngle, resetCooldown) -- {{{
-  if resetCooldown then gun.current.cooldown = gun.cooldown end
-  -- store the state of the shot, so mods can modify it as they go
-  -- adding more chaos each time, hopefully
-  local shot = {holderKnockback=gun.holderKnockback, damage=gun.hitDamage} -- stuff like spread, pellets, speed, etc everything idk yet
+local function shoot (gun, triggerEvent, x, y, worldRelativeAimAngle, resetCooldown) -- {{{
 
-  -- for _, mod in ipairs(gun.mods) do
-  --   shot = mod:apply(shot)
-  -- end
+  -- iterate through the gun's events and find the one that triggered this shot
+  local thisShotMods
+  for i, event in ipairs(gun.events) do
+    if event.trigger_event == triggerEvent then
+      thisShotMods = event.triggers_mods
+    else
+      -- if the gun doesn't contain this event trigger, cancel the shot
+      return
+    end
+  end
 
-  createProjectiles(gun, x, y, worldRelativeAimAngle)
+  -- now that we have all the shoot mods that should trigger during this event, spawn their projectiles
+  -- note that this func assumes mods are ordered in 
+  local totalCooldown = 0
+  for i, mod in ipairs(thisShotMods) do
+    -- TODO: evaluate and apply all projectile modifier mods
+    
+    -- spawn projectiles for every shoot projectile mod in the event, incrementing total cooldown with each projectile's contribution
+    if mod.modCategory == "shoot" then
+      
+    end
+  end
 
+  -- if a not a bonus shot, reset the cooldown
+  if resetCooldown then gun.current.cooldown = 1 end
+
+  return 20, 20
+  -- createProjectiles(gun, x, y, worldRelativeAimAngle)
+
+  -- recoil is being dummied out for now
   -- apply recoil penalty to gun's aim
   -- randomly select either -1 or +1, to randomly select if recoil will apply clockwise or counterclockwise
-  local randTable = { [1] = -1, [2] = 1 }
-  local rand = math.random(2)
-  local recoilAimPenalty = gun.recoil * randTable[rand]
-  -- then apply the penalty
-  gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset + recoilAimPenalty
+  -- local randTable = { [1] = -1, [2] = 1 }
+  -- local rand = math.random(2)
+  -- local recoilAimPenalty = gun.recoil * randTable[rand]
+  -- -- then apply the penalty
+  -- gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset + recoilAimPenalty
 
-  return shot.holderKnockback
 end -- }}}
 
 
@@ -83,15 +103,17 @@ local function draw (gunId, player) -- {{{
   love.graphics.setColor(1,1,1,1)
 
   -- draw the gun sprite
-  -- y-origin arg has a small positive offset to line up testgun sprite's barrel with actual aim angle, this is temporary and will need to vary with other gun sprites
-  love.graphics.draw(gun.gunSprite, player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, (math.pi/2) - adjustedAimAngle, 0.3, 0.3*flipGunSprite, 0, 15)
+  -- y-origin arg has a small positive offset to line up placeholder sprite's barrel with actual aim angle, this is temporary and will need to vary with other gun sprites
+  local gunSprite = love.graphics.newImage("assets/generic_gun.png")
+  love.graphics.draw(gunSprite, player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, (math.pi/2) - adjustedAimAngle, 0.3, 0.3*flipGunSprite, 0, 15)
 end -- }}}
 
--- This function creates a gun, adds it to `gunlist`, and returns its UID.
-M.createGun = function(gunName, firegroup) -- {{{
--- find gundef file by name
-  local gun = dofile('gundefs/'..gunName..".lua")
-
+-- This function creates a gun with arg-specified mods installed, adds it to `gunlist`, and returns its UID.
+-- args:
+-- events(table): table of events to add to new gun, see seededGuns.lua file for format
+-- firegroup(num): the firegroup to put the new gun in, defaults to 1 if not specified
+M.createGun = function(events, firegroup) -- {{{
+  local gun = {}
   -- set cooldown of new gun
   -- `gun.current` holds all data about the gun that is modified by player actions during gameplay
   -- (cooldown, firegroup, etc)
@@ -107,6 +129,11 @@ M.createGun = function(gunName, firegroup) -- {{{
 
   -- set recoil penalty state of new gun to zero on equip (no penalty)
   gun.current.recoilAimPenaltyOffset = 0
+
+  -- load mods into new gun instance
+  gun.events = foundGun.events
+
+  gun.playerHoldDistance = 5
 
   -- set UID of new gun: this never changes once a gun is created
   gun.uid = util.gen_uid("guns")
@@ -168,6 +195,8 @@ M.createGunFromDefinition = function(byName, byTier, firegroup)
   -- load mods into new gun instance
   foundGun.events = foundGun.events
 
+  foundGun.playerHoldDistance = 5
+
   foundGun.uid = util.gen_uid("guns")
 
   foundGun.shoot = shoot
@@ -190,15 +219,15 @@ end
 -- firegroup(num): firegroup to set for gun
 -- wielder(ref): a reference to the entity wielding the gun; either a player, npc, or gun worlditem
 -- returns: true if successful, false if gun with specified UID doesn't exist
-M.equipGun = function(gunUid, firegroup, wielder)
-  if M.gunlist[gunUid] ~= nil then
-    M.gunlist[gunUid].current.firegroup = firegroup or 1
-    M.gunlist[gunUid].current.wielder = wielder
-    return true
-  else
-    return false
-  end
-end
+-- M.equipGun = function(gunUid, firegroup, wielder)
+--   if M.gunlist[gunUid] ~= nil then
+--     M.gunlist[gunUid].current.firegroup = firegroup or 1
+--     M.gunlist[gunUid].current.wielder = wielder
+--     return true
+--   else
+--     return false
+--   end
+-- end
 
 M.setup = function()
   M.gunlist = {}

@@ -52,7 +52,8 @@ M.setup = function () -- {{{
   -- table.insert(M.guns, gunlib.equipGun("smg", 2))
   -- table.insert(M.guns, gunlib.equipGun("smg", 2))
   -- table.insert(M.guns, gunlib.equipGun("burstpistol", 3))
-  gunlib.createGunFromDefinition(nil, 1)
+
+  table.insert(M.guns, gunlib.createGunFromDefinition(nil, 1))
   
 
   if M.body then M.body:destroy() end
@@ -163,9 +164,6 @@ end -- }}}
 M.shoot = function (x, y, firegroup)
   firegroup = firegroup or 1 -- if no firegroup provided, default to 1
 
-  -- table for storing knockback values from each gun fired this tick
-  local knockbackValues = {}
-
   -- attempt to fire every gun
   for i,gunId in pairs(M.guns) do
     -- get gun from master gunlist by UID
@@ -178,18 +176,18 @@ M.shoot = function (x, y, firegroup)
       local shotWorldOriginY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
 
       -- gun's shoot function returns the amount of knockback on holder
-      local playerKnockback = gun:shoot(M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, true)
+      local playerKnockback = gun:shoot("onPressShoot", M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, true)
       local knockbackX, knockbackY = M.calculateShotKnockback(playerKnockback, x, y)
 
       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
       M.addToThisTickPlayerKnockback(knockbackX, knockbackY)
 
       -- if the gun should burst-fire multiple shots, add the future shots to its burstQueue
-      if gun.burstCount > 1 then
-        for queuedBurstShot = gun.burstCount - 1, 1, -1 do
-          table.insert(gun.current.shootQueue, {firesIn=gun.burstDelay*queuedBurstShot, shotBy=M})
-        end
-      end
+      -- if gun.burstCount > 1 then
+      --   for queuedBurstShot = gun.burstCount - 1, 1, -1 do
+      --     table.insert(gun.current.shootQueue, {firesIn=gun.burstDelay*queuedBurstShot, shotBy=M})
+      --   end
+      -- end
 
     end
   end
