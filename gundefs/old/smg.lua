@@ -1,3 +1,6 @@
+-- HEY YOU: this file is from before guns were reworked to be statless holders for mods,
+-- so don't use this file
+
 local M = { }
 
 M.name = "smg"

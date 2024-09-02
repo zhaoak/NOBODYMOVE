@@ -5,6 +5,7 @@ M.gunlist = {} -- data for every gun existing in world, held by player or enemy,
 
 local projectileLib = require'projectiles'
 local util = require'util'
+local gunDefs = require'gundefs.seededGuns'
 
 -- utility function for creating the projectiles fired from guns
 local function createProjectiles (gun, x, y, worldRelativeAimAngle)
@@ -87,14 +88,12 @@ local function draw (gunId, player) -- {{{
 end -- }}}
 
 -- This function creates a gun, adds it to `gunlist`, and returns its UID.
--- Whoever is using the gun should then add that UID to a list of gun UIDs they own.
--- To shoot/render the gun from outside this file, use `gunlib.gunlist[gunUID]:shoot()`.
-M.equipGun = function(gunName, firegroup) -- {{{
+M.createGun = function(gunName, firegroup) -- {{{
 -- find gundef file by name
   local gun = dofile('gundefs/'..gunName..".lua")
 
   -- set cooldown of new gun
-  -- `gun.current` holds all data about the gun that can change during gameplay
+  -- `gun.current` holds all data about the gun that is modified by player actions during gameplay
   -- (cooldown, firegroup, etc)
   gun.current = {}
   gun.current.cooldown = gun.cooldown
@@ -109,7 +108,7 @@ M.equipGun = function(gunName, firegroup) -- {{{
   -- set recoil penalty state of new gun to zero on equip (no penalty)
   gun.current.recoilAimPenaltyOffset = 0
 
-  -- set UID of new gun
+  -- set UID of new gun: this never changes once a gun is created
   gun.uid = util.gen_uid("guns")
 
   -- add methods
@@ -122,19 +121,98 @@ M.equipGun = function(gunName, firegroup) -- {{{
   return gun.uid
 end -- }}}
 
+-- Create an instance of one of the pre-defined guns specified in `gundefs/seededGuns.lua`
+-- args:
+-- byName(string): find and create a gun, specified by its name property in the seeded guns list
+-- byTier(number): create a random gun from the list with a specified tier
+-- (if both byName and byTier are specified, searching by name takes priority)
+-- firegroup(num): the firegroup the created gun should have
+-- returns: UID of new gun instance if successful, -1 otherwise
+M.createGunFromDefinition = function(byName, byTier, firegroup)
+  local foundGun
+
+  if byName ~= nil then
+    -- search by name
+    for i, gun in ipairs(gunDefs.seededGuns) do
+      print("byName: "..gun.name)
+      if gun.name == byName then foundGun = gun end
+    end
+    -- if can't find gun with that name, return fail
+    if foundGun == nil then return -1 end
+  end
+
+  if byTier ~= nil and byName == nil then
+    -- select randomly by tier
+    local gunsMatchingTier = {}
+    for i, gun in ipairs(gunDefs.seededGuns) do
+      if gun.tier == byTier then
+        table.insert(gunsMatchingTier, gun)
+      end
+    end
+    local randIndex = math.random(1, #gunsMatchingTier)
+    -- if can't find any guns of the specified tier, return fail
+    if gunsMatchingTier[randIndex] ~= nil then 
+      foundGun = gunsMatchingTier[randIndex]
+    else return -1 end
+  end
+
+  foundGun.current = {}
+  foundGun.current.cooldown = 0
+
+  foundGun.current.firegroup = firegroup or 1
+
+  foundGun.current.recoilAimPenaltyOffset = 0
+
+  foundGun.current.shootQueue = {}
+
+  -- load mods into new gun instance
+  foundGun.events = foundGun.events
+
+  foundGun.uid = util.gen_uid("guns")
+
+  foundGun.shoot = shoot
+  foundGun.draw = draw
+
+  -- add it to the list of all guns in world, then return its uid
+  M.gunlist[foundGun.uid] = foundGun
+  return foundGun.uid
+end
+
+-- Function players, enemies, and gun items call to equip (or "wield", if you will) a gun.
+-- The gun must already exist, and is identified by its UID.
+-- Using this function allows the gunlib to keep track of who is using what gun.
+-- Only one entity can wield a gun at a time; if a new entity calls equipGun on an already-wielded gun,
+-- ownership will transfer to the newly specified wielder.
+-- Whoever is using the gun should then add that UID to a list of gun UIDs they own.
+-- To shoot/render the gun from outside this file, use `gunlib.gunlist[gunUID]:shoot()`.
+-- args:
+-- gunUid (num): UID of gun to equip
+-- firegroup(num): firegroup to set for gun
+-- wielder(ref): a reference to the entity wielding the gun; either a player, npc, or gun worlditem
+-- returns: true if successful, false if gun with specified UID doesn't exist
+M.equipGun = function(gunUid, firegroup, wielder)
+  if M.gunlist[gunUid] ~= nil then
+    M.gunlist[gunUid].current.firegroup = firegroup or 1
+    M.gunlist[gunUid].current.wielder = wielder
+    return true
+  else
+    return false
+  end
+end
+
 M.setup = function()
   M.gunlist = {}
 end
 
 -- assorted utility functions {{{
 local function recoverFromRecoilPenalty(dt, gun)
-  if gun.current.recoilAimPenaltyOffset > (gun.recoilRecoverySpeed * dt) then
-    gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset - (gun.recoilRecoverySpeed * dt)
-  elseif gun.current.recoilAimPenaltyOffset < (-gun.recoilRecoverySpeed * dt) then
-    gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset + (gun.recoilRecoverySpeed * dt)
-  else
-    gun.current.recoilAimPenaltyOffset = 0
-  end
+  -- if gun.current.recoilAimPenaltyOffset > (gun.recoilRecoverySpeed * dt) then
+  --   gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset - (gun.recoilRecoverySpeed * dt)
+  -- elseif gun.current.recoilAimPenaltyOffset < (-gun.recoilRecoverySpeed * dt) then
+  --   gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset + (gun.recoilRecoverySpeed * dt)
+  -- else
+  --   gun.current.recoilAimPenaltyOffset = 0
+  -- end
 end
 -- }}}
 
@@ -165,12 +243,12 @@ M.update = function (dt) -- {{{
 
     -- if player has managed to get recoil aim penalty past a full rotation counterclockwise or clockwise (impressive),
     -- modulo the value so the recoil recovery doesn't spin more than a full rotation
-    if gun.current.recoilAimPenaltyOffset > math.pi*2 then
-      gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset % (2*math.pi)
-    elseif gun.current.recoilAimPenaltyOffset < -math.pi*2 then
-      gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset % (-2*math.pi)
-    end
-    recoverFromRecoilPenalty(dt, gun)
+    -- if gun.current.recoilAimPenaltyOffset > math.pi*2 then
+    --   gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset % (2*math.pi)
+    -- elseif gun.current.recoilAimPenaltyOffset < -math.pi*2 then
+    --   gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset % (-2*math.pi)
+    -- end
+    -- recoverFromRecoilPenalty(dt, gun)
 
     -- print(gun.uid.." : "..gun.current.recoilAimPenaltyOffset)
   end

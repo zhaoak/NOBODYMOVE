@@ -25,6 +25,7 @@ M.createHitscanShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRel
   
 end
 
+-- bullets have a fixed velocity, and are not subject to gravity
 M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle)
   local newProjectiles = {}
   for i = 1, gun.multishot do

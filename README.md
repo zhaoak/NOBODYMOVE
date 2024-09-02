@@ -37,7 +37,7 @@ uid (number) : A unique ID given to each object of a given type (that is, UIDs a
 team (string): Who the object is allied with, relative to the player. Must be one of: "friendly", "enemy", "neutral".
 
 PROP/NPC/PLAYER/PROJECTILE TYPES ONLY ===============
-health (num) : How much damage the entity can take before being destroyed/killed.
+health (num) : How much damage the entity can take before being destroyed/killed. If nil, the object is immortal.
 
 PROJECTILE TYPES ONLY ===============================
 firedFrom (number): UID of gun this projectile was fired from.

@@ -1,5 +1,5 @@
 local gunlib = require'guns'
-local modlib = require'mods'
+-- local modlib = require'mods'
 local util = require'util'
 local filterVals = require'filterValues'
 local input = require'input'
@@ -47,11 +47,13 @@ M.setup = function () -- {{{
   -- tmp code for guns, player just has one test gun for now
   M.guns = {}
 
-  table.insert(M.guns, gunlib.equipGun("sawedoff", 1))
   -- table.insert(M.guns, gunlib.equipGun("sawedoff", 1))
-  table.insert(M.guns, gunlib.equipGun("smg", 2))
+  -- table.insert(M.guns, gunlib.equipGun("sawedoff", 1))
   -- table.insert(M.guns, gunlib.equipGun("smg", 2))
-  table.insert(M.guns, gunlib.equipGun("burstpistol", 3))
+  -- table.insert(M.guns, gunlib.equipGun("smg", 2))
+  -- table.insert(M.guns, gunlib.equipGun("burstpistol", 3))
+  gunlib.createGunFromDefinition(nil, 1)
+  
 
   if M.body then M.body:destroy() end
   M.contact = 0

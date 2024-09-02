@@ -24,7 +24,7 @@ function love.load() -- {{{ init
   local optionsTable = {
     fullscreen = false,
     fullscreentype = "desktop",
-    vsync = 1,
+    vsync = true,
     resizable = true,
     borderless = false,
     display = 1,

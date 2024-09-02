@@ -1,3 +1,6 @@
+-- HEY YOU: this file is from before guns were reworked to be statless holders for mods,
+-- so don't use this file
+--
 -- sample gun with very boring values,
 -- also includes comments explaining what each value does
 -- Note that most of these values can be changed by the player via mods
