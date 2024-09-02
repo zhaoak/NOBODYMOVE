@@ -176,7 +176,7 @@ M.shoot = function (x, y, firegroup)
       local shotWorldOriginY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
 
       -- gun's shoot function returns the amount of knockback on holder
-      local playerKnockback = gun:shoot(M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, gun)
+      local playerKnockback = gun:shoot(M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, true)
       local knockbackX, knockbackY = M.calculateShotKnockback(playerKnockback, x, y)
 
       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
@@ -185,7 +185,7 @@ M.shoot = function (x, y, firegroup)
       -- if the gun should burst-fire multiple shots, add the future shots to its burstQueue
       if gun.burstCount > 1 then
         for queuedBurstShot = gun.burstCount - 1, 1, -1 do
-          table.insert(gun.current.burstQueue, {firesIn=gun.burstDelay*queuedBurstShot, shotBy=M})
+          table.insert(gun.current.shootQueue, {firesIn=gun.burstDelay*queuedBurstShot, shotBy=M})
         end
       end
 

@@ -1,3 +1,4 @@
+-- Gun objects.
 local M = { }
 
 M.gunlist = {} -- data for every gun existing in world, held by player or enemy, lives here
@@ -21,8 +22,13 @@ end
 -- as well as returning the knockback force, so whoever shot the gun can apply it to themself.
 -- The code calling this function should fetch the gun they want to shoot from the gun masterlist via ID,
 -- then pass that gun in as an argument.
-local function shoot (gun, x, y, worldRelativeAimAngle) -- {{{
-  gun.current.cooldown = gun.cooldown
+-- args:
+-- gun (gun object): the gun to shoot
+-- x, y (numbers): world coordinates to spawn the projectiles at
+-- worldRelativeAimAngle: angle gun is aiming at/being aimed at, the player/item/enemy calling this func should have this value available
+-- resetCooldown(bool): whether or not to reset the gun's cooldown timer; some shots triggered by events are 'bonus' shots and don't reset cooldown
+local function shoot (gun, x, y, worldRelativeAimAngle, resetCooldown) -- {{{
+  if resetCooldown then gun.current.cooldown = gun.cooldown end
   -- store the state of the shot, so mods can modify it as they go
   -- adding more chaos each time, hopefully
   local shot = {holderKnockback=gun.holderKnockback, damage=gun.hitDamage} -- stuff like spread, pellets, speed, etc everything idk yet
@@ -96,8 +102,9 @@ M.equipGun = function(gunName, firegroup) -- {{{
   -- set firegroup of new gun, default to 1 if not specified
   gun.current.firegroup = firegroup or 1
 
-  -- create burstQueue for new gun
-  gun.current.burstQueue = {}
+  -- create shootQueue for new gun
+  -- the shootQueue is used for burst fire and other mods that create time-delayed shots
+  gun.current.shootQueue = {}
 
   -- set recoil penalty state of new gun to zero on equip (no penalty)
   gun.current.recoilAimPenaltyOffset = 0
@@ -136,10 +143,10 @@ M.update = function (dt) -- {{{
     -- decrement each gun's cooldown timer
     gun.current.cooldown = gun.current.cooldown - dt
     
-    -- iterate through each gun's burstQueue, decrementing timers and shooting the gun if timer is up
+    -- iterate through each gun's shootQueue, decrementing timers and shooting the gun if timer is up
     local next = next
-    if next(gun.current.burstQueue) ~= nil then
-      for i, queuedShot in ipairs(gun.current.burstQueue) do
+    if next(gun.current.shootQueue) ~= nil then
+      for i, queuedShot in ipairs(gun.current.shootQueue) do
         queuedShot.firesIn = queuedShot.firesIn - dt
         -- if queued shot is ready to fire...
         if queuedShot.firesIn <= 0 then
@@ -151,7 +158,7 @@ M.update = function (dt) -- {{{
           local knockbackX, knockbackY = queuedShot.shotBy.calculateShotKnockback(shotKnockback, queuedShot.shotBy.crosshairCacheX, queuedShot.shotBy.crosshairCacheY)
           queuedShot.shotBy.addToThisTickPlayerKnockback(knockbackX, knockbackY)
           -- finally, remove the fired shot from the queue
-          gun.current.burstQueue[i] = nil
+          gun.current.shootQueue[i] = nil
         end
       end
     end
