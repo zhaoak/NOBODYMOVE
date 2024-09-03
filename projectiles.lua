@@ -25,59 +25,57 @@ M.createHitscanShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRel
   
 end
 
--- bullets have a fixed velocity, and are not subject to gravity
-M.createBulletShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle)
-  local newProjectiles = {}
-  for i = 1, gun.multishot do
-    -- create physics object for new bullet
-    local newBullet = {}
-    newBullet.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
-    newBullet.shape = love.physics.newCircleShape(M.bulletRadius)
-    newBullet.fixture = love.physics.newFixture(newBullet.body, newBullet.shape, 1)
-    newBullet.fixture:setUserData({name="bullet",type="projectile",damage=gun.hitDamage,firedFrom=gun.uid,uid=util.gen_uid("projectile")})
-    newBullet.fixture:setRestitution(0)
-    newBullet.body:setBullet(true)
-    newBullet.body:setGravityScale(0)
-    newBullet.body:setMass(M.bulletMass)
-
-    -- set filterdata for new bullet
-    -- currently, player-fired projectiles never collide with each other, but we may change that
-    -- because core nukes are cool
-
-    -- this bullet has the category:
-    newBullet.fixture:setCategory(filterVals.category.projectile_player)
-    -- this bullet should NOT collide with:
-    newBullet.fixture:setMask(
-      filterVals.category.friendly,
-      filterVals.category.player_hardbox,
-      filterVals.category.projectile_player,
-      filterVals.category.terrain_bg)
-
-    -- this bullet is in group:
-    newBullet.fixture:setGroupIndex(0)
-
-    -- adjust shot angle to account for gun inaccuracy
-    local rand = math.random()
-    -- give us a random modifier for the shot angle from -1*gun.inaccuracy to 1*gun.inaccuracy
-    local inaccuracyAngleAdjustment = gun.inaccuracy - (rand * gun.inaccuracy * 2)
-    -- print(inaccuracyAngleAdjustment)
-    -- then, apply the inaccuracy modifier and recoil modifier to the angle of the shot
-    local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment + gun.current.recoilAimPenaltyOffset
-
-    -- apply velocity to bullet
-    local bulletVelocityX = math.sin(adjustedShotAngle)*gun.projectileLaunchVelocity
-    local bulletVelocityY = math.cos(adjustedShotAngle)*gun.projectileLaunchVelocity
-    newBullet.body:applyLinearImpulse(bulletVelocityX, bulletVelocityY)
-
-    -- apply projectile's linear damping
-    newBullet.body:setLinearDamping(gun.projectileLinearDamping)
-
-    table.insert(newProjectiles, newBullet)
+-- Physics projectiles are Box2D bodies and take time to travel
+M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle)
+  -- create physics object for new projectile
+  local newProj = {}
+  newProj.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
+  if projMod.projShapeType == "circle" then
+    newProj.shape = love.physics.newCircleShape(projMod.projShapeData.radius)
   end
+  newProj.fixture = love.physics.newFixture(newProj.body, newProj.shape, 1)
+  newProj.fixture:setUserData({name="projectile",type="projectile",damage=projMod.projHitDamage,firedByGun=gunFiringProjectileUid,uid=util.gen_uid("projectile")})
+  newProj.fixture:setRestitution(0)
+  newProj.body:setBullet(true) -- this is Box2D's CCD (continuous collision detection) flag
+  newProj.body:setGravityScale(projMod.projGravityScale)
+  newProj.body:setMass(projMod.projMass)
 
-  for _, bullet in ipairs(newProjectiles) do
-    M.projectileList[bullet.fixture:getUserData().uid] = bullet
-  end
+  -- set filterdata for new projectile
+  -- currently, player-fired projectiles never collide with each other, but we may change that
+  -- because core nukes are cool
+
+  -- this projectile has the category:
+  newProj.fixture:setCategory(filterVals.category.projectile_player)
+  -- this projectile should NOT collide with:
+  newProj.fixture:setMask(
+    filterVals.category.friendly,
+    filterVals.category.player_hardbox,
+    filterVals.category.projectile_player,
+    filterVals.category.terrain_bg)
+
+  -- this projectile is in group:
+  newProj.fixture:setGroupIndex(0)
+
+  -- adjust shot angle to account for gun inaccuracy
+  local rand = math.random()
+  -- give us a random modifier for the shot angle from -1*gun.inaccuracy to 1*gun.inaccuracy
+  local inaccuracyAngleAdjustment = projMod.projInaccuracy - (rand * projMod.projInaccuracy * 2)
+  -- print(inaccuracyAngleAdjustment)
+  -- then, apply the inaccuracy modifier and recoil modifier to the angle of the shot
+  -- we're dummying out recoil for now
+  -- local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment + gun.current.recoilAimPenaltyOffset
+  local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment
+
+
+  -- apply velocity to projectile
+  local projectileVelocityX = math.sin(adjustedShotAngle)*projMod.projLaunchVelocity
+  local projectileVelocityY = math.cos(adjustedShotAngle)*projMod.projLaunchVelocity
+  newProj.body:applyLinearImpulse(projectileVelocityX, projectileVelocityY)
+
+  -- apply projectile's linear damping
+  newProj.body:setLinearDamping(projMod.projLinearDamping)
+
+  M.projectileList[newProj.fixture:getUserData().uid] = newProj
 end
 -- }}}
 
@@ -131,7 +129,7 @@ end
 M.draw = function() -- {{{
   for i, proj in pairs(M.projectileList) do
     love.graphics.setColor(0, 1, 1, 1)
-    love.graphics.circle("fill", proj.body:getX(), proj.body:getY(), M.bulletRadius)
+    love.graphics.circle("fill", proj.body:getX(), proj.body:getY(), proj.shape:getRadius())
   end
 end -- }}}
 

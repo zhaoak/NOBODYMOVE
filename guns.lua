@@ -7,19 +7,8 @@ local projectileLib = require'projectiles'
 local util = require'util'
 local gunDefs = require'gundefs.seededGuns'
 
--- utility function for creating the projectiles fired from guns
-local function createProjectiles (gun, x, y, worldRelativeAimAngle)
-  if gun.type == "hitscan" then
-    -- cast a ray etc
-  end
-
-  if gun.type == "bullet" then
-    projectileLib.createBulletShot(gun, x, y, worldRelativeAimAngle)
-  end
-end
-
 -- The shoot function for shooting a specific gun, which is passed in via arg.
--- This function handles creating the projectiles from the gun's mods and resetting its cooldown,
+-- This function handles creating the projectiles from the gun's mods, applying any modifiers, and resetting its cooldown,
 -- as well as returning the knockback force, so whoever shot the gun can apply it to themself.
 -- The code calling this function should fetch the gun they want to shoot from the gun masterlist via ID,
 -- then pass that gun in as an argument.
@@ -28,8 +17,8 @@ end
 -- triggerEvent(string): the string identifier of the event causing the gun to shoot, used to find which mods to apply
 -- x, y (numbers): world coordinates to spawn the projectiles at
 -- worldRelativeAimAngle: angle gun is aiming at/being aimed at, the player/item/enemy calling this func should have this value available
--- resetCooldown(bool): whether or not to reset the gun's cooldown timer; some shots triggered by events are 'bonus' shots and don't reset cooldown
-local function shoot (gun, triggerEvent, x, y, worldRelativeAimAngle, resetCooldown) -- {{{
+-- triggerCooldown(bool): whether or not to reset the gun's cooldown timer; some shots triggered by events are 'bonus' shots and don't reset cooldown
+local function shoot (gun, triggerEvent, x, y, worldRelativeAimAngle, triggerCooldown) -- {{{
 
   -- iterate through the gun's events and find the one that triggered this shot
   local thisShotMods
@@ -50,12 +39,13 @@ local function shoot (gun, triggerEvent, x, y, worldRelativeAimAngle, resetCoold
     
     -- spawn projectiles for every shoot projectile mod in the event, incrementing total cooldown with each projectile's contribution
     if mod.modCategory == "shoot" then
-      
+      totalCooldown = totalCooldown + mod.projCooldown
+      projectileLib.createProjectile(gun.uid, mod, x, y, worldRelativeAimAngle)
     end
   end
 
   -- if a not a bonus shot, reset the cooldown
-  if resetCooldown then gun.current.cooldown = 1 end
+  if triggerCooldown then gun.current.cooldown = totalCooldown end
 
   return 20, 20
   -- createProjectiles(gun, x, y, worldRelativeAimAngle)
