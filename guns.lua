@@ -30,11 +30,13 @@ local function shoot (gun, triggerEvent, x, y, worldRelativeAimAngle, triggerCoo
     end
   end
 
-  -- now that we have all the shoot mods that should trigger during this event, spawn their projectiles
+  -- evaluate and run all mods for this event
   local totalCooldown = 0
   local totalKnockback = 0
   for i, mod in ipairs(thisShotMods) do
     -- TODO: evaluate and apply all projectile modifier mods
+    if mod.modCategory == "projectileModifier" then
+    end
     
     -- spawn projectiles for every shoot projectile mod in the event, incrementing total cooldown with each projectile's contribution
     if mod.modCategory == "shoot" then
@@ -110,7 +112,7 @@ M.createGun = function(events, firegroup) -- {{{
   -- `gun.current` holds all data about the gun that is modified by player actions during gameplay
   -- (cooldown, firegroup, etc)
   gun.current = {}
-  gun.current.cooldown = gun.cooldown
+  gun.current.totalCooldown = M.calculateShotCooldownFromGun(gun, "onPressShoot")
 
   -- set firegroup of new gun, default to 1 if not specified
   gun.current.firegroup = firegroup or 1
@@ -149,7 +151,7 @@ end -- }}}
 -- (if both byName and byTier are specified, searching by name takes priority)
 -- firegroup(num): the firegroup the created gun should have
 -- returns: UID of new gun instance if successful, -1 otherwise
-M.createGunFromDefinition = function(byName, byTier, firegroup)
+M.createGunFromDefinition = function(byName, byTier, firegroup) -- {{{
   local gunDefs = dofile("gundefs/seededGuns.lua")
   local foundGun
   if byName ~= nil then
@@ -199,7 +201,7 @@ M.createGunFromDefinition = function(byName, byTier, firegroup)
   -- add it to the list of all guns in world, then return its uid
   M.gunlist[foundGun.uid] = foundGun
   return foundGun.uid
-end
+end -- }}}
 
 -- Function players, enemies, and gun items call to equip (or "wield", if you will) a gun.
 -- The gun must already exist, and is identified by its UID.
@@ -213,15 +215,15 @@ end
 -- firegroup(num): firegroup to set for gun
 -- wielder(ref): a reference to the entity wielding the gun; either a player, npc, or gun worlditem
 -- returns: true if successful, false if gun with specified UID doesn't exist
--- M.equipGun = function(gunUid, firegroup, wielder)
---   if M.gunlist[gunUid] ~= nil then
---     M.gunlist[gunUid].current.firegroup = firegroup or 1
---     M.gunlist[gunUid].current.wielder = wielder
---     return true
---   else
---     return false
---   end
--- end
+M.equipGun = function(gunUid, firegroup, wielder)
+  if M.gunlist[gunUid] ~= nil then
+    M.gunlist[gunUid].current.firegroup = firegroup or 1
+    M.gunlist[gunUid].current.wielder = wielder
+    return true
+  else
+    return false
+  end
+end
 
 M.setup = function()
   M.gunlist = {}
@@ -264,7 +266,7 @@ M.update = function (dt) -- {{{
   for _,gun in pairs(M.gunlist) do
     -- decrement each gun's cooldown timer
     gun.current.cooldown = gun.current.cooldown - dt
-    
+
     -- iterate through each gun's shootQueue, decrementing timers and shooting the gun if timer is up
     local next = next
     if next(gun.current.shootQueue) ~= nil then
@@ -272,15 +274,17 @@ M.update = function (dt) -- {{{
         queuedShot.firesIn = queuedShot.firesIn - dt
         -- if queued shot is ready to fire...
         if queuedShot.firesIn <= 0 then
+          -- print(queuedShot.shotBy)
           -- then calculate where it should spawn the projectile(s)
-          local shotWorldOriginX = math.sin(queuedShot.shotBy.currentAimAngle) * (gun.playerHoldDistance + queuedShot.shotBy.hardboxRadius)
-          local shotWorldOriginY = math.cos(queuedShot.shotBy.currentAimAngle) * (gun.playerHoldDistance + queuedShot.shotBy.hardboxRadius)
+          -- local shotWorldOriginX = math.sin(queuedShot.shotBy.currentAimAngle) * (gun.playerHoldDistance + queuedShot.shotBy.hardboxRadius)
+          -- local shotWorldOriginY = math.cos(queuedShot.shotBy.currentAimAngle) * (gun.playerHoldDistance + queuedShot.shotBy.hardboxRadius)
           -- then shoot the gun and apply the knockback to whoever shot it
-          local shotKnockback = gun:shoot(queuedShot.shotBy.body:getX()+shotWorldOriginX, queuedShot.shotBy.body:getY()+shotWorldOriginY, queuedShot.shotBy.currentAimAngle)
-          local knockbackX, knockbackY = queuedShot.shotBy.calculateShotKnockback(shotKnockback, queuedShot.shotBy.crosshairCacheX, queuedShot.shotBy.crosshairCacheY)
-          queuedShot.shotBy.addToThisTickPlayerKnockback(knockbackX, knockbackY)
+          -- local shotKnockback = gun:shoot("onPressShoot", queuedShot.shotBy.body:getX()+shotWorldOriginX, queuedShot.shotBy.body:getY()+shotWorldOriginY, queuedShot.shotBy.currentAimAngle, true)
+          -- projectileLib.createProjectile(gun.uid, mod, x, y, worldRelativeAimAngle)
+          -- local knockbackX, knockbackY = queuedShot.shotBy.calculateShotKnockback(shotKnockback, queuedShot.shotBy.crosshairCacheX, queuedShot.shotBy.crosshairCacheY)
+          -- queuedShot.shotBy.addToThisTickPlayerKnockback(knockbackX, knockbackY)
           -- finally, remove the fired shot from the queue
-          gun.current.shootQueue[i] = nil
+          -- gun.current.shootQueue[i] = nil
         end
       end
     end

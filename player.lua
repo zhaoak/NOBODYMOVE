@@ -49,7 +49,9 @@ M.setup = function () -- {{{
 
   -- give player two tier 1 guns on firegroups 1 and 2
   table.insert(M.guns, gunlib.createGunFromDefinition(nil, 1, 1))
+  gunlib.equipGun(M.guns[1], 1, M)
   table.insert(M.guns, gunlib.createGunFromDefinition(nil, 1, 2))
+  gunlib.equipGun(M.guns[2], 2, M)
 
   if M.body then M.body:destroy() end
   M.contact = 0
@@ -171,7 +173,7 @@ M.shoot = function (x, y, firegroup)
       local shotWorldOriginY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
 
       -- gun's shoot function returns the amount of knockback on holder
-      local playerKnockback = gun:shoot("onPressShoot", M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, true)
+      local playerKnockback = gun:shoot("onPressShoot", M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, true, false)
       local knockbackX, knockbackY = M.calculateShotKnockback(playerKnockback, x, y)
 
       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback

@@ -4,6 +4,7 @@
 -- these are the guns that players will first encounter, so they should be as straightforward as possible to understand
 
 local proj = require'mods.shootProjectileMods'
+local projTweak = require'mods.projectileTweakMods'
 
 local M = {}
 
@@ -26,6 +27,24 @@ M.seededGuns = {
       },
     }
   },
+
+  { name = "shotgun_medcal",
+    tier = 1,
+    events = {
+      { trigger_event="onPressShoot",
+        triggers_mods={proj.mediumBullet(),proj.mediumBullet(),proj.mediumBullet(),proj.mediumBullet(),proj.mediumBullet(),proj.mediumBullet()}
+      },
+    }
+  },
+
+  -- { name = "burstsmg_lowcal",
+  --   tier = 1,
+  --   events = {
+  --     { trigger_event="onPressShoot",
+  --       triggers_mods={projTweak.burstFire(),proj.smallBullet(),proj.smallBullet(),proj.smallBullet()}
+  --     },
+  --   }
+  -- },
 
   -- tier 2 guns
   { name = "machinegun_medcal",

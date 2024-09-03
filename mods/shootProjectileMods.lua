@@ -8,6 +8,7 @@ M.smallBullet = function()
   local modTable = {}
   modTable.modCategory = "shoot"
   modTable.displayName = "Shoot small bullet"
+  modTable.description = "lore goes here ig"
   modTable.projType = "smallbullet"
   modTable.projShapeType = "circle"
   modTable.projShapeData = { radius=3 }
@@ -28,6 +29,7 @@ M.mediumBullet = function()
   local modTable = {}
   modTable.modCategory = "shoot"
   modTable.displayName = "Shoot medium bullet"
+  modTable.description = "lore goes here ig"
   modTable.projType = "mediumbullet"
   modTable.projShapeType = "circle"
   modTable.projShapeData = { radius=5 }
@@ -48,6 +50,7 @@ M.largeBullet = function()
   local modTable = {}
   modTable.modCategory = "shoot"
   modTable.displayName = "Shoot large bullet"
+  modTable.description = "lore goes here ig"
   modTable.projType = "largebullet"
   modTable.projShapeType = "circle"
   modTable.projShapeData = { radius=7 }
@@ -68,6 +71,7 @@ M.oversizeBullet = function()
   local modTable = {}
   modTable.modCategory = "shoot"
   modTable.displayName = "Shoot oversize bullet"
+  modTable.description = "lore goes here ig"
   modTable.projType = "oversizebullet"
   modTable.projShapeType = "circle"
   modTable.projShapeData = { radius=9 }
