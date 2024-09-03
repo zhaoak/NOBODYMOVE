@@ -5,7 +5,6 @@ M.gunlist = {} -- data for every gun existing in world, held by player or enemy,
 
 local projectileLib = require'projectiles'
 local util = require'util'
-local gunDefs = require'gundefs.seededGuns'
 
 -- The shoot function for shooting a specific gun, which is passed in via arg.
 -- This function handles creating the projectiles from the gun's mods, applying any modifiers, and resetting its cooldown,
@@ -14,7 +13,7 @@ local gunDefs = require'gundefs.seededGuns'
 -- then pass that gun in as an argument.
 -- args:
 -- gun (gun object): the gun to shoot
--- triggerEvent(string): the string identifier of the event causing the gun to shoot, used to find which mods to apply
+-- triggerEvent(string): the string identifier of the event causing the gun to shoot, used to find which mods to evaluate
 -- x, y (numbers): world coordinates to spawn the projectiles at
 -- worldRelativeAimAngle: angle gun is aiming at/being aimed at, the player/item/enemy calling this func should have this value available
 -- triggerCooldown(bool): whether or not to reset the gun's cooldown timer; some shots triggered by events are 'bonus' shots and don't reset cooldown
@@ -32,14 +31,15 @@ local function shoot (gun, triggerEvent, x, y, worldRelativeAimAngle, triggerCoo
   end
 
   -- now that we have all the shoot mods that should trigger during this event, spawn their projectiles
-  -- note that this func assumes mods are ordered in 
   local totalCooldown = 0
+  local totalKnockback = 0
   for i, mod in ipairs(thisShotMods) do
     -- TODO: evaluate and apply all projectile modifier mods
     
     -- spawn projectiles for every shoot projectile mod in the event, incrementing total cooldown with each projectile's contribution
     if mod.modCategory == "shoot" then
       totalCooldown = totalCooldown + mod.projCooldown
+      totalKnockback = totalKnockback + mod.holderKnockback
       projectileLib.createProjectile(gun.uid, mod, x, y, worldRelativeAimAngle)
     end
   end
@@ -47,10 +47,12 @@ local function shoot (gun, triggerEvent, x, y, worldRelativeAimAngle, triggerCoo
   -- if a not a bonus shot, reset the cooldown
   if triggerCooldown then gun.current.cooldown = totalCooldown end
 
-  return 20, 20
-  -- createProjectiles(gun, x, y, worldRelativeAimAngle)
+  -- regardless of whether shot is bonus shot, cache the cumulative cooldown
+  gun.current.totalCooldown = totalCooldown
 
-  -- recoil is being dummied out for now
+  return totalKnockback
+
+  -- the recoil aim penalty is being dummied out for now, will tie into movement/leg system
   -- apply recoil penalty to gun's aim
   -- randomly select either -1 or +1, to randomly select if recoil will apply clockwise or counterclockwise
   -- local randTable = { [1] = -1, [2] = 1 }
@@ -121,7 +123,9 @@ M.createGun = function(events, firegroup) -- {{{
   gun.current.recoilAimPenaltyOffset = 0
 
   -- load mods into new gun instance
-  gun.events = foundGun.events
+  gun.events = events
+
+  gun.current.totalCooldown = M.calculateShotCooldownFromGun(gun, "onPressShoot")
 
   gun.playerHoldDistance = 5
 
@@ -146,35 +150,35 @@ end -- }}}
 -- firegroup(num): the firegroup the created gun should have
 -- returns: UID of new gun instance if successful, -1 otherwise
 M.createGunFromDefinition = function(byName, byTier, firegroup)
+  local gunDefs = dofile("gundefs/seededGuns.lua")
   local foundGun
-
   if byName ~= nil then
     -- search by name
-    for i, gun in ipairs(gunDefs.seededGuns) do
+    for _, gun in ipairs(gunDefs.seededGuns) do
       print("byName: "..gun.name)
       if gun.name == byName then foundGun = gun end
     end
     -- if can't find gun with that name, return fail
     if foundGun == nil then return -1 end
-  end
 
-  if byTier ~= nil and byName == nil then
+  elseif byTier ~= nil then
     -- select randomly by tier
     local gunsMatchingTier = {}
-    for i, gun in ipairs(gunDefs.seededGuns) do
+    for _, gun in ipairs(gunDefs.seededGuns) do
       if gun.tier == byTier then
         table.insert(gunsMatchingTier, gun)
       end
     end
     local randIndex = math.random(1, #gunsMatchingTier)
     -- if can't find any guns of the specified tier, return fail
-    if gunsMatchingTier[randIndex] ~= nil then 
+    if gunsMatchingTier[randIndex] ~= nil then
       foundGun = gunsMatchingTier[randIndex]
     else return -1 end
   end
 
   foundGun.current = {}
   foundGun.current.cooldown = 0
+  foundGun.current.totalCooldown = M.calculateShotCooldownFromGun(foundGun, "onPressShoot")
 
   foundGun.current.firegroup = firegroup or 1
 
@@ -232,6 +236,27 @@ local function recoverFromRecoilPenalty(dt, gun)
   -- else
   --   gun.current.recoilAimPenaltyOffset = 0
   -- end
+end
+
+-- From a gun's current mod loadout, calculate the shot cooldown triggered by a specific event
+-- args:
+-- gun(gun object): the gun to calculate cooldown for
+-- eventTrigger (string): the event to calculate cooldown for, identified by its name
+-- returns: total cooldown for that event in seconds
+M.calculateShotCooldownFromGun = function(gun, eventTrigger)
+  local totalCooldown = 0
+  -- iterate through gun's events, find the one we're looking for
+  for _, event in ipairs(gun.events) do
+    if event.trigger_event == eventTrigger then
+      -- iterate through that event's mods, summing the cooldown from all its shots
+      for _, mod in ipairs(event) do
+        if mod.modCategory == "shoot" then
+          totalCooldown = totalCooldown + mod.projCooldown
+        end
+      end
+    end
+  end
+  return totalCooldown
 end
 -- }}}
 

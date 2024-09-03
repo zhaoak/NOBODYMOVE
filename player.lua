@@ -47,14 +47,9 @@ M.setup = function () -- {{{
   -- tmp code for guns, player just has one test gun for now
   M.guns = {}
 
-  -- table.insert(M.guns, gunlib.equipGun("sawedoff", 1))
-  -- table.insert(M.guns, gunlib.equipGun("sawedoff", 1))
-  -- table.insert(M.guns, gunlib.equipGun("smg", 2))
-  -- table.insert(M.guns, gunlib.equipGun("smg", 2))
-  -- table.insert(M.guns, gunlib.equipGun("burstpistol", 3))
-
-  table.insert(M.guns, gunlib.createGunFromDefinition(nil, 1))
-  
+  -- give player two tier 1 guns on firegroups 1 and 2
+  table.insert(M.guns, gunlib.createGunFromDefinition(nil, 1, 1))
+  table.insert(M.guns, gunlib.createGunFromDefinition(nil, 1, 2))
 
   if M.body then M.body:destroy() end
   M.contact = 0
@@ -181,14 +176,6 @@ M.shoot = function (x, y, firegroup)
 
       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
       M.addToThisTickPlayerKnockback(knockbackX, knockbackY)
-
-      -- if the gun should burst-fire multiple shots, add the future shots to its burstQueue
-      -- if gun.burstCount > 1 then
-      --   for queuedBurstShot = gun.burstCount - 1, 1, -1 do
-      --     table.insert(gun.current.shootQueue, {firesIn=gun.burstDelay*queuedBurstShot, shotBy=M})
-      --   end
-      -- end
-
     end
   end
 end
