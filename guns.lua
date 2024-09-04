@@ -85,17 +85,6 @@ local function shoot (gun, shootMods, triggerCooldown, ignoreCooldown) -- {{{
   -- regardless of whether shot is bonus shot, cache the cumulative cooldown
   gun.current.totalCooldown = totalCooldown
 
-  return totalKnockback
-
-  -- the recoil aim penalty is being dummied out for now, will tie into movement/leg system
-  -- apply recoil penalty to gun's aim
-  -- randomly select either -1 or +1, to randomly select if recoil will apply clockwise or counterclockwise
-  -- local randTable = { [1] = -1, [2] = 1 }
-  -- local rand = math.random(2)
-  -- local recoilAimPenalty = gun.recoil * randTable[rand]
-  -- -- then apply the penalty
-  -- gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset + recoilAimPenalty
-
 end -- }}}
 
 -- update a gun instance's stored position and angle for this physics tick

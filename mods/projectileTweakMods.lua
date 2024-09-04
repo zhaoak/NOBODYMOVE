@@ -29,9 +29,10 @@ M.projectileDiffractor = function()
   modTable.apply = function(shootProjectileMods)
     local alteredShootMods = {}
     for _, shootMod in ipairs(shootProjectileMods) do
-      shootMod.projCooldown = shootMod.projCooldown * 1.25
+      shootMod.projCooldown = shootMod.projCooldown * 1.5
       shootMod.projLinearDamping = shootMod.projLinearDamping + 5
-      shootMod.projInaccuracy = shootMod.projInaccuracy * 1.5
+      shootMod.projInaccuracy = shootMod.projInaccuracy + math.rad(15)
+      shootMod.holderKnockback = shootMod.holderKnockback * 5
       table.insert(alteredShootMods, shootMod)
       table.insert(alteredShootMods, shootMod)
       table.insert(alteredShootMods, shootMod)

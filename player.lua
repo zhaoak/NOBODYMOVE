@@ -154,47 +154,8 @@ M.draw = function () -- {{{
 end -- }}}
 
 -- shooting-related functions {{{
-M.triggerEventOnGun = function(eventString, gunContainingEvent)
-  gunContainingEvent:triggerEvent(eventString)
-end
-
--- The spooder's shoot function. Called every tick, so long as a shoot button for a particular firegroup is down.
--- Tells the spooder to shoot every gun it has in a given firegroup that isn't on cooldown.
--- Also calculates knockback on player from shooting spooder's guns, which is applied in the update step.
--- x and y are the positions of the crosshair at time of shooting
--- M.shoot = function (x, y, firegroup)
---   firegroup = firegroup or 1 -- if no firegroup provided, default to 1
---
---   -- attempt to fire every gun
---   for i,gunId in pairs(M.guns) do
---     -- get gun from master gunlist by UID
---     local gun = gunlib.gunlist[gunId]
---
---     if gun.current.cooldown < 0 and gun.current.firegroup == firegroup then
---       -- find the world origin location of each shot
---       -- this does not currently factor in recoil aim offset, but that's gonna get reworked anyway, so
---       local shotWorldOriginX = math.sin(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
---       local shotWorldOriginY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
---
---       -- gun's shoot function returns the amount of knockback on holder
---       local playerKnockback = gun:shoot("onPressShoot", M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, true, false)
---       local knockbackX, knockbackY = M.calculateShotKnockback(playerKnockback, x, y)
---
---       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
---       M.addToThisTickPlayerKnockback(knockbackX, knockbackY)
---     end
---   end
--- end
-
 -- calculate the knockback from a shot
 M.calculateShotKnockback = function (gunKnockbackOnPlayer, gunAimAngle)
-  -- -- normalize the points of the spood and target together
-  -- local normalizedX = crosshairPosX - M.body:getX()
-  -- local normalizedY = crosshairPosY - M.body:getY()
-  --
-  -- -- get the angle of the crosshair from the gun
-  -- local angle = math.atan2(normalizedX,normalizedY)
-
   -- calculate and return knockback on X and Y axes
   local knockbackX = -math.sin(gunAimAngle)*gunKnockbackOnPlayer
   local knockbackY = -math.cos(gunAimAngle)*gunKnockbackOnPlayer
@@ -369,7 +330,7 @@ M.update = function(dt) -- {{{
     if input.getShootDown(fg) then
       for _, gunId in pairs(M.guns) do
         if gunlib.gunlist[gunId].current.firegroup == fg then
-          M.triggerEventOnGun("onPressShoot", gunlib.gunlist[gunId])
+          gunlib.gunlist[gunId]:triggerEvent("onPressShoot")
         end
       end
     end
