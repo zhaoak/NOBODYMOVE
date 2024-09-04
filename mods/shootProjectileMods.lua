@@ -3,6 +3,30 @@
 
 local M = { }
 
+M.exampleShootProjectileMod = function()
+  local modTable = {}
+  -- all mods should have these fields, regardless of type
+  modTable.modCategory = "shoot"
+  modTable.displayName = "Example Shoot Projectile Mod"
+  modTable.description = "Commented demonstration of shoot projectile mod format"
+  -- shoot projectile mods must include _all_ of the following values,
+  -- as these values are changed by projectileModifier mods
+  modTable.projType = "demoshot"
+  modTable.projShapeType = "circle"
+  -- the projShapeData table will contain different data, depending on the value of `projShapeType`
+  modTable.projShapeData = { radius=2 }
+  modTable.projCooldown = 0.5
+  modTable.holderKnockback = 5
+  modTable.projHitKnockback = 5
+  modTable.projHitDamage = 3
+  modTable.projInaccuracy = math.rad(1)
+  modTable.projLaunchVelocity = 150
+  modTable.projLinearDamping = 0
+  modTable.projGravityScale = 0
+  modTable.projMass = 0.2
+  return modTable
+end
+
 -- Small caliber bullet: low cooldown/knockback/damage, medium speed, poor accuracy
 M.smallBullet = function()
   local modTable = {}

@@ -6,45 +6,78 @@ M.gunlist = {} -- data for every gun existing in world, held by player or enemy,
 local projectileLib = require'projectiles'
 local util = require'util'
 
+-- The function called when an event is triggered, which evaluates and executes its mods.
+-- This means all mods, including shoot projectile ones; when an event is triggered,
+-- this function will either call the gun's `shoot()` method or add shots to its queue as appropriate.
+-- This function is set as a method of every gun object in createGun functions.
+-- Thus, it can be called with colon syntax to skip the first arg, e.g. `gunObj:triggerEvent(eventString, modsInEvent)`
+-- args:
+-- gunContainingEvent(gun obj): the gun containing the event you want to trigger. 
+-- eventString(string): the string identifier of the event you want to trigger, most commonly "onPressShoot"
+local function triggerEvent (gunContainingEvent, eventString)
+  -- iterate through the gun's events and find the one we're looking for, then cache its mods
+  local thisShotMods
+  for i, event in ipairs(gunContainingEvent.events) do
+    if event.trigger_event == eventString then
+      thisShotMods = event.triggers_mods
+    else
+      -- if the gun doesn't contain this event trigger, do nothing
+      return
+    end
+  end
+
+  -- find and cache "shoot projectile" mods
+  local thisEventShootProjectileMods = util.cloneTable(thisShotMods)
+  for i, mod in ipairs(thisEventShootProjectileMods) do
+    if mod.modCategory ~= "shoot" then
+      table.remove(thisEventShootProjectileMods, i)
+    end
+  end
+
+  print(util.tprint(thisEventShootProjectileMods))
+
+  -- find "projectile modifier" mods; for each one found, apply its effects to each projectile-spawning mod
+  for i, mod in ipairs(thisShotMods) do
+    if mod.modCategory == "projectileModifier" then
+      thisEventShootProjectileMods = mod.apply(thisEventShootProjectileMods)
+    end
+  end
+
+  print(util.tprint(thisEventShootProjectileMods))
+
+  -- call the gun's shoot function
+  gunContainingEvent:shoot(thisEventShootProjectileMods, true, false)
+end
+
 -- The shoot function for shooting a specific gun, which is passed in via arg.
--- This function handles creating the projectiles from the gun's mods, applying any modifiers, and resetting its cooldown,
+-- This function handles creating the projectiles from the gun's mods and resetting its cooldown,
 -- as well as returning the knockback force, so whoever shot the gun can apply it to themself.
 -- The code calling this function should fetch the gun they want to shoot from the gun masterlist via ID,
 -- then pass that gun in as an argument.
 -- args:
 -- gun (gun object): the gun to shoot
--- triggerEvent(string): the string identifier of the event causing the gun to shoot, used to find which mods to evaluate
--- x, y (numbers): world coordinates to spawn the projectiles at
--- worldRelativeAimAngle: angle gun is aiming at/being aimed at, the player/item/enemy calling this func should have this value available
+-- shootMods(table): an iterable table of every shoot mod to spawn a projectile for in the event
 -- triggerCooldown(bool): whether or not to reset the gun's cooldown timer; some shots triggered by events are 'bonus' shots and don't reset cooldown
-local function shoot (gun, triggerEvent, x, y, worldRelativeAimAngle, triggerCooldown) -- {{{
+-- ignoreCooldown(bool): whether or not to bypass the gun checking its cooldown before shooting: true makes the gun always shoot
+local function shoot (gun, shootMods, triggerCooldown, ignoreCooldown) -- {{{
 
-  -- iterate through the gun's events and find the one that triggered this shot
-  local thisShotMods
-  for i, event in ipairs(gun.events) do
-    if event.trigger_event == triggerEvent then
-      thisShotMods = event.triggers_mods
-    else
-      -- if the gun doesn't contain this event trigger, cancel the shot
-      return
-    end
+  if not ignoreCooldown and gun.current.cooldown >= 0 then
+    return
   end
-
-  -- evaluate and run all mods for this event
+  -- spawn projectiles for every shoot projectile mod in the event, incrementing total cooldown with each projectile's contribution
   local totalCooldown = 0
   local totalKnockback = 0
-  for i, mod in ipairs(thisShotMods) do
-    -- TODO: evaluate and apply all projectile modifier mods
-    if mod.modCategory == "projectileModifier" then
-    end
-    
-    -- spawn projectiles for every shoot projectile mod in the event, incrementing total cooldown with each projectile's contribution
+  for _, mod in ipairs(shootMods) do
     if mod.modCategory == "shoot" then
       totalCooldown = totalCooldown + mod.projCooldown
       totalKnockback = totalKnockback + mod.holderKnockback
-      projectileLib.createProjectile(gun.uid, mod, x, y, worldRelativeAimAngle)
+      projectileLib.createProjectile(gun.uid, mod, gun.current.projectileSpawnPosX, gun.current.projectileSpawnPosY, gun.current.absoluteAimAngle)
     end
   end
+
+  -- calculate and apply knockback from the shot to whatever physics object in the world is wielding it
+  local wielderKnockbackX, wielderKnockbackY = gun.current.wielder.calculateShotKnockback(totalKnockback, gun.current.absoluteAimAngle)
+  gun.current.wielder.addToThisTickPlayerKnockback(wielderKnockbackX, wielderKnockbackY)
 
   -- if a not a bonus shot, reset the cooldown
   if triggerCooldown then gun.current.cooldown = totalCooldown end
@@ -64,6 +97,13 @@ local function shoot (gun, triggerEvent, x, y, worldRelativeAimAngle, triggerCoo
   -- gun.current.recoilAimPenaltyOffset = gun.current.recoilAimPenaltyOffset + recoilAimPenalty
 
 end -- }}}
+
+-- update a gun instance's stored position and angle for this physics tick
+local function updateGunPositionAndAngle (gun, posX, posY, absoluteAimAngle)
+  gun.current.projectileSpawnPosX = posX
+  gun.current.projectileSpawnPosY = posY
+  gun.current.absoluteAimAngle = absoluteAimAngle
+end
 
 
 local function draw (gunId, player) -- {{{
@@ -137,6 +177,8 @@ M.createGun = function(events, firegroup) -- {{{
   -- add methods
   gun.shoot = shoot
   gun.draw = draw
+  foundGun.updateGunPositionAndAngle = updateGunPositionAndAngle
+  foundGun.triggerEvent = triggerEvent
   -- gun.modify = modify
 
   -- add it to the list of all guns in world, then return its uid
@@ -197,6 +239,8 @@ M.createGunFromDefinition = function(byName, byTier, firegroup) -- {{{
 
   foundGun.shoot = shoot
   foundGun.draw = draw
+  foundGun.updateGunPositionAndAngle = updateGunPositionAndAngle
+  foundGun.triggerEvent = triggerEvent
 
   -- add it to the list of all guns in world, then return its uid
   M.gunlist[foundGun.uid] = foundGun

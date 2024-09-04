@@ -32,7 +32,7 @@ M.seededGuns = {
     tier = 1,
     events = {
       { trigger_event="onPressShoot",
-        triggers_mods={proj.mediumBullet(),proj.mediumBullet(),proj.mediumBullet(),proj.mediumBullet(),proj.mediumBullet(),proj.mediumBullet()}
+        triggers_mods={projTweak.projectileDiffractor(),proj.mediumBullet(),proj.mediumBullet(),proj.mediumBullet()}
       },
     }
   },

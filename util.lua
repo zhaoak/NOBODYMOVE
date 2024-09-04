@@ -12,6 +12,21 @@ M.gen_uid = function(namespace) -- {{{
   end
 end -- }}}
 
+-- recursively go through a table and return a clone of it
+function M.cloneTable (original) -- {{{
+  local originalType = type(original)
+  local copy
+  if originalType == 'table' then
+    copy = {}
+    for originalKey, originalValue in next, original, nil do
+      copy[M.cloneTable(originalKey)] = M.cloneTable(originalValue)
+    end
+  else
+    copy = original
+  end
+  return copy
+end -- }}}
+
 function M.tprint (tbl, indent) -- {{{
   -- this one is stolen directly from stack overflow
   -- https://stackoverflow.com/questions/41942289/display-contents-of-tables-in-lua

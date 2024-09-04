@@ -59,8 +59,6 @@ List of features still needing to be added to spoodergame
             - example: "on projectile hits terrain, trigger new event"
         - _projectile tweak_ mods, which change the behavior and stats of projectiles fired in the same event as the tweak mod
             - example: "in this event: +100% projectile damage, -50% projectile speed"
-        - _event tweak_ mods, which change the behavior of the event they're triggered in
-            - example: "burst fire: in this event, instead of firing all projectiles at once, fire them in sequence after their individual cooldowns"
         - _misc effect_ mods, which do unique things that aren't specific enough to fall into another category
             - example: "make all projectiles of type bullet fired from this gun explode on activation"
 

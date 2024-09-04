@@ -48,7 +48,7 @@ M.setup = function () -- {{{
   M.guns = {}
 
   -- give player two tier 1 guns on firegroups 1 and 2
-  table.insert(M.guns, gunlib.createGunFromDefinition(nil, 1, 1))
+  table.insert(M.guns, gunlib.createGunFromDefinition("shotgun_medcal", nil, 1))
   gunlib.equipGun(M.guns[1], 1, M)
   table.insert(M.guns, gunlib.createGunFromDefinition(nil, 1, 2))
   gunlib.equipGun(M.guns[2], 2, M)
@@ -154,46 +154,50 @@ M.draw = function () -- {{{
 end -- }}}
 
 -- shooting-related functions {{{
+M.triggerEventOnGun = function(eventString, gunContainingEvent)
+  gunContainingEvent:triggerEvent(eventString)
+end
+
 -- The spooder's shoot function. Called every tick, so long as a shoot button for a particular firegroup is down.
 -- Tells the spooder to shoot every gun it has in a given firegroup that isn't on cooldown.
 -- Also calculates knockback on player from shooting spooder's guns, which is applied in the update step.
 -- x and y are the positions of the crosshair at time of shooting
-M.shoot = function (x, y, firegroup)
-  firegroup = firegroup or 1 -- if no firegroup provided, default to 1
-
-  -- attempt to fire every gun
-  for i,gunId in pairs(M.guns) do
-    -- get gun from master gunlist by UID
-    local gun = gunlib.gunlist[gunId]
-
-    if gun.current.cooldown < 0 and gun.current.firegroup == firegroup then
-      -- find the world origin location of each shot
-      -- this does not currently factor in recoil aim offset, but that's gonna get reworked anyway, so
-      local shotWorldOriginX = math.sin(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
-      local shotWorldOriginY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
-
-      -- gun's shoot function returns the amount of knockback on holder
-      local playerKnockback = gun:shoot("onPressShoot", M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, true, false)
-      local knockbackX, knockbackY = M.calculateShotKnockback(playerKnockback, x, y)
-
-      -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
-      M.addToThisTickPlayerKnockback(knockbackX, knockbackY)
-    end
-  end
-end
+-- M.shoot = function (x, y, firegroup)
+--   firegroup = firegroup or 1 -- if no firegroup provided, default to 1
+--
+--   -- attempt to fire every gun
+--   for i,gunId in pairs(M.guns) do
+--     -- get gun from master gunlist by UID
+--     local gun = gunlib.gunlist[gunId]
+--
+--     if gun.current.cooldown < 0 and gun.current.firegroup == firegroup then
+--       -- find the world origin location of each shot
+--       -- this does not currently factor in recoil aim offset, but that's gonna get reworked anyway, so
+--       local shotWorldOriginX = math.sin(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
+--       local shotWorldOriginY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
+--
+--       -- gun's shoot function returns the amount of knockback on holder
+--       local playerKnockback = gun:shoot("onPressShoot", M.body:getX()+shotWorldOriginX, M.body:getY()+shotWorldOriginY, M.currentAimAngle, true, false)
+--       local knockbackX, knockbackY = M.calculateShotKnockback(playerKnockback, x, y)
+--
+--       -- convert the angle back into points at a fixed distance from the boll, and multiply by knockback
+--       M.addToThisTickPlayerKnockback(knockbackX, knockbackY)
+--     end
+--   end
+-- end
 
 -- calculate the knockback from a shot
-M.calculateShotKnockback = function (gunKnockbackOnPlayer, crosshairPosX, crosshairPosY)
-  -- normalize the points of the spood and target together
-  local normalizedX = crosshairPosX - M.body:getX()
-  local normalizedY = crosshairPosY - M.body:getY()
-
-  -- get the angle of the crosshair from the gun
-  local angle = math.atan2(normalizedX,normalizedY)
+M.calculateShotKnockback = function (gunKnockbackOnPlayer, gunAimAngle)
+  -- -- normalize the points of the spood and target together
+  -- local normalizedX = crosshairPosX - M.body:getX()
+  -- local normalizedY = crosshairPosY - M.body:getY()
+  --
+  -- -- get the angle of the crosshair from the gun
+  -- local angle = math.atan2(normalizedX,normalizedY)
 
   -- calculate and return knockback on X and Y axes
-  local knockbackX = -math.sin(angle)*gunKnockbackOnPlayer
-  local knockbackY = -math.cos(angle)*gunKnockbackOnPlayer
+  local knockbackX = -math.sin(gunAimAngle)*gunKnockbackOnPlayer
+  local knockbackY = -math.cos(gunAimAngle)*gunKnockbackOnPlayer
   return knockbackX, knockbackY
 end
 
@@ -333,6 +337,20 @@ M.update = function(dt) -- {{{
   M.crosshairCacheY = aimY
   M.currentAimAngle = math.atan2(aimX - M.body:getX(), aimY - M.body:getY())
 
+  -- update each gun's info
+  for i,gunId in pairs(M.guns) do
+    -- get gun from master gunlist by UID
+    local gun = gunlib.gunlist[gunId]
+
+    -- find the the world coords for where projectiles should spawn from this gun
+    -- this does not currently factor in recoil aim offset, but that's gonna get reworked anyway, so
+    local projSpawnFromPlayerOffsetX = math.sin(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
+    local projSpawnFromPlayerOffsetY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
+
+    -- update gun
+    gun:updateGunPositionAndAngle(M.body:getX()+projSpawnFromPlayerOffsetX, M.body:getY()+projSpawnFromPlayerOffsetY, M.currentAimAngle)
+  end
+
   -- may be set later, reset every frame
   M.body:setGravityScale(1)
   M.body:setAngularDamping(0)
@@ -349,7 +367,11 @@ M.update = function(dt) -- {{{
   -- check if player currently trying to shoot, iterating thru all 8 firegroups
   for fg=1, M.playerMaxGuns, 1 do
     if input.getShootDown(fg) then
-      M.shoot(aimX, aimY, fg)
+      for _, gunId in pairs(M.guns) do
+        if gunlib.gunlist[gunId].current.firegroup == fg then
+          M.triggerEventOnGun("onPressShoot", gunlib.gunlist[gunId])
+        end
+      end
     end
   end
 

@@ -25,7 +25,7 @@ M.createHitscanShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRel
   
 end
 
--- Physics projectiles are Box2D bodies and take time to travel
+-- Projectiles are Box2D bodies and take time to travel
 M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle)
   -- create physics object for new projectile
   local newProj = {}
@@ -62,7 +62,7 @@ M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX,
   local inaccuracyAngleAdjustment = projMod.projInaccuracy - (rand * projMod.projInaccuracy * 2)
   -- print(inaccuracyAngleAdjustment)
   -- then, apply the inaccuracy modifier and recoil modifier to the angle of the shot
-  -- we're dummying out recoil for now
+  -- we're dummying out the accuracy penalty on shot for now
   -- local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment + gun.current.recoilAimPenaltyOffset
   local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment
 
@@ -136,7 +136,7 @@ end -- }}}
 -- for checking timed explosives, other effects
 M.update = function (dt)
   for i, proj in pairs(M.projectileList) do
-    if proj.fixture:getUserData().name == "bullet" then
+    if proj.fixture:getUserData().name == "projectile" then
       -- if a bullet is travelling below a specific speed (see defines), destroy it
       local bulletLinearVelocityX, bulletLinearVelocityY = proj.body:getLinearVelocity()
       if bulletLinearVelocityX < M.bulletDestructionVelocityThreshold and 
