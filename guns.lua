@@ -14,7 +14,7 @@ local util = require'util'
 -- args:
 -- gunContainingEvent(gun obj): the gun containing the event you want to trigger. 
 -- eventString(string): the string identifier of the event you want to trigger, most commonly "onPressShoot"
-local function triggerEvent (gunContainingEvent, eventString)
+local function triggerEvent (gunContainingEvent, eventString) -- {{{
   -- iterate through the gun's events and find the one we're looking for, then cache its mods
   local thisEventAllMods
   for i, event in ipairs(gunContainingEvent.events) do
@@ -39,26 +39,28 @@ local function triggerEvent (gunContainingEvent, eventString)
   for i, mod in ipairs(thisEventAllMods) do
     local thisMod = mod()
     if thisMod.modCategory == "projectileModifier" then
-      thisEventShootProjectileMods = thisMod.apply(thisEventShootProjectileMods)
+      -- some projectile modifiers (like burst fire) need to access the gun's shoot queue,
+      -- which is why we pass the gun in as an arg
+      thisEventShootProjectileMods = thisMod.apply(gunContainingEvent, thisEventShootProjectileMods)
     end
   end
 
   -- print(util.tprint(thisEventShootProjectileMods))
 
-  -- call the gun's shoot function
+  -- call the gun's shoot function with the freshly modified shoot projectile mods
   gunContainingEvent:shoot(thisEventShootProjectileMods, true, false)
-end
+end -- }}}
 
--- The shoot function for shooting a specific gun, which is passed in via arg.
+-- The shoot function for shooting a specific gun once, which is passed in via arg.
 -- This function handles creating the projectiles from the gun's mods and resetting its cooldown,
 -- as well as applying the knockback from the shot to the gun's wielder.
 -- args:
 -- gun (gun object): the gun to shoot
 -- shootMods(table): an iterable table of every shoot mod to spawn a projectile for in the event
 -- triggerCooldown(bool): whether or not to reset the gun's cooldown timer; some shots triggered by events are 'bonus' shots and don't reset cooldown
--- ignoreCooldown(bool): whether or not to bypass the gun checking its cooldown before shooting: true makes the gun always shoot
+-- ignoreCooldown(bool): whether or not to bypass the pre-shot cooldown check: true makes the gun always shoot, even if still on cooldown
 local function shoot (gun, shootMods, triggerCooldown, ignoreCooldown) -- {{{
-
+  -- if the cooldown isn't over and we're not ignoring it, cancel the shot
   if not ignoreCooldown and gun.current.cooldown >= 0 then
     return
   end
@@ -77,12 +79,11 @@ local function shoot (gun, shootMods, triggerCooldown, ignoreCooldown) -- {{{
   local wielderKnockbackX, wielderKnockbackY = gun.current.wielder.calculateShotKnockback(totalKnockback, gun.current.absoluteAimAngle)
   gun.current.wielder.addToThisTickKnockback(wielderKnockbackX, wielderKnockbackY)
 
-  -- if a not a bonus shot, reset the cooldown
-  if triggerCooldown then gun.current.cooldown = totalCooldown end
-
-  -- regardless of whether shot is bonus shot, cache the cumulative cooldown
-  gun.current.totalCooldown = totalCooldown
-
+  -- trigger the cooldown, if arg says we should 
+  if triggerCooldown then 
+    gun.current.cooldown = totalCooldown 
+    gun.current.lastSetCooldownValue = totalCooldown
+  end
 end -- }}}
 
 -- update a gun instance's stored position and angle for this physics tick
@@ -138,7 +139,7 @@ M.createGun = function(events, firegroup) -- {{{
   -- `gun.current` holds all data about the gun that is modified by player actions during gameplay
   -- (cooldown, firegroup, etc)
   gun.current = {}
-  gun.current.totalCooldown = M.calculateShotCooldownFromGun(gun, "onPressShoot")
+  gun.current.lastSetCooldownValue = M.calculateShotCooldownFromGun(gun, "onPressShoot")
 
   -- set firegroup of new gun, default to 1 if not specified
   gun.current.firegroup = firegroup or 1
@@ -153,7 +154,7 @@ M.createGun = function(events, firegroup) -- {{{
   -- load mods into new gun instance
   gun.events = events
 
-  gun.current.totalCooldown = M.calculateShotCooldownFromGun(gun, "onPressShoot")
+  gun.current.lastSetCooldownValue = M.calculateShotCooldownFromGun(gun, "onPressShoot")
 
   gun.playerHoldDistance = 5
 
@@ -185,7 +186,6 @@ M.createGunFromDefinition = function(byName, byTier, firegroup) -- {{{
   if byName ~= nil then
     -- search by name
     for _, gun in ipairs(gunDefs.seededGuns) do
-      print("byName: "..gun.name)
       if gun.name == byName then foundGun = gun end
     end
     -- if can't find gun with that name, return fail
@@ -208,7 +208,7 @@ M.createGunFromDefinition = function(byName, byTier, firegroup) -- {{{
 
   foundGun.current = {}
   foundGun.current.cooldown = 0
-  foundGun.current.totalCooldown = M.calculateShotCooldownFromGun(foundGun, "onPressShoot")
+  foundGun.current.lastSetCooldownValue = M.calculateShotCooldownFromGun(foundGun, "onPressShoot")
 
   foundGun.current.firegroup = firegroup or 1
 
@@ -270,7 +270,8 @@ local function recoverFromRecoilPenalty(dt, gun)
   -- end
 end
 
--- From a gun's current mod loadout, calculate the shot cooldown triggered by a specific event
+-- From a event's current mod loadout in a given gun, calculate the shot cooldown
+-- This only accounts for shoot projectile mods in the event
 -- args:
 -- gun(gun object): the gun to calculate cooldown for
 -- eventTrigger (string): the event to calculate cooldown for, identified by its name
@@ -298,23 +299,16 @@ M.update = function (dt) -- {{{
     gun.current.cooldown = gun.current.cooldown - dt
 
     -- iterate through each gun's shootQueue, decrementing timers and shooting the gun if timer is up
-    local next = next
     if next(gun.current.shootQueue) ~= nil then
       for i, queuedShot in ipairs(gun.current.shootQueue) do
         queuedShot.firesIn = queuedShot.firesIn - dt
         -- if queued shot is ready to fire...
         if queuedShot.firesIn <= 0 then
-          -- print(queuedShot.shotBy)
-          -- then calculate where it should spawn the projectile(s)
-          -- local shotWorldOriginX = math.sin(queuedShot.shotBy.currentAimAngle) * (gun.playerHoldDistance + queuedShot.shotBy.hardboxRadius)
-          -- local shotWorldOriginY = math.cos(queuedShot.shotBy.currentAimAngle) * (gun.playerHoldDistance + queuedShot.shotBy.hardboxRadius)
-          -- then shoot the gun and apply the knockback to whoever shot it
-          -- local shotKnockback = gun:shoot("onPressShoot", queuedShot.shotBy.body:getX()+shotWorldOriginX, queuedShot.shotBy.body:getY()+shotWorldOriginY, queuedShot.shotBy.currentAimAngle, true)
-          -- projectileLib.createProjectile(gun.uid, mod, x, y, worldRelativeAimAngle)
-          -- local knockbackX, knockbackY = queuedShot.shotBy.calculateShotKnockback(shotKnockback, queuedShot.shotBy.crosshairCacheX, queuedShot.shotBy.crosshairCacheY)
-          -- queuedShot.shotBy.addToThisTickPlayerKnockback(knockbackX, knockbackY)
+          -- then shoot the gun
+          local gun = M.gunlist[queuedShot.fromGunWithUid]
+          gun:shoot(queuedShot.projectiles, false, queuedShot.ignoreCooldown)
           -- finally, remove the fired shot from the queue
-          -- gun.current.shootQueue[i] = nil
+          table.remove(gun.current.shootQueue, i)
         end
       end
     end
@@ -334,7 +328,7 @@ end -- }}}
 
 -- debug functions {{{
 M.dumpGunTable = function()
-  print("master gunlist: "..util.tprint(M.gunlist))
+  print("full gunlist: "..util.tprint(M.gunlist))
 end
 -- }}}
 

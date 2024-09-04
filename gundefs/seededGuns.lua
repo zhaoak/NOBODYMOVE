@@ -32,19 +32,19 @@ M.seededGuns = {
     tier = 1,
     events = {
       { trigger_event="onPressShoot",
-        triggers_mods={projTweak.projectileDiffractor,proj.mediumBullet,proj.mediumBullet,proj.mediumBullet}
+        triggers_mods={projTweak.shotgunify,proj.mediumBullet,proj.mediumBullet,proj.mediumBullet}
       },
     }
   },
 
-  -- { name = "burstsmg_lowcal",
-  --   tier = 1,
-  --   events = {
-  --     { trigger_event="onPressShoot",
-  --       triggers_mods={projTweak.burstFire,proj.smallBullet,proj.smallBullet,proj.smallBullet}
-  --     },
-  --   }
-  -- },
+  { name = "burstsmg_lowcal",
+    tier = 1,
+    events = {
+      { trigger_event="onPressShoot",
+        triggers_mods={projTweak.burstFire,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet}
+      },
+    }
+  },
 
   -- tier 2 guns
   { name = "machinegun_medcal",

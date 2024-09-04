@@ -50,7 +50,7 @@ M.setup = function () -- {{{
   -- give player two tier 1 guns on firegroups 1 and 2
   table.insert(M.guns, gunlib.createGunFromDefinition("shotgun_medcal", nil, 1))
   gunlib.equipGun(M.guns[1], 1, M)
-  table.insert(M.guns, gunlib.createGunFromDefinition(nil, 1, 2))
+  table.insert(M.guns, gunlib.createGunFromDefinition("burstsmg_lowcal", nil, 2))
   gunlib.equipGun(M.guns[2], 2, M)
 
   if M.body then M.body:destroy() end
@@ -300,11 +300,10 @@ M.update = function(dt) -- {{{
 
   -- update each gun's info
   for i,gunId in pairs(M.guns) do
-    -- get gun from master gunlist by UID
+    -- get gun's data from full gunlist by UID
     local gun = gunlib.gunlist[gunId]
 
     -- find the the world coords for where projectiles should spawn from this gun
-    -- this does not currently factor in recoil aim offset, but that's gonna get reworked anyway, so
     local projSpawnFromPlayerOffsetX = math.sin(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
     local projSpawnFromPlayerOffsetY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
 
