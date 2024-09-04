@@ -5,22 +5,32 @@ local M = { }
 
 M.exampleShootProjectileMod = function()
   local modTable = {}
+
   -- all mods should have these fields, regardless of type
   modTable.modCategory = "shoot"
   modTable.displayName = "Example Shoot Projectile Mod"
   modTable.description = "Commented demonstration of shoot projectile mod format"
+  
+  -- a unique string used to identify the type of projectile this function generates
+  modTable.projType = "demoshot"
+
+  -- the projShapeData table defines the hitbox shape and size of the projectile
+  -- `hitboxShape` determines the type of shape, and must be one of: "circle", "polygon", "rectangle"
+  -- Each permitted shape requires specific fields in addition to `hitboxShape`, used for Box2D to create the shape
+  -- These fields are:
+  -- for hitboxShape == "circle" : `radius` : the circle shape's radius in pixels at camera scale 1
+  -- for hitboxShape == "polygon" : `x1`, `y1`, `x2`, `y2`...up to `x8`, `y8` : x and y positions of the vertices of the shape, relative to the attached body
+  -- for hitboxShape == "rectangle" : `width`, `height` : the width and height of the rectangle
+  modTable.projShapeData = { hitboxShape="circle", radius=2 }
+
   -- shoot projectile mods must include _all_ of the following values,
   -- as these values are changed by projectileModifier mods
-  modTable.projType = "demoshot"
-  modTable.projShapeType = "circle"
-  -- the projShapeData table will contain different data, depending on the value of `projShapeType`
-  modTable.projShapeData = { radius=2 }
   modTable.projCooldown = 0.5
   modTable.holderKnockback = 5
   modTable.projHitKnockback = 5
   modTable.projHitDamage = 3
   modTable.projInaccuracy = math.rad(1)
-  modTable.projLaunchVelocity = 150
+  modTable.projLaunchVelocity = 100
   modTable.projLinearDamping = 0
   modTable.projGravityScale = 0
   modTable.projMass = 0.2
@@ -34,8 +44,7 @@ M.smallBullet = function()
   modTable.displayName = "Shoot small bullet"
   modTable.description = "lore goes here ig"
   modTable.projType = "smallbullet"
-  modTable.projShapeType = "circle"
-  modTable.projShapeData = { radius=3 }
+  modTable.projShapeData = { hitboxShape="circle", radius=3 }
   modTable.projCooldown = 0.05
   modTable.holderKnockback = 2
   modTable.projHitKnockback = 2
@@ -55,8 +64,7 @@ M.mediumBullet = function()
   modTable.displayName = "Shoot medium bullet"
   modTable.description = "lore goes here ig"
   modTable.projType = "mediumbullet"
-  modTable.projShapeType = "circle"
-  modTable.projShapeData = { radius=5 }
+  modTable.projShapeData = { hitboxShape="circle", radius=5 }
   modTable.projCooldown = 0.15
   modTable.holderKnockback = 4
   modTable.projHitKnockback = 6
@@ -76,8 +84,7 @@ M.largeBullet = function()
   modTable.displayName = "Shoot large bullet"
   modTable.description = "lore goes here ig"
   modTable.projType = "largebullet"
-  modTable.projShapeType = "circle"
-  modTable.projShapeData = { radius=7 }
+  modTable.projShapeData = { hitboxShape="circle", radius=7 }
   modTable.projCooldown = 0.35
   modTable.holderKnockback = 8
   modTable.projHitKnockback = 10
@@ -97,8 +104,7 @@ M.oversizeBullet = function()
   modTable.displayName = "Shoot oversize bullet"
   modTable.description = "lore goes here ig"
   modTable.projType = "oversizebullet"
-  modTable.projShapeType = "circle"
-  modTable.projShapeData = { radius=9 }
+  modTable.projShapeData = { hitboxShape="circle", radius=9 }
   modTable.projCooldown = 0.7
   modTable.holderKnockback = 30
   modTable.projHitKnockback = 45

@@ -49,6 +49,8 @@ function love.load() -- {{{ init
   obj.player.setup(util.world)
   obj.projectiles.setup(util.world)
 
+  cam.scale(1.35)
+
   -- print("INITIAL GUNSTATE ==============================================")
   -- gunlib.dumpGunTable()
   -- obj.player.dumpPlayerGunIdTable()

@@ -30,7 +30,7 @@ M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX,
   -- create physics object for new projectile
   local newProj = {}
   newProj.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
-  if projMod.projShapeType == "circle" then
+  if projMod.projShapeData.hitboxShape == "circle" then
     newProj.shape = love.physics.newCircleShape(projMod.projShapeData.radius)
   end
   newProj.fixture = love.physics.newFixture(newProj.body, newProj.shape, 1)

@@ -165,7 +165,7 @@ end
 -- apply knockback from shots to player
 -- if player shoots multiple guns per tick, each of those shots will call this function
 -- then, the total knockback will applied in the update tick
-M.addToThisTickPlayerKnockback = function(knockbackX, knockbackY)
+M.addToThisTickKnockback = function(knockbackX, knockbackY)
   M.thisTickTotalKnockbackX = M.thisTickTotalKnockbackX + knockbackX
   M.thisTickTotalKnockbackY = M.thisTickTotalKnockbackY + knockbackY
 end -- }}}

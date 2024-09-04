@@ -16,10 +16,10 @@ local util = require'util'
 -- eventString(string): the string identifier of the event you want to trigger, most commonly "onPressShoot"
 local function triggerEvent (gunContainingEvent, eventString)
   -- iterate through the gun's events and find the one we're looking for, then cache its mods
-  local thisShotMods
+  local thisEventAllMods
   for i, event in ipairs(gunContainingEvent.events) do
     if event.trigger_event == eventString then
-      thisShotMods = event.triggers_mods
+      thisEventAllMods = event.triggers_mods
     else
       -- if the gun doesn't contain this event trigger, do nothing
       return
@@ -27,23 +27,23 @@ local function triggerEvent (gunContainingEvent, eventString)
   end
 
   -- find and cache "shoot projectile" mods
-  local thisEventShootProjectileMods = util.cloneTable(thisShotMods)
-  for i, mod in ipairs(thisEventShootProjectileMods) do
-    if mod.modCategory ~= "shoot" then
-      table.remove(thisEventShootProjectileMods, i)
+  local thisEventShootProjectileMods = {}
+  for i, mod in ipairs(thisEventAllMods) do
+    local thisMod = mod()
+    if thisMod.modCategory == "shoot" then
+      table.insert(thisEventShootProjectileMods, thisMod)
     end
   end
-
-  print(util.tprint(thisEventShootProjectileMods))
 
   -- find "projectile modifier" mods; for each one found, apply its effects to each projectile-spawning mod
-  for i, mod in ipairs(thisShotMods) do
-    if mod.modCategory == "projectileModifier" then
-      thisEventShootProjectileMods = mod.apply(thisEventShootProjectileMods)
+  for i, mod in ipairs(thisEventAllMods) do
+    local thisMod = mod()
+    if thisMod.modCategory == "projectileModifier" then
+      thisEventShootProjectileMods = thisMod.apply(thisEventShootProjectileMods)
     end
   end
 
-  print(util.tprint(thisEventShootProjectileMods))
+  -- print(util.tprint(thisEventShootProjectileMods))
 
   -- call the gun's shoot function
   gunContainingEvent:shoot(thisEventShootProjectileMods, true, false)
@@ -51,9 +51,7 @@ end
 
 -- The shoot function for shooting a specific gun, which is passed in via arg.
 -- This function handles creating the projectiles from the gun's mods and resetting its cooldown,
--- as well as returning the knockback force, so whoever shot the gun can apply it to themself.
--- The code calling this function should fetch the gun they want to shoot from the gun masterlist via ID,
--- then pass that gun in as an argument.
+-- as well as applying the knockback from the shot to the gun's wielder.
 -- args:
 -- gun (gun object): the gun to shoot
 -- shootMods(table): an iterable table of every shoot mod to spawn a projectile for in the event
@@ -77,7 +75,7 @@ local function shoot (gun, shootMods, triggerCooldown, ignoreCooldown) -- {{{
 
   -- calculate and apply knockback from the shot to whatever physics object in the world is wielding it
   local wielderKnockbackX, wielderKnockbackY = gun.current.wielder.calculateShotKnockback(totalKnockback, gun.current.absoluteAimAngle)
-  gun.current.wielder.addToThisTickPlayerKnockback(wielderKnockbackX, wielderKnockbackY)
+  gun.current.wielder.addToThisTickKnockback(wielderKnockbackX, wielderKnockbackY)
 
   -- if a not a bonus shot, reset the cooldown
   if triggerCooldown then gun.current.cooldown = totalCooldown end
@@ -93,7 +91,6 @@ local function updateGunPositionAndAngle (gun, posX, posY, absoluteAimAngle)
   gun.current.projectileSpawnPosY = posY
   gun.current.absoluteAimAngle = absoluteAimAngle
 end
-
 
 local function draw (gunId, player) -- {{{
   -- print("drawing gun w/id "..gunId)
@@ -248,7 +245,7 @@ end -- }}}
 -- firegroup(num): firegroup to set for gun
 -- wielder(ref): a reference to the entity wielding the gun; either a player, npc, or gun worlditem
 -- returns: true if successful, false if gun with specified UID doesn't exist
-M.equipGun = function(gunUid, firegroup, wielder)
+M.equipGun = function(gunUid, firegroup, wielder) -- {{{
   if M.gunlist[gunUid] ~= nil then
     M.gunlist[gunUid].current.firegroup = firegroup or 1
     M.gunlist[gunUid].current.wielder = wielder
@@ -256,7 +253,7 @@ M.equipGun = function(gunUid, firegroup, wielder)
   else
     return false
   end
-end
+end -- }}}
 
 M.setup = function()
   M.gunlist = {}
