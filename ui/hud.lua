@@ -1,7 +1,7 @@
 local gunlib = require'guns'
 local M = { }
 
-M.drawHealthBar = function(playerCurrentHealth) -- {{{
+M.drawHealthBar = function(healthBarUiBox, playerCurrentHealth) -- {{{
   local windowSizeX, windowSizeY = love.graphics.getDimensions()
   love.graphics.setColor(0.1, 0.1, 0.1, 0.9)
   local healthNumberDisplay = {{0.65,0.15,0.15,0.5}, tostring(playerCurrentHealth)}

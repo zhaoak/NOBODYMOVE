@@ -19,6 +19,7 @@ local cam = require'camera'
 local hud = require'ui.hud'
 local dmgText = require'ui.damageNumbers'
 local input = require'input'
+local uiBox = require'ui.uiBox'
 
 function love.load() -- {{{ init
   local optionsTable = {
@@ -52,6 +53,8 @@ function love.load() -- {{{ init
 
   cam.scale(1.35)
 
+  uiBox.createUiBox(10, 10, 400, 400, 100, 100, "horse", uiBox.drawBox)
+
   -- print("INITIAL GUNSTATE ==============================================")
   -- gunlib.dumpGunTable()
   -- obj.player.dumpPlayerGunIdTable()
@@ -70,6 +73,7 @@ function love.update(dt) -- {{{
   obj.projectiles.update(dt)
   util.world:update(dt)
   dmgText.updateDamageNumberEvents(dt)
+  uiBox.update(dt)
 
   -- print(obj.npc.npcList[1].fixture:getUserData().health)
 end -- }}}
@@ -144,6 +148,7 @@ function love.draw() -- {{{
   -- (HUD, other UI elements, etc)
   hud.drawHealthBar(obj.player.current.health)
   hud.drawGunList(obj.player.guns)
+  uiBox.drawAllUiBoxes()
 
   -- non-camera affected debug rendering {{{
   if arg[2] == 'debug' then
