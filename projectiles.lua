@@ -27,65 +27,69 @@ end
 
 -- Projectiles are Box2D bodies and take time to travel
 M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle)
-  -- create physics object for new projectile
-  local newProj = {}
-  newProj.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
-  if projMod.shapeData.hitboxShape == "circle" then
-    newProj.shape = love.physics.newCircleShape(projMod.shapeData.radius)
+  while projMod.bulletCount > 0 do
+    -- create physics object for new projectile
+    local newProj = {}
+    newProj.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
+    if projMod.shapeData.hitboxShape == "circle" then
+      newProj.shape = love.physics.newCircleShape(projMod.shapeData.radius)
+    end
+    newProj.fixture = love.physics.newFixture(newProj.body, newProj.shape, 1)
+    newProj.fixture:setUserData{
+      name="projectile",
+      type="projectile",
+      damage=projMod.projectileDamage,
+      firedByGun=gunFiringProjectileUid,
+      uid=util.gen_uid("projectile")
+    }
+    newProj.fixture:setRestitution(0)
+    newProj.body:setBullet(true) -- this is Box2D's CCD (continuous collision detection) flag
+    newProj.body:setGravityScale(projMod.gravityScale)
+    newProj.body:setMass(projMod.mass)
+
+    -- set filterdata for new projectile
+    -- currently, player-fired projectiles never collide with each other, but we may change that
+    -- because core nukes are cool
+
+    -- this projectile has the category:
+    newProj.fixture:setCategory(filterVals.category.projectile_player)
+    -- this projectile should NOT collide with:
+    newProj.fixture:setMask(
+      filterVals.category.friendly,
+      filterVals.category.player_hardbox,
+      filterVals.category.projectile_player,
+      filterVals.category.terrain_bg)
+
+    -- this projectile is in group:
+    newProj.fixture:setGroupIndex(0)
+
+    -- adjust shot angle to account for gun inaccuracy
+    local rand = math.random()
+    -- give us a random modifier for the shot angle from -1*gun.inaccuracy to 1*gun.inaccuracy
+    local inaccuracyAngleAdjustment = projMod.inaccuracy - (rand * projMod.inaccuracy * 2)
+    -- print(inaccuracyAngleAdjustment)
+    -- then, apply the inaccuracy modifier and recoil modifier to the angle of the shot
+    -- we're dummying out the accuracy penalty on shot for now
+    -- local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment + gun.current.recoilAimPenaltyOffset
+    local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment
+
+
+    -- apply velocity to projectile
+    local projectileVelocityX = math.sin(adjustedShotAngle)*projMod.speed
+    local projectileVelocityY = math.cos(adjustedShotAngle)*projMod.speed
+    newProj.body:applyLinearImpulse(projectileVelocityX, projectileVelocityY)
+
+    -- apply projectile's linear damping
+    newProj.body:setLinearDamping(projMod.linearDamping)
+
+    M.projectileList[newProj.fixture:getUserData().uid] = newProj
+
+    -- decrement stat used for spawning multiple projectiles
+    projMod.bulletCount = projMod.bulletCount - 1
   end
-  newProj.fixture = love.physics.newFixture(newProj.body, newProj.shape, 1)
-  newProj.fixture:setUserData{
-    name="projectile",
-    type="projectile",
-    damage=projMod.projectileDamage,
-    firedByGun=gunFiringProjectileUid,
-    uid=util.gen_uid("projectile")
-  }
-  newProj.fixture:setRestitution(0)
-  newProj.body:setBullet(true) -- this is Box2D's CCD (continuous collision detection) flag
-  newProj.body:setGravityScale(projMod.gravityScale)
-  newProj.body:setMass(projMod.mass)
-
-  -- set filterdata for new projectile
-  -- currently, player-fired projectiles never collide with each other, but we may change that
-  -- because core nukes are cool
-
-  -- this projectile has the category:
-  newProj.fixture:setCategory(filterVals.category.projectile_player)
-  -- this projectile should NOT collide with:
-  newProj.fixture:setMask(
-    filterVals.category.friendly,
-    filterVals.category.player_hardbox,
-    filterVals.category.projectile_player,
-    filterVals.category.terrain_bg)
-
-  -- this projectile is in group:
-  newProj.fixture:setGroupIndex(0)
-
-  -- adjust shot angle to account for gun inaccuracy
-  local rand = math.random()
-  -- give us a random modifier for the shot angle from -1*gun.inaccuracy to 1*gun.inaccuracy
-  local inaccuracyAngleAdjustment = projMod.inaccuracy - (rand * projMod.inaccuracy * 2)
-  -- print(inaccuracyAngleAdjustment)
-  -- then, apply the inaccuracy modifier and recoil modifier to the angle of the shot
-  -- we're dummying out the accuracy penalty on shot for now
-  -- local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment + gun.current.recoilAimPenaltyOffset
-  local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment
-
-
-  -- apply velocity to projectile
-  local projectileVelocityX = math.sin(adjustedShotAngle)*projMod.speed
-  local projectileVelocityY = math.cos(adjustedShotAngle)*projMod.speed
-  newProj.body:applyLinearImpulse(projectileVelocityX, projectileVelocityY)
-
-  -- apply projectile's linear damping
-  newProj.body:setLinearDamping(projMod.linearDamping)
-
-  M.projectileList[newProj.fixture:getUserData().uid] = newProj
 end
 -- }}}
 
-M.hitctr = 0
 -- projectile collision handling {{{
 M.handleProjectileCollision = function(a, b, contact)
   local fixtureAUserData = a:getUserData()
@@ -103,8 +107,6 @@ M.handleProjectileCollision = function(a, b, contact)
       dmgText.damageNumberEvent(fixtureAUserData.damage, fixtureBUserData.uid)
       npc.npcList[fixtureBUserData.uid]:hurt(fixtureAUserData.damage)
       M.projectileList[fixtureAUserData.uid] = nil
-      M.hitctr = M.hitctr + 1
-      print(M.hitctr )
       a:getBody():destroy()
     end
 
@@ -120,8 +122,6 @@ M.handleProjectileCollision = function(a, b, contact)
       dmgText.damageNumberEvent(fixtureBUserData.damage, fixtureAUserData.uid)
       npc.npcList[fixtureAUserData.uid]:hurt(fixtureBUserData.damage)
       M.projectileList[fixtureBUserData.uid] = nil
-      M.hitctr = M.hitctr + 1
-      -- print("hit!!")
       b:getBody():destroy()
     end
   else

@@ -9,7 +9,7 @@ M.templateMod = function()
   -- all mods should have these fields, regardless of type
   modTable.modCategory = "projectile"
   modTable.displayName = "Example Shoot Projectile Mod"
-  modTable.description = "Commented demonstration of shoot projectile mod format"
+  modTable.description = "Template for projectile-spawning mods"
 
   -- a unique string used to identify the type of projectile this function generates
   modTable.type = "demoshot"

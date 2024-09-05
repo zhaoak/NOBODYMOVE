@@ -30,20 +30,17 @@ M.shotgunify = function()
   modTable.description = "Shoot three of every projectile, but with much lower range, accuracy and a longer cooldown"
 
   modTable.apply = function(gun, shootProjectileMods)
-    local alteredShootMods = {}
     -- for each shoot mod in the event...
     for _, shootMod in ipairs(shootProjectileMods) do
       -- tweak its stats like so...
       shootMod.linearDamping = shootMod.linearDamping + 3
       shootMod.inaccuracy = shootMod.inaccuracy + math.rad(15)
       shootMod.holderKnockback = shootMod.holderKnockback * 5
-      -- and create two additional copies of itself
-      table.insert(alteredShootMods, shootMod)
-      table.insert(alteredShootMods, shootMod)
-      table.insert(alteredShootMods, shootMod)
+      -- and make it multishot two more projectiles per shot
+      shootMod.bulletCount = shootMod.bulletCount + 2
     end
     -- then return the new table of shoot mods
-    return alteredShootMods
+    return shootProjectileMods
   end
   return modTable
 
