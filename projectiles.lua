@@ -22,7 +22,7 @@ end -- }}}
 
 -- create projectile functions {{{
 M.createHitscanShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle)
-  
+
 end
 
 -- Projectiles are Box2D bodies and take time to travel
@@ -30,15 +30,21 @@ M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX,
   -- create physics object for new projectile
   local newProj = {}
   newProj.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
-  if projMod.projShapeData.hitboxShape == "circle" then
-    newProj.shape = love.physics.newCircleShape(projMod.projShapeData.radius)
+  if projMod.shapeData.hitboxShape == "circle" then
+    newProj.shape = love.physics.newCircleShape(projMod.shapeData.radius)
   end
   newProj.fixture = love.physics.newFixture(newProj.body, newProj.shape, 1)
-  newProj.fixture:setUserData({name="projectile",type="projectile",damage=projMod.projHitDamage,firedByGun=gunFiringProjectileUid,uid=util.gen_uid("projectile")})
+  newProj.fixture:setUserData{
+    name="projectile",
+    type="projectile",
+    damage=projMod.projectileDamage,
+    firedByGun=gunFiringProjectileUid,
+    uid=util.gen_uid("projectile")
+  }
   newProj.fixture:setRestitution(0)
   newProj.body:setBullet(true) -- this is Box2D's CCD (continuous collision detection) flag
-  newProj.body:setGravityScale(projMod.projGravityScale)
-  newProj.body:setMass(projMod.projMass)
+  newProj.body:setGravityScale(projMod.gravityScale)
+  newProj.body:setMass(projMod.mass)
 
   -- set filterdata for new projectile
   -- currently, player-fired projectiles never collide with each other, but we may change that
@@ -59,7 +65,7 @@ M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX,
   -- adjust shot angle to account for gun inaccuracy
   local rand = math.random()
   -- give us a random modifier for the shot angle from -1*gun.inaccuracy to 1*gun.inaccuracy
-  local inaccuracyAngleAdjustment = projMod.projInaccuracy - (rand * projMod.projInaccuracy * 2)
+  local inaccuracyAngleAdjustment = projMod.inaccuracy - (rand * projMod.inaccuracy * 2)
   -- print(inaccuracyAngleAdjustment)
   -- then, apply the inaccuracy modifier and recoil modifier to the angle of the shot
   -- we're dummying out the accuracy penalty on shot for now
@@ -68,12 +74,12 @@ M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX,
 
 
   -- apply velocity to projectile
-  local projectileVelocityX = math.sin(adjustedShotAngle)*projMod.projLaunchVelocity
-  local projectileVelocityY = math.cos(adjustedShotAngle)*projMod.projLaunchVelocity
+  local projectileVelocityX = math.sin(adjustedShotAngle)*projMod.speed
+  local projectileVelocityY = math.cos(adjustedShotAngle)*projMod.speed
   newProj.body:applyLinearImpulse(projectileVelocityX, projectileVelocityY)
 
   -- apply projectile's linear damping
-  newProj.body:setLinearDamping(projMod.projLinearDamping)
+  newProj.body:setLinearDamping(projMod.linearDamping)
 
   M.projectileList[newProj.fixture:getUserData().uid] = newProj
 end
@@ -115,7 +121,7 @@ M.handleProjectileCollision = function(a, b, contact)
       npc.npcList[fixtureAUserData.uid]:hurt(fixtureBUserData.damage)
       M.projectileList[fixtureBUserData.uid] = nil
       M.hitctr = M.hitctr + 1
-      print("hit!!")
+      -- print("hit!!")
       b:getBody():destroy()
     end
   else
@@ -139,7 +145,7 @@ M.update = function (dt)
     if proj.fixture:getUserData().name == "projectile" then
       -- if a bullet is travelling below a specific speed (see defines), destroy it
       local bulletLinearVelocityX, bulletLinearVelocityY = proj.body:getLinearVelocity()
-      if bulletLinearVelocityX < M.bulletDestructionVelocityThreshold and 
+      if bulletLinearVelocityX < M.bulletDestructionVelocityThreshold and
          bulletLinearVelocityY < M.bulletDestructionVelocityThreshold and
          bulletLinearVelocityX > -M.bulletDestructionVelocityThreshold and
          bulletLinearVelocityY > -M.bulletDestructionVelocityThreshold then

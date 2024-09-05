@@ -3,8 +3,8 @@
 -- Tier 1 guns are generally fairly "conventional", by video game gun standards--
 -- these are the guns that players will first encounter, so they should be as straightforward as possible to understand
 
-local proj = require'mods.shootProjectileMods'
-local projTweak = require'mods.projectileTweakMods'
+local proj = require'mods.projectiles'
+local projTweak = require'mods.tweaks'
 
 local M = {}
 
@@ -13,36 +13,28 @@ M.seededGuns = {
   { name = "smg_lowcal",
     tier = 1,
     events = {
-      { trigger_event="onPressShoot",
-        triggers_mods={proj.smallBullet}
-      },
+      onPressShoot={proj.smallBullet}
     }
   },
 
   { name = "pistol_medcal",
     tier = 1,
     events = {
-      { trigger_event="onPressShoot",
-        triggers_mods={proj.mediumBullet}
-      },
+      onPressShoot={proj.mediumBullet}
     }
   },
 
   { name = "shotgun_medcal",
     tier = 1,
     events = {
-      { trigger_event="onPressShoot",
-        triggers_mods={projTweak.shotgunify,proj.mediumBullet,proj.mediumBullet,proj.mediumBullet}
-      },
+      onPressShoot={projTweak.shotgunify,proj.mediumBullet,proj.mediumBullet,proj.mediumBullet}
     }
   },
 
   { name = "burstsmg_lowcal",
     tier = 1,
     events = {
-      { trigger_event="onPressShoot",
-        triggers_mods={projTweak.burstFire,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet}
-      },
+      onPressShoot={projTweak.burstFire,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet}
     }
   },
 
@@ -50,9 +42,7 @@ M.seededGuns = {
   { name = "machinegun_medcal",
     tier = 2,
     events = {
-      { trigger_event="onPressShoot",
-        triggers_mods={proj.mediumBullet}
-      },
+        onPressShoot={proj.mediumBullet}
     }
   },
 }

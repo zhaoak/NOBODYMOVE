@@ -24,7 +24,7 @@ M.ungrabGracePeriod = 0.3
 M.ungrabGraceTimer = M.ungrabGracePeriod
 
 -- experimental player airdash ability: recovers after grabbing terrain and cooldown done
-M.dashUsed = false -- whether or not the player has used their dash 
+M.dashUsed = false -- whether or not the player has used their dash
 M.dashForce = 115 -- how much force to apply on each axis when player uses dash
 M.dashCooldownPeriod = 1 -- how long in seconds it takes for the dash to be available after being used
 
@@ -267,15 +267,6 @@ local function getGrab() -- {{{
   return grab
 end -- }}}
 
-local function findFeetPos()
-  local naturalFeetPos = {}
-  for leg = 0,8 do
-    local angle = (math.pi / 8) * leg
-    -- print(angle)
-  end
-end
-findFeetPos()
-
 M.update = function(dt) -- {{{
   -- cache current frame spood velocity
   local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
@@ -284,7 +275,7 @@ M.update = function(dt) -- {{{
   M.dashTimer = M.dashTimer - dt
 
   -- update grace period timer, reset if grabbing
-  if not M.grab then 
+  if not M.grab then
     M.ungrabGraceTimer = M.ungrabGraceTimer - dt
   else
     M.ungrabGraceTimer = M.ungrabGracePeriod
@@ -299,7 +290,7 @@ M.update = function(dt) -- {{{
   M.currentAimAngle = math.atan2(aimX - M.body:getX(), aimY - M.body:getY())
 
   -- update each gun's info
-  for i,gunId in pairs(M.guns) do
+  for _,gunId in pairs(M.guns) do
     -- get gun's data from full gunlist by UID
     local gun = gunlib.gunlist[gunId]
 
@@ -389,7 +380,7 @@ M.update = function(dt) -- {{{
   -- possibly we'll just lower the move down speed
   -- but works for now
   -- if M.grab and --[[ spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1 and ]] not love.keyboard.isDown'w' then
-  
+
   -- if you're currently grabbed and not already climbing, cancel gravity when grabbed this tick
   if (M.grab and spoodCurrentLinearVelocityY < M.maxWalkingSpeed + 1) then
     M.body:setGravityScale(0)
@@ -433,7 +424,7 @@ M.update = function(dt) -- {{{
   end -- }}}
 
   -- }}} counter ext forces
-  
+
   -- }}} input/movement
 
   -- player knockback calculation+application {{{
@@ -453,12 +444,6 @@ M.update = function(dt) -- {{{
   -- }}}
 
 end -- }}}
-
--- debug functions {{{
-M.dumpPlayerGunIdTable = function()
-  print("player gun ids: "..util.tprint(M.guns))
-end
--- }}}
 
 return M
 -- vim: foldmethod=marker

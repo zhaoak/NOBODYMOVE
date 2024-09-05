@@ -8,7 +8,7 @@ local M = { }
 M.exampleProjectileTweakMod = function()
   local modTable = {}
   -- all mods, regardless of type, have these three fields
-  modTable.modCategory = "projectileModifier"
+  modTable.modCategory = "tweak"
   modTable.displayName = "Example Projectile Tweak Mod"
   modTable.description = "Commented demonstration of projectile tweak mod format, increases cooldown by 50%"
   -- during the triggerEvent function call, a copy of all the event's "shoot projectile" mods are run through this function in a single table
@@ -16,7 +16,7 @@ M.exampleProjectileTweakMod = function()
   -- triggerEvent() calls the gun's shoot function, passing it the processed shoot mods
    modTable.apply = function(shootProjectileMods)
     for _, shootMod in ipairs(shootProjectileMods) do
-      shootMod.projCooldown = shootMod.projCooldown * 1.5
+      shootMod.cooldownCost = shootMod.cooldownCost * 1.5
     end
     return shootProjectileMods
   end
@@ -25,7 +25,7 @@ end
 
 M.shotgunify = function()
   local modTable = {}
-  modTable.modCategory = "projectileModifier"
+  modTable.modCategory = "tweak"
   modTable.displayName = "Bullet Diffractor"
   modTable.description = "Shoot three of every projectile, but with much lower range, accuracy and a longer cooldown"
 
@@ -34,8 +34,8 @@ M.shotgunify = function()
     -- for each shoot mod in the event...
     for _, shootMod in ipairs(shootProjectileMods) do
       -- tweak its stats like so...
-      shootMod.projLinearDamping = shootMod.projLinearDamping + 3
-      shootMod.projInaccuracy = shootMod.projInaccuracy + math.rad(15)
+      shootMod.linearDamping = shootMod.linearDamping + 3
+      shootMod.inaccuracy = shootMod.inaccuracy + math.rad(15)
       shootMod.holderKnockback = shootMod.holderKnockback * 5
       -- and create two additional copies of itself
       table.insert(alteredShootMods, shootMod)
@@ -51,7 +51,7 @@ end
 
 M.burstFire = function()
   local modTable = {}
-  modTable.modCategory = "projectileModifier"
+  modTable.modCategory = "tweak"
   modTable.displayName = "Burst fire"
   modTable.description = "Shots in this event fire sequentially, rather than all at once"
 
@@ -59,11 +59,11 @@ M.burstFire = function()
     local cumulativeShotTimer = 0 -- for tracking the summed cooldown from every shot in burst
     if gun.current.cooldown > 0 then return {} end -- if gun is on cooldown, do nothing
     for _, mod in ipairs(shootProjectileMods) do
-      if mod.modCategory == "shoot" then
+      if mod.modCategory == "projectile" then
         -- queue each projectile to fire sequentially after cooldown of previous shot is done
         local queuedShot = {}
         queuedShot.firesIn = cumulativeShotTimer
-        cumulativeShotTimer = cumulativeShotTimer + mod.projCooldown
+        cumulativeShotTimer = cumulativeShotTimer + mod.cooldownCost
         queuedShot.fromGunWithUid = gun.uid
         queuedShot.ignoreCooldown = true
         queuedShot.projectiles = {mod}

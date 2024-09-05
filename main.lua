@@ -91,7 +91,7 @@ function love.draw() -- {{{
   if arg[2] == 'debug' then
     -- -- the body
     love.graphics.setColor(obj.player.color)
-    love.graphics.circle("fill", obj.player.body:getX(), obj.player.body:getY(), obj.player.hardbox.shape:getRadius())
+    love.graphics.circle("line", obj.player.body:getX(), obj.player.body:getY(), obj.player.hardbox.shape:getRadius())
     --
     -- -- the eyes
     -- love.graphics.setColor(0,0,0)
