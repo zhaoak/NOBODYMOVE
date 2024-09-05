@@ -50,9 +50,9 @@ M.kbMouseBinds = {
 -- Same, but for gamepad buttons.
 M.gamepadButtonBinds = {
   ragdoll = "leftshoulder",
-  shootFG1 = "rightshoulder",
+  shootFG1 = "lefttrigger",
   shootFG2 = "righttrigger",
-  shootFG3 = "lefttrigger",
+  shootFG3 = "rightshoulder",
   shootFG4 = nil,
   shootFG5 = nil,
   shootFG6 = nil,

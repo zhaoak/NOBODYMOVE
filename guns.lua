@@ -6,6 +6,7 @@ M.gunlist = {} -- data for every gun existing in world, held by player or enemy,
 local projectileLib = require'projectiles'
 local util = require'util'
 
+-- Event trigger/add/modify/remove code {{{
 -- The function called when an event is triggered, which evaluates and executes its mods.
 -- This means all mods, including shoot projectile ones; when an event is triggered,
 -- this function will either call the gun's `shoot()` method or add shots to its queue as appropriate.
@@ -13,7 +14,7 @@ local util = require'util'
 -- Thus, it can be called with colon syntax to skip the first arg, e.g. `gunObj:triggerEvent(eventString, modsInEvent)`
 -- args:
 -- gunContainingEvent(gun obj): the gun containing the event you want to trigger.
--- eventName(string): the string identifier of the event you want to trigger, most commonly "onPressShoot"
+-- eventName(string): the string key for the event you want to trigger, most commonly "onPressShoot"
 local function triggerEvent (gun, eventName) -- {{{
   -- iterate through the gun's events and find the one we're looking for, then cache its mods
   local event
@@ -48,13 +49,56 @@ local function triggerEvent (gun, eventName) -- {{{
   gun:shoot(thisEventShootProjectileMods, true, false)
 end -- }}}
 
+-- function for adding a new event to an existing gun
+-- args:
+-- gun(gun obj): existing gun to add the event to
+-- eventName(string): a string used as the key for the event in the gun's events table
+-- modsInEvent(table): a table containing mods to put into the event at creation time (optional)
+-- returns true if successfully created, false if failed because event already exists on gun
+local function addEvent(gun, eventName, modsInEvent) -- {{{
+  if gun.events[eventName] ~= nil then return false end
+  if modsInEvent == nil then modsInEvent = {} end
+  gun.events[eventName] = modsInEvent
+  return true
+end -- }}}
+
+-- function for modifying an existing event on an existing gun
+-- `newModList` completely overwrites the existing event modlist;
+-- no previously existing mods on the event are preserved
+-- if `newModList` is nil, an empty table is used
+-- args:
+-- gun(gun obj): existing gun to modify the events of
+-- eventName(string): string key of the event to modify
+-- newModList(table): table containing full list of mods to replace old event modlist with
+-- returns true if successfully modified, false if failed because event doesn't exist on gun
+local function modifyEvent(gun, eventName, newModList) -- {{{
+  if gun.events[eventName] == nil then return false end
+  if newModList == nil then newModList = {} end
+  gun.events[eventName] = newModList
+  return true
+end -- }}}
+
+-- function for removing an existing event on an existing gun
+-- the list of mods in the event are lost upon event removal;
+-- if the mods in the event need to be placed in the player's inventory, do that before removing the event
+-- args:
+-- gun(gun obj): existing gun to remove the event from
+-- eventName(string): string key of the event to remove
+-- returns true if successfully removed, false if event doesn't exist on gun
+local function removeEvent(gun, eventName) -- {{{
+  if gun.events[eventName] == nil then return false end
+  gun.events[eventName] = nil
+  return true
+end -- }}}
+-- }}}
+
 -- The shoot function for shooting a specific gun once, which is passed in via arg.
 -- This function handles creating the projectiles from the gun's mods and resetting its cooldown,
 -- as well as applying the knockback from the shot to the gun's wielder.
 -- args:
 -- gun (gun object): the gun to shoot
 -- shootMods(table): an iterable table of every shoot mod to spawn a projectile for in the event
--- triggerCooldown(bool): whether or not to reset the gun's cooldown timer; some shots triggered by events are 'bonus' shots and don't reset cooldown
+-- triggerCooldown(bool): whether or not to reset the gun's cooldown timer; true makes the cooldown reset, bypasses it
 -- ignoreCooldown(bool): whether or not to bypass the pre-shot cooldown check: true makes the gun always shoot, even if still on cooldown
 local function shoot (gun, shootMods, triggerCooldown, ignoreCooldown) -- {{{
   -- if the cooldown isn't over and we're not ignoring it, cancel the shot
@@ -163,6 +207,9 @@ M.createGun = function(events, firegroup) -- {{{
   gun.draw = draw
   gun.updateGunPositionAndAngle = updateGunPositionAndAngle
   gun.triggerEvent = triggerEvent
+  gun.addEvent = addEvent
+  gun.modifyEvent = modifyEvent
+  gun.removeEvent = removeEvent
   -- gun.modify = modify
 
   -- add it to the list of all guns in world, then return its uid
@@ -224,6 +271,9 @@ M.createGunFromDefinition = function(byName, byTier, firegroup) -- {{{
   foundGun.draw = draw
   foundGun.updateGunPositionAndAngle = updateGunPositionAndAngle
   foundGun.triggerEvent = triggerEvent
+  foundGun.addEvent = addEvent
+  foundGun.modifyEvent = modifyEvent
+  foundGun.removeEvent = removeEvent
 
   -- add it to the list of all guns in world, then return its uid
   M.gunlist[foundGun.uid] = foundGun
@@ -302,8 +352,7 @@ M.update = function (dt) -- {{{
         -- if queued shot is ready to fire...
         if queuedShot.firesIn <= 0 then
           -- then shoot the gun
-          local gun = M.gunlist[queuedShot.fromGunWithUid]
-          gun:shoot(queuedShot.projectiles, false, queuedShot.ignoreCooldown)
+          M.gunlist[queuedShot.fromGunWithUid]:shoot(queuedShot.projectiles, false, queuedShot.ignoreCooldown)
           -- finally, remove the fired shot from the queue
           table.remove(gun.current.shootQueue, i)
         end

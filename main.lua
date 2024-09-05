@@ -35,6 +35,7 @@ function love.load() -- {{{ init
   love.window.setMode(1000,1000, optionsTable)
   love.graphics.setBackgroundColor(.4,.4,.4)
   love.window.setVSync(true)
+  love.window.setTitle("NOBODY MOVE")
 
   love.physics.setMeter(64)
 
