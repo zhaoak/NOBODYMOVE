@@ -315,12 +315,37 @@ M.update = function(dt) -- {{{
     M.setup()
   end
 
-  -- check if player currently trying to shoot, iterating thru all 8 firegroups
+  -- check state of player shoot buttons, triggering events as appropriate
   for fg=1, M.playerMaxGuns, 1 do
-    if input.getShootDown(fg) then
+    -- on button press from unpressed state
+    if input.getShootBindState(fg) == "pressed" then
       for _, gunId in pairs(M.guns) do
         if gunlib.gunlist[gunId].current.firegroup == fg then
           gunlib.gunlist[gunId]:triggerEvent("onPressShoot")
+        end
+      end
+    end
+    -- on holding button down for at least two updates
+    if input.getShootBindState(fg) == "held" then
+      for _, gunId in pairs(M.guns) do
+        if gunlib.gunlist[gunId].current.firegroup == fg then
+          gunlib.gunlist[gunId]:triggerEvent("onHoldShoot")
+        end
+      end
+    end
+    -- on button release from pressed or held state
+    if input.getShootBindState(fg) == "released" then
+      for _, gunId in pairs(M.guns) do
+        if gunlib.gunlist[gunId].current.firegroup == fg then
+          gunlib.gunlist[gunId]:triggerEvent("onReleaseShoot")
+        end
+      end
+    end
+    -- on not holding down button for at least two updates
+    if input.getShootBindState(fg) == "notheld" then
+      for _, gunId in pairs(M.guns) do
+        if gunlib.gunlist[gunId].current.firegroup == fg then
+          gunlib.gunlist[gunId]:triggerEvent("onNotHoldShoot")
         end
       end
     end
@@ -387,11 +412,13 @@ M.update = function(dt) -- {{{
   end
 
   -- {{{ brakes
-  -- If not doing any movement inputs while grabbed on terrain, decelerate to a stop.
+  -- If not doing any movement inputs while grabbed on terrain, decelerate
   if M.grab and input.getMovementXAxisInput() == 0 and input.getMovementYAxisInput() == 0 then
-    if math.abs(spoodCurrentLinearVelocity) < 1 and not input.getShotGunThisTick() then -- stinky! hacky: the recoil impulse gets canceled without this
+    -- if you have less than 1 velocity in any direction, drop your velocity to zero
+    if math.abs(spoodCurrentLinearVelocity) < 1 then
       M.body:setLinearVelocity(0, 0)
     else
+      -- otherwise, decelerate
       local decelerationForceX = -(spoodCurrentLinearVelocityX * 0.03)
       local decelerationForceY = -(spoodCurrentLinearVelocityY * 0.05)
       M.body:applyLinearImpulse(decelerationForceX, decelerationForceY)
