@@ -2,9 +2,6 @@
 -- UiBoxes are responsible for resizing in response to window size changes
 local M = {}
 
-local util = require'util'
-local hud = require'ui.hud'
-
 -- defines {{{
 M.thisFrameWindowSizeX = 800
 M.thisFrameWindowSizeY = 600
@@ -12,9 +9,9 @@ M.lastFrameWindowSizeX = 800
 M.lastFrameWindowSizeY = 600
 -- }}}
 
-M.uiBoxList = {} -- table holding data for every UI box curently rendered onscreen, keyed by UID
+M.uiBoxList = {} -- table holding data for every UI box curently rendered onscreen, keyed by name
 
-local function drawBox(uiBox)
+local function draw(uiBox)
   love.graphics.setColor(uiBox.borderColor)
   love.graphics.rectangle("line", uiBox.originX, uiBox.originY, uiBox.width, uiBox.height, 20, 20, 1)
 end
@@ -27,12 +24,14 @@ end
 -- height(num): height in pixels of the box
 -- minWidth(num): smallest possible width the uibox is allowed to shrink to
 -- minHeight(num) smallest possible height the uibox is allowed to shrink to
--- name(string): non-player visible name for the UI box, for programmer organization
+-- name(string): non-player visible name for the UI box, used as key in M.uiBoxList
 -- drawFunc(func): a function to call to draw the contents of the box
-M.createUiBox = function(originX, originY, width, height, minWidth, minHeight, name, drawFunc)
+-- shouldRender(bool): whether uibox should render this frame: may be changed anytime
+-- focusable(bool): whether player can click on, navigate with gamepad or otherwise interact with the box
+M.create = function(originX, originY, width, height, minWidth, minHeight, name, drawFunc, shouldRender, focusable, focused)
   local newUiBox = {}
-  newUiBox.shouldRender = true -- whether the box should render this frame
-  newUiBox.focusable = false -- whether the box can listen and respond to kb/mouse/controller inputs
+  newUiBox.shouldRender = shouldRender -- whether the box should render this frame
+  newUiBox.focusable = focusable -- whether the box can listen and respond to kb/mouse/controller inputs
   newUiBox.focused = false -- whether the box is currently listening to kb/mouse/controller inputs
   newUiBox.borderColor = {1, 1, 1, 1} -- table containing RGBA value for color of box border
   newUiBox.originX = originX
@@ -42,20 +41,12 @@ M.createUiBox = function(originX, originY, width, height, minWidth, minHeight, n
   newUiBox.height = height
   newUiBox.minHeight = minHeight
   newUiBox.name = name
-  newUiBox.draw = drawBox
-  M.uiBoxList[util.gen_uid("uibox")] = newUiBox
+  newUiBox.draw = drawFunc
+  M.uiBoxList[name] = newUiBox
 end
 
-M.destroyUiBox = function(uiBoxUid)
+M.destroy = function(uiBoxUid)
   table.remove(M.uiBoxList, uiBoxUid)
-end
-
-M.drawAllUiBoxes = function()
-  for i,box in ipairs(M.uiBoxList) do
-    if box.shouldRender then
-      box:draw()
-    end
-  end
 end
 
 M.update = function (dt)

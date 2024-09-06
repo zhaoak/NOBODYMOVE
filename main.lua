@@ -53,7 +53,8 @@ function love.load() -- {{{ init
 
   cam.scale(1.35)
 
-  uiBox.createUiBox(10, 10, 400, 400, 100, 100, "horse", uiBox.drawBox)
+  -- uiBox.create(10, 10, 400, 400, 100, 100, "horse", uiBox.drawBox)
+  hud.setup()
 
   -- print("INITIAL GUNSTATE ==============================================")
   -- gunlib.dumpGunTable()
@@ -146,9 +147,7 @@ function love.draw() -- {{{
 
   -- draw everything that doesn't move with the camera
   -- (HUD, other UI elements, etc)
-  hud.drawHealthBar(obj.player.current.health)
-  hud.drawGunList(obj.player.guns)
-  uiBox.drawAllUiBoxes()
+  hud.draw()
 
   -- non-camera affected debug rendering {{{
   if arg[2] == 'debug' then

@@ -1,5 +1,24 @@
 local gunlib = require'guns'
+local player = require'player'
+local uibox = require'ui.uiBox'
 local M = { }
+
+-- defines {{{
+M.gunHudListItemHeight = 110
+M.gunHudListItemWidth = 150
+-- }}}
+
+M.draw = function()
+  uibox.uiBoxList["hudGunList"]:draw()
+end
+
+M.setup = function()
+  M.createHudGunList()
+end
+
+M.update = function()
+
+end
 
 M.drawHealthBar = function(healthBarUiBox, playerCurrentHealth) -- {{{
   local windowSizeX, windowSizeY = love.graphics.getDimensions()
@@ -11,19 +30,32 @@ M.drawHealthBar = function(healthBarUiBox, playerCurrentHealth) -- {{{
 end
 -- }}}
 
--- gunlist on hud draw functions {{{
-M.drawGunList = function(gunList)
-  local windowSizeX, windowSizeY = love.graphics.getDimensions()
-  local gunListYPosOffset = 100
-  for i, gunId in pairs(gunList) do
-    M.drawGunListItem(gunlib.gunlist[gunId], 0, gunListYPosOffset)
+-- gunlist on hud present during normal gameplay {{{
+local function drawHudGunList()
+  local thisBox = uibox.uiBoxList["hudGunList"]
+  love.graphics.push() -- save previous transformation state
+  -- then set 0,0 point for graphics calls to the top left corner of the UIbox
+  love.graphics.translate(thisBox.originX, thisBox.originY)
+  love.graphics.setColor(1, 1, 1, 0.2)
+  love.graphics.rectangle("fill", 0, 0, thisBox.width, thisBox.height, 20, 20, 20)
+  local gunListYPosOffset = 10
+  for i, gunId in pairs(player.guns) do
+    M.drawHudGunListItem(gunlib.gunlist[gunId], 5, gunListYPosOffset)
     gunListYPosOffset = gunListYPosOffset + 110
   end
+  love.graphics.pop() -- return back to previous transformation state
 end
 
-M.drawGunListItem = function(gun, topLeftPosX, topLeftPosY)
+M.createHudGunList = function()
+  local originX, originY = 5, uibox.thisFrameWindowSizeY * (1/10)
+  local width, height = M.gunHudListItemWidth, M.gunHudListItemHeight * #player.guns
+  local minWidth, minHeight = 200, 100
+  uibox.create(originX, originY, width, height, minWidth, minHeight, "hudGunList", drawHudGunList, true, false)
+end
+
+M.drawHudGunListItem = function(gun, topLeftPosX, topLeftPosY)
   love.graphics.setColor(1, 1, 1, 0.7)
-  love.graphics.line(topLeftPosX, topLeftPosY, topLeftPosX+(gun.current.cooldown/gun.current.lastSetCooldownValue)*100, topLeftPosY)
+  love.graphics.line(5, topLeftPosY, math.max(5, topLeftPosX+(gun.current.cooldown/gun.current.lastSetCooldownValue)*M.gunHudListItemWidth), topLeftPosY)
   love.graphics.setColor(1, 1, 1, 1)
   if gun.current.cooldown >= 0 then love.graphics.setColor(0.6, 0.6, 0.6, 0.3) end
   love.graphics.print(gun.name, topLeftPosX, topLeftPosY+5)
