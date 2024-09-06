@@ -67,7 +67,7 @@ function love.update(dt) -- {{{
   local adjustedCamPositionX = obj.player.body:getX() - ((windowSizeX / 2) * cam.scaleX)
   local adjustedCamPositionY = obj.player.body:getY() - ((windowSizeY / 2) * cam.scaleY)
   cam.setPosition(adjustedCamPositionX, adjustedCamPositionY)
-  obj.player.update(dt)
+  obj.player.update(dt) -- update player before input; otherwise 
   gunlib.update(dt)
   input.update()
   obj.projectiles.update(dt)

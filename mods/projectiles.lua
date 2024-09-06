@@ -45,7 +45,7 @@ M.smallBullet = function()
   modTable.description = "lore goes here ig"
   modTable.type = "smallbullet"
   modTable.shapeData = { hitboxShape="circle", radius=3 }
-  modTable.cooldownCost = 0.05
+  modTable.cooldownCost = 0.10
   modTable.holderKnockback = 2
   modTable.hitKnockback = 2
   modTable.projectileDamage = 3
@@ -56,6 +56,7 @@ M.smallBullet = function()
   modTable.mass = 0.2
   return modTable
 end
+
 M.threeSmallBullet = function()
   local modtable = M.smallBullet()
   modtable.bulletCount = 3
@@ -69,7 +70,7 @@ M.mediumBullet = function()
   modTable.description = "lore goes here ig"
   modTable.type = "mediumbullet"
   modTable.shapeData = { hitboxShape="circle", radius=5 }
-  modTable.cooldownCost = 0.15
+  modTable.cooldownCost = 0.20
   modTable.holderKnockback = 4
   modTable.hitKnockback = 6
   modTable.projectileDamage = 5
@@ -104,11 +105,11 @@ M.oversizeBullet = function()
   modTable.type = "oversizebullet"
   modTable.shapeData = { hitboxShape="circle", radius=9 }
   modTable.cooldownCost = 0.7
-  modTable.holderKnockback = 30
+  modTable.holderKnockback = 75
   modTable.hitKnockback = 45
   modTable.projectileDamage = 30
   modTable.inaccuracy = math.rad(0.5)
-  modTable.speed = 700
+  modTable.speed = 1500 
   modTable.mass = 0.8
   return modTable
 end

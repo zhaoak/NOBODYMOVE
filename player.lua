@@ -48,9 +48,9 @@ M.setup = function () -- {{{
   M.guns = {}
 
   -- give player two tier 1 guns on firegroups 1 and 2
-  table.insert(M.guns, gunlib.createGunFromDefinition("shotgun_medcal", nil, 1))
+  table.insert(M.guns, gunlib.createGunFromDefinition("doublesniper_overcal", nil, 1))
   gunlib.equipGun(M.guns[1], 1, M)
-  table.insert(M.guns, gunlib.createGunFromDefinition("burstsmg_lowcal", nil, 2))
+  table.insert(M.guns, gunlib.createGunFromDefinition("burstpistol_medcal", nil, 2))
   gunlib.equipGun(M.guns[2], 2, M)
 
   if M.body then M.body:destroy() end

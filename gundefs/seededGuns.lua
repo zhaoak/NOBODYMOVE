@@ -13,14 +13,14 @@ M.seededGuns = {
   { name = "smg_lowcal",
     tier = 1,
     events = {
-      onPressShoot={proj.smallBullet}
+      onHoldShoot={proj.smallBullet}
     }
   },
 
-  { name = "pistol_medcal",
+  { name = "burstpistol_medcal",
     tier = 1,
     events = {
-      onPressShoot={proj.mediumBullet}
+      onPressShoot={projTweak.burstFire,proj.mediumBullet,proj.mediumBullet,proj.mediumBullet}
     }
   },
 
@@ -34,7 +34,7 @@ M.seededGuns = {
   { name = "burstsmg_lowcal",
     tier = 1,
     events = {
-      onPressShoot={projTweak.burstFire,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet}
+      onHoldShoot={projTweak.burstFire,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet}
     }
   },
 
@@ -42,7 +42,15 @@ M.seededGuns = {
   { name = "machinegun_medcal",
     tier = 2,
     events = {
-        onPressShoot={proj.mediumBullet}
+      onHoldShoot={proj.mediumBullet}
+    }
+  },
+
+  { name = "doublesniper_overcal",
+    tier = 2,
+    events = {
+      onPressShoot={proj.oversizeBullet},
+      onReleaseShoot={proj.oversizeBullet}
     }
   },
 }
