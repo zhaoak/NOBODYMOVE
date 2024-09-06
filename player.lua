@@ -18,15 +18,16 @@ M.playerLatchedKnockbackReduction = 0.5
 M.ragdoll = true
 M.currentAimAngle = 0 -- relative to world; i.e. 0 means aiming straight down from player perspective of world
 M.playerMaxGuns = 8 -- the absolute cap on how many guns a player is allowed to hold at once
--- the amount of time in seconds you have for controlling like you're grabbed even after you stop grabbing
+-- the amount of time in seconds you have for control on the X-axis like you're grabbed even after you stop grabbing
 -- think of how in most platformers, you can jump even if you're a bit late and your character is no longer standing on the ground after running off an edge
-M.ungrabGracePeriod = 0.3
+-- this also lets you dash/jump for a short period after leaving a grab
+M.ungrabGracePeriod = 0.25
 M.ungrabGraceTimer = M.ungrabGracePeriod
 
 -- experimental player airdash ability: recovers after grabbing terrain and cooldown done
 M.dashUsed = false -- whether or not the player has used their dash
 M.dashForce = 115 -- how much force to apply on each axis when player uses dash
-M.dashCooldownPeriod = 1 -- how long in seconds it takes for the dash to be available after being used
+M.dashCooldownPeriod = 0.5 -- how long in seconds it takes for the dash to be available after being used
 
 M.thisTickTotalKnockbackX = 0
 M.thisTickTotalKnockbackY = 0
@@ -205,9 +206,10 @@ local function getGrab() -- {{{
   if input.getRagdollDown() then
     M.ragdoll = true
     M.hardbox.fixture:setRestitution(0.5)
-    M.ungrabGraceTimer = -1
-    if M.dashUsed == false and M.dashTimer <= 0 and (input.getMovementXAxisInput() ~= 0 or input.getMovementYAxisInput() ~= 0) then
+    -- only allow dashing if you're on terrain or the grace timer hasn't run out yet
+    if M.dashUsed == false and M.dashTimer <= 0 and M.ungrabGraceTimer >= 0 then
       M.dashUsed = true
+      M.ungrabGraceTimer = -1
       M.dashTimer = M.dashCooldownPeriod
       local spoodCurrentLinearVelocityX, spoodCurrentLinearVelocityY = M.body:getLinearVelocity()
       if spoodCurrentLinearVelocityY > 0 then

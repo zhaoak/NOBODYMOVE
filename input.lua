@@ -20,7 +20,7 @@ M.aimJoystickThresholdX = 0.05
 M.aimJoystickThresholdY = 0.05
 
 -- hair trigger threshold settings
-M.gamepadTriggerActivationThreshold = 0.75
+M.gamepadTriggerActivationThreshold = 0.25
 
 -- File for handling keyboard and gamepad inputs and translating them into game inputs.
 M.kbMouseBinds = {
