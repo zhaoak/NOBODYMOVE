@@ -3,9 +3,11 @@ local camera = require'camera'
 
 
 -- Table contining currently connected controllers
+-- key is a number representing which player,
+-- value is the joystick assigned to that player
 M.connectedControllers = {
-  player1Joy = nil,
-  player2Joy = nil
+  [1] = nil,
+  [2] = nil
 }
 
 -- since mouse position is always present, we need a way to tell when to use controller rstick vs mouse aim
@@ -79,7 +81,7 @@ M.shootButtonStates = {
 -- args:
 -- `firegroup`(number): the firegroup of the shoot input you want to check, 1-8
 M.getShootDown = function(firegroup)
-  if M.keyDown("shootFG"..firegroup) or M.gamepadButtonDown("shootFG"..firegroup, M.connectedControllers.player1Joy) then
+  if M.keyDown("shootFG"..firegroup) or M.gamepadButtonDown("shootFG"..firegroup, 1) then
     return true
   else
     return false
@@ -95,7 +97,7 @@ end
 
 -- get if ragdoll input is currently down
 M.getRagdollDown = function()
-  if M.keyDown("ragdoll") or M.gamepadButtonDown("ragdoll", M.connectedControllers.player1Joy) then
+  if M.keyDown("ragdoll") or M.gamepadButtonDown("ragdoll", 1) then
     return true
   else
     return false
@@ -114,11 +116,11 @@ M.getMovementXAxisInput = function()
     return -1
   elseif M.keyDown("right") then
     return 1
-  elseif M.connectedControllers.player1Joy == nil then
+  elseif M.connectedControllers[1] == nil then
     return 0
   else
     -- if no kb+mouse X-axis movement input, use controller value
-    return M.gamepadAxisValue("leftx", nil)
+    return M.gamepadAxisValue("leftx", 1)
   end
 end
 
@@ -131,11 +133,11 @@ M.getMovementYAxisInput = function()
     return -1
   elseif M.keyDown("down") then
     return 1
-  elseif M.connectedControllers.player1Joy == nil then
+  elseif M.connectedControllers[1] == nil then
     return 0
   else
     -- if no kb+mouse Y-axis movement input, use controller value
-    return M.gamepadAxisValue("lefty", nil)
+    return M.gamepadAxisValue("lefty", 1)
   end
 end
 
@@ -150,11 +152,11 @@ local fakeAimAngleCacheX, fakeAimAngleCacheY = 1, 0
 M.getCrossHair = function (playerPosX, playerPosY)
   if M.mouseAimDisabled then
     local fakeAimX, fakeAimY = playerPosX, playerPosY
-    if M.gamepadAxisValue("rightx", nil) ~= 0 and M.gamepadAxisValue("righty", nil) ~= 0 then
-      fakeAimAngleCacheX, fakeAimAngleCacheY = M.gamepadAxisValue("rightx", nil), M.gamepadAxisValue("righty", nil)
+    if M.gamepadAxisValue("rightx", 1) ~= 0 and M.gamepadAxisValue("righty", 1) ~= 0 then
+      fakeAimAngleCacheX, fakeAimAngleCacheY = M.gamepadAxisValue("rightx", 1), M.gamepadAxisValue("righty", 1)
     end
-    fakeAimX = fakeAimX + ((fakeAimAngleCacheX or M.gamepadAxisValue("rightx", nil)) * 4)
-    fakeAimY = fakeAimY + ((fakeAimAngleCacheY or M.gamepadAxisValue("righty", nil)) * 4)
+    fakeAimX = fakeAimX + ((fakeAimAngleCacheX or M.gamepadAxisValue("rightx", 1)) * 4)
+    fakeAimY = fakeAimY + ((fakeAimAngleCacheY or M.gamepadAxisValue("righty", 1)) * 4)
     return fakeAimX, fakeAimY
   else
     -- if mouseaim not disabled, just use mouse position
@@ -168,9 +170,9 @@ end
 -- See `M.shootButtonStates` at the top of this file for definitions of each state
 M.updateShootBindStates = function ()
   for i,shootBindVal in pairs(M.shootButtonStates) do
-    if shootBindVal == "pressed" and (M.keyDown(i) or M.gamepadButtonDown(i, M.connectedControllers["player1Joy"])) then
+    if shootBindVal == "pressed" and (M.keyDown(i) or M.gamepadButtonDown(i, 1)) then
       M.shootButtonStates[i] = "held"
-    elseif shootBindVal == "released" and not (M.keyDown(i) or M.gamepadButtonDown(i, M.connectedControllers["player1Joy"])) then
+    elseif shootBindVal == "released" and not (M.keyDown(i) or M.gamepadButtonDown(i, 1)) then
       M.shootButtonStates[i] = "notheld"
     end
   end
@@ -178,6 +180,7 @@ end
 
 -- Update everything in input that needs to be updated every tick
 M.update = function ()
+  print(M.shootButtonStates["shootFG1"])
   M.updateShootBindStates()
 end
 -- }}}
@@ -196,29 +199,30 @@ M.keyDown = function (bind)
   end
 end
 
--- check if a specific game input is down on a gamepad
+-- check if a specific game input is down for a specific player
 -- the gamepad analog triggers are also treated as binary on/off buttons,
 -- with the threshold between on/off determined by `M.gamepadTriggerActivationThreshold`
 -- args:
 -- bind(string): string representing a game input and index in `M.gamepadButtonBinds`
-M.gamepadButtonDown = function (bind, joystick)
-  if joystick == nil then return false end
+-- player(num): number 1-4 representing which player's gamepad to check
+M.gamepadButtonDown = function (bind, player)
+  if M.connectedControllers[player] == nil then return false end
   if M.gamepadButtonBinds[bind] == nil then return false end
 
   if M.gamepadButtonBinds[bind] == "triggerright" or M.gamepadButtonBinds[bind] == "triggerleft" then
     if M.gamepadButtonBinds[bind] == "triggerright" then
-      if M.gamepadTriggerPulled("triggerright", nil) then return true else return false end
+      if M.gamepadTriggerPulled("triggerright", 1) then return true else return false end
     elseif M.gamepadButtonBinds[bind] == "triggerleft" then
-      if M.gamepadTriggerPulled("triggerleft", nil) then return true else return false end
+      if M.gamepadTriggerPulled("triggerleft", 1) then return true else return false end
     end
   else
-    return joystick:isGamepadDown(M.gamepadButtonBinds[bind])
+    return M.connectedControllers[player]:isGamepadDown(M.gamepadButtonBinds[bind])
   end
 end
 
 -- check whether a gamepad trigger is pulled, as determined by the customizable threshold
 M.gamepadTriggerPulled = function(triggerBind, player)
-  if M.gamepadAxisValue(triggerBind, nil) >= M.gamepadTriggerActivationThreshold then
+  if M.gamepadAxisValue(triggerBind, player) >= M.gamepadTriggerActivationThreshold then
     return true
   else
     return false
@@ -230,9 +234,9 @@ end
 -- https://www.love2d.org/wiki/Joystick:getGamepadAxis
 M.gamepadAxisValue = function(axis, player)
   -- if gamepad not connected, return a value meaning "no input"
-  if M.connectedControllers["player1Joy"] == nil then return 0 end
+  if M.connectedControllers[player] == nil then return 0 end
   -- otherwise, get and return the value
-  return M.connectedControllers["player1Joy"]:getGamepadAxis(axis)
+  return M.connectedControllers[player]:getGamepadAxis(axis)
 end
 -- }}}
 
@@ -241,8 +245,8 @@ end
 function love.joystickadded(joystick)
   -- for now, autoassign to player 1
   if joystick:isGamepad() then
-    if M.connectedControllers.player1Joy == nil then
-      M.connectedControllers.player1Joy = joystick
+    if M.connectedControllers[1] == nil then
+      M.connectedControllers[1] = joystick
     end
   end
 end
@@ -250,7 +254,7 @@ end
 -- on gamepad removed
 function love.joystickremoved(joystick)
   -- on removal, remove joystick from table of connected controllers
-  M.connectedControllers.player1Joy = nil
+  M.connectedControllers[1] = nil
 end
 
 -- on mouse movement
