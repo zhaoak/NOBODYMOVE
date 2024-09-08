@@ -6,27 +6,31 @@ local M = { }
 -- defines {{{
 M.gunHudListItemHeight = 110
 M.gunHudListItemWidth = 150
+M.healthDisplayWidth = 250
+M.healthDisplayHeight = 50
 -- }}}
 
-M.draw = function()
-  uibox.uiBoxList["hudGunList"]:draw()
-end
-
-M.setup = function()
-  M.createHudGunList()
-end
-
-M.update = function()
-
-end
-
-M.drawHealthBar = function(healthBarUiBox, playerCurrentHealth) -- {{{
-  local windowSizeX, windowSizeY = love.graphics.getDimensions()
-  love.graphics.setColor(0.1, 0.1, 0.1, 0.9)
-  local healthNumberDisplay = {{0.65,0.15,0.15,0.5}, tostring(playerCurrentHealth)}
-  love.graphics.print("health: ", 5, windowSizeY - 60, 0, 2, 2, 0, 0)
+-- health and status bar {{{
+local function drawHealthBar()
+  local thisBox = uibox.uiBoxList["hudHealthBar"]
+  love.graphics.push() -- save previous transformation state
+  -- then set 0,0 point for graphics calls to the top left corner of the UIbox
+  love.graphics.translate(thisBox.originX, thisBox.originY)
+  love.graphics.setColor(1, 1, 1, 0.2)
+  love.graphics.rectangle("fill", 0, 0, thisBox.width, thisBox.height, 20, 20, 20)
+  love.graphics.setColor(0.8, 0.2, 0.2, 0.2)
+  love.graphics.rectangle("fill", 5, 5, thisBox.width - 10 * (player.current.health/player.startingHealth), thisBox.height - 10, 30, 30, 20)
+  local healthNumberDisplay = {{0.65,0.15,0.15,0.9},tostring(player.current.health)}
   love.graphics.setColor(1, 1, 1, 1)
-  love.graphics.print(healthNumberDisplay, 100, windowSizeY - 60, 0, 2, 2, 0, 0)
+  love.graphics.print(healthNumberDisplay, 40, 10, 0, 2, 2, 0, 0)
+  love.graphics.pop()
+end
+
+local function createHealthBar()
+  local originX, originY = 5, uibox.thisFrameWindowSizeY - 150
+  local width, height = M.healthDisplayWidth, M.healthDisplayHeight
+  local minWidth, minHeight = 100, 25
+  uibox.create(originX, originY, width, height, minWidth, minHeight, "hudHealthBar", createHealthBar, drawHealthBar, true, false)
 end
 -- }}}
 
@@ -38,19 +42,19 @@ local function drawHudGunList()
   love.graphics.translate(thisBox.originX, thisBox.originY)
   love.graphics.setColor(1, 1, 1, 0.2)
   love.graphics.rectangle("fill", 0, 0, thisBox.width, thisBox.height, 20, 20, 20)
-  local gunListYPosOffset = 10
+  local gunListYPosOffset = 0
   for i, gunId in pairs(player.guns) do
     M.drawHudGunListItem(gunlib.gunlist[gunId], 5, gunListYPosOffset)
-    gunListYPosOffset = gunListYPosOffset + 110
+    gunListYPosOffset = gunListYPosOffset + M.gunHudListItemHeight
   end
   love.graphics.pop() -- return back to previous transformation state
 end
 
-M.createHudGunList = function()
+local function createHudGunList()
   local originX, originY = 5, uibox.thisFrameWindowSizeY * (1/10)
   local width, height = M.gunHudListItemWidth, M.gunHudListItemHeight * #player.guns
   local minWidth, minHeight = 200, 100
-  uibox.create(originX, originY, width, height, minWidth, minHeight, "hudGunList", drawHudGunList, true, false)
+  uibox.create(originX, originY, width, height, minWidth, minHeight, "hudGunList", createHudGunList, drawHudGunList, true, false)
 end
 
 M.drawHudGunListItem = function(gun, topLeftPosX, topLeftPosY)
@@ -63,6 +67,23 @@ M.drawHudGunListItem = function(gun, topLeftPosX, topLeftPosY)
   love.graphics.draw(gunSprite, topLeftPosX, topLeftPosY+25)
 end
 -- }}}
+
+-- primary functions for creating/drawing/updating hud
+-- these are the ones that get called directly in main.lua {{{
+M.draw = function()
+  uibox.uiBoxList["hudGunList"]:draw()
+  uibox.uiBoxList["hudHealthBar"]:draw()
+end
+
+-- for creating uiboxes for hud before first drawcall
+M.setup = function()
+  createHudGunList()
+  createHealthBar()
+end
+
+M.update = function()
+
+end -- }}}
 
 
 return M

@@ -53,7 +53,6 @@ function love.load() -- {{{ init
 
   cam.scale(1.35)
 
-  -- uiBox.create(10, 10, 400, 400, 100, 100, "horse", uiBox.drawBox)
   hud.setup()
 
   -- print("INITIAL GUNSTATE ==============================================")
@@ -68,7 +67,10 @@ function love.update(dt) -- {{{
   local adjustedCamPositionX = obj.player.body:getX() - ((windowSizeX / 2) * cam.scaleX)
   local adjustedCamPositionY = obj.player.body:getY() - ((windowSizeY / 2) * cam.scaleY)
   cam.setPosition(adjustedCamPositionX, adjustedCamPositionY)
-  obj.player.update(dt) -- update player before input; otherwise 
+  -- update player module before input module;
+  -- this is necessary because player needs the shoot event data (shoot pressed/held/released, etc) 
+  -- from this update, not last update's
+  obj.player.update(dt) 
   gunlib.update(dt)
   input.update()
   obj.projectiles.update(dt)
@@ -76,7 +78,6 @@ function love.update(dt) -- {{{
   dmgText.updateDamageNumberEvents(dt)
   uiBox.update(dt)
 
-  -- print(obj.npc.npcList[1].fixture:getUserData().health)
 end -- }}}
 
 function love.draw() -- {{{

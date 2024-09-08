@@ -180,7 +180,6 @@ end
 
 -- Update everything in input that needs to be updated every tick
 M.update = function ()
-  print(M.shootButtonStates["shootFG1"])
   M.updateShootBindStates()
 end
 -- }}}

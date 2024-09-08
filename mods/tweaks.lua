@@ -50,7 +50,7 @@ M.burstFire = function()
   local modTable = {}
   modTable.modCategory = "tweak"
   modTable.displayName = "Burst fire"
-  modTable.description = "Shots in this event fire sequentially, rather than all at once"
+  modTable.description = "Projectiles in this event rapid-fire sequentially with longer cooldown, rather than all at once"
 
   modTable.apply = function(gun, shootProjectileMods)
     local cumulativeShotTimer = 0 -- for tracking the summed cooldown from every shot in burst
@@ -60,16 +60,17 @@ M.burstFire = function()
         -- queue each projectile to fire sequentially after cooldown of previous shot is done
         local queuedShot = {}
         queuedShot.firesIn = cumulativeShotTimer
-        cumulativeShotTimer = cumulativeShotTimer + mod.cooldownCost
+        cumulativeShotTimer = cumulativeShotTimer + (mod.cooldownCost / 2)
         queuedShot.fromGunWithUid = gun.uid
         queuedShot.ignoreCooldown = true
         queuedShot.projectiles = {mod}
         table.insert(gun.current.shootQueue, queuedShot)
       end
     end
-    -- set gun's cooldown to the sum of every projectile in the burst times 2
-    gun.current.cooldown = cumulativeShotTimer * 2
-    gun.current.lastSetCooldownValue = cumulativeShotTimer * 2
+    -- set gun's cooldown to the sum of every projectile in the burst times 1.5;
+    -- since we halved every individual cooldown, we do *3 instead of *1.5 here
+    gun.current.cooldown = cumulativeShotTimer * 3
+    gun.current.lastSetCooldownValue = cumulativeShotTimer * 3
     -- don't return any of the projectiles to be shot in this burst, they're all queued instead
     return {}
   end

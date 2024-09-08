@@ -11,12 +11,8 @@ M.lastFrameWindowSizeY = 600
 
 M.uiBoxList = {} -- table holding data for every UI box curently rendered onscreen, keyed by name
 
-local function draw(uiBox)
-  love.graphics.setColor(uiBox.borderColor)
-  love.graphics.rectangle("line", uiBox.originX, uiBox.originY, uiBox.width, uiBox.height, 20, 20, 1)
-end
-
 -- create a new UI box
+-- if the uibox with the specified key 'name' already exists, it gets overwritten by the newly created one
 -- args:
 -- originX(num): x-coordinate of top left corner of box
 -- originY(num): y-coordinate of top left corner of box
@@ -25,10 +21,11 @@ end
 -- minWidth(num): smallest possible width the uibox is allowed to shrink to
 -- minHeight(num) smallest possible height the uibox is allowed to shrink to
 -- name(string): non-player visible name for the UI box, used as key in M.uiBoxList
+-- createFunc(func): function to call to recreate uibox when window size changes
 -- drawFunc(func): a function to call to draw the contents of the box
 -- shouldRender(bool): whether uibox should render this frame: may be changed anytime
 -- focusable(bool): whether player can click on, navigate with gamepad or otherwise interact with the box
-M.create = function(originX, originY, width, height, minWidth, minHeight, name, drawFunc, shouldRender, focusable, focused)
+M.create = function(originX, originY, width, height, minWidth, minHeight, name, createFunc, drawFunc, shouldRender, focusable, focused)
   local newUiBox = {}
   newUiBox.shouldRender = shouldRender -- whether the box should render this frame
   newUiBox.focusable = focusable -- whether the box can listen and respond to kb/mouse/controller inputs
@@ -41,6 +38,7 @@ M.create = function(originX, originY, width, height, minWidth, minHeight, name, 
   newUiBox.height = height
   newUiBox.minHeight = minHeight
   newUiBox.name = name
+  newUiBox.create = createFunc
   newUiBox.draw = drawFunc
   M.uiBoxList[name] = newUiBox
 end
@@ -50,13 +48,17 @@ M.destroy = function(uiBoxUid)
 end
 
 M.update = function (dt)
+  -- cache last frame's and the current frame's window size
   M.lastFrameWindowSizeX, M.lastFrameWindowSizeY = M.thisFrameWindowSizeX, M.thisFrameWindowSizeY
   M.thisFrameWindowSizeX, M.thisFrameWindowSizeY = love.graphics.getDimensions()
-  for i,box in ipairs(M.uiBoxList) do
-    -- resize ui boxes based on window size, respecting minimum width/height values
-    box.width = math.max(box.minWidth, math.floor(box.width * (M.thisFrameWindowSizeX / M.lastFrameWindowSizeX)))
-    box.height = math.max(box.minHeight, math.floor(box.height * (M.thisFrameWindowSizeY / M.lastFrameWindowSizeY)))
+
+  -- check if the window size has changed, and if it has, recreate the uibox for new windowsize before next draw
+  if M.lastFrameWindowSizeX ~= M.thisFrameWindowSizeX or M.lastFrameWindowSizeY ~= M.thisFrameWindowSizeY then
+    for i,box in pairs(M.uiBoxList) do
+      box:create()
+    end
   end
 end
+
 return M
 -- vim: foldmethod=marker
