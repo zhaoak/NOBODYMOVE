@@ -20,7 +20,7 @@ M.aimJoystickThresholdX = 0.05
 M.aimJoystickThresholdY = 0.05
 
 -- hair trigger threshold settings
-M.gamepadTriggerActivationThreshold = 0.25
+M.gamepadTriggerActivationThreshold = 0.1
 
 -- File for handling keyboard and gamepad inputs and translating them into game inputs.
 M.kbMouseBinds = {
@@ -60,6 +60,9 @@ M.gamepadButtonBinds = {
 -- Why use this table and not just `getShootDown()`? Because `getShootDown()` only returns a bool for a bind being pressed/not pressed,
 -- and we want guns to be able to respond to multiple types of _input events_ on a binary button,
 -- not just binary shooting/not shooting inputs.
+-- Be aware that "pressed" and "held" values will only ever be active for one update per shoot input state change
+-- (meaning, "onPressShoot" and "onReleaseShoot" events will only trigger once per press/release of the shoot input.)
+-- This is intentional; if you want a gun to shoot continuously while its input is held, use the "onHoldShoot" event.
 -- The possible values for each button are as follows:
 -- "pressed": the shoot button is being pressed and was _not_ being pressed or held the previous update.
 -- "held": the shoot button is being pressed and _was_ being either pressed or held the previous update.
@@ -167,16 +170,22 @@ end
 
 -- Update functions {{{
 -- Update shoot bind states, this function is called each update
--- See `M.shootButtonStates` at the top of this file for definitions of each state
+-- See `M.shootButtonStates` at the top of this file for definitions of each state,
+-- and an explanation of why transitioning state from "pressed" and "released" doesn't check the shoot inputs.
 M.updateShootBindStates = function ()
   for i,shootBindVal in pairs(M.shootButtonStates) do
-    if shootBindVal == "pressed" and (M.keyDown(i) or M.gamepadButtonDown(i, 1)) then
+    if shootBindVal == "pressed" then
       M.shootButtonStates[i] = "held"
-    elseif shootBindVal == "released" and not (M.keyDown(i) or M.gamepadButtonDown(i, 1)) then
+    elseif shootBindVal == "released" then
       M.shootButtonStates[i] = "notheld"
+    elseif shootBindVal == "held" and not (M.keyDown(i) or M.gamepadButtonDown(i, 1)) then
+      M.shootButtonStates[i] = "released"
+    elseif shootBindVal == "notheld" and (M.keyDown(i) or M.gamepadButtonDown(i, 1)) then
+      M.shootButtonStates[i] = "pressed"
     end
   end
 end
+
 
 -- Update everything in input that needs to be updated every tick
 M.update = function ()
@@ -198,8 +207,8 @@ M.keyDown = function (bind)
   end
 end
 
--- check if a specific game input is down for a specific player
--- the gamepad analog triggers are also treated as binary on/off buttons,
+-- Check if a specific game input is down for a specific player.
+-- The gamepad analog triggers are also treated as binary on/off buttons,
 -- with the threshold between on/off determined by `M.gamepadTriggerActivationThreshold`
 -- args:
 -- bind(string): string representing a game input and index in `M.gamepadButtonBinds`
@@ -264,63 +273,32 @@ end
 
 -- on any keyboard keypress
 function love.keypressed(key)
-  for i,_ in pairs(M.shootButtonStates) do
-    -- if the pressed key is bound to a shoot input...
-    if key == M.kbMouseBinds[i] then
-      -- update its corresponding state
-      M.shootButtonStates[i] = "pressed"
-    end
-  end
+
 end
 
 -- on any keyboard key release
 function love.keyreleased(key)
-  -- update shoot input state
-  for i,_ in pairs(M.shootButtonStates) do
-    if key == M.kbMouseBinds[i] then
-      M.shootButtonStates[i] = "released"
-    end
-  end
+
 end
 
 -- on any mouse button click event
 function love.mousepressed(x, y, button)
-  -- update shoot input event state
-  for i,_ in pairs(M.shootButtonStates) do
-    if button == M.kbMouseBinds[i] then
-      M.shootButtonStates[i] = "pressed"
-    end
-  end
+
 end
 
 -- on any mouse button release event
 function love.mousereleased(x, y, button)
-  -- update shoot input event state
-  for i,_ in pairs(M.shootButtonStates) do
-    if button == M.kbMouseBinds[i] then
-      M.shootButtonStates[i] = "released"
-    end
-  end
+
 end
 
 -- on any gamepad button press
 function love.gamepadpressed(joystick, button)
-  -- update shoot input event state
-  for i,_ in pairs(M.shootButtonStates) do
-    if button == M.gamepadButtonBinds[i] then
-      M.shootButtonStates[i] = "pressed"
-    end
-  end
+
 end
 
 -- on any gamepad button release
 function love.gamepadreleased(joystick, button)
-  -- update shoot input event state
-  for i,_ in pairs(M.shootButtonStates) do
-    if button == M.gamepadButtonBinds[i] then
-      M.shootButtonStates[i] = "released"
-    end
-  end
+
 end
 
 -- on any change in a gamepad axis value
@@ -330,18 +308,6 @@ end
 function love.gamepadaxis(joystick, axis, value)
   -- if player moves the right stick, disable mouseaim
   if axis == "rightx" or axis == "righty" then M.mouseAimDisabled = true end
-  -- update shoot input event state based on how much the triggers are pulled back, but...
-  for i,shootButtonState in pairs(M.shootButtonStates) do
-    -- we need to be selective about whether to update state or not, based on current state
-    if axis == M.gamepadButtonBinds[i] and value > M.gamepadTriggerActivationThreshold and (shootButtonState == "notheld" or shootButtonState == "released") then
-      M.shootButtonStates[i] = "pressed"
-    -- because with an analog input, if we don't track changes in state,
-    -- we can't tell whether a greater-than-threshold value means the player has just now pulled trigger vs
-    -- holding down the trigger
-    elseif axis == M.gamepadButtonBinds[i] and value < M.gamepadTriggerActivationThreshold and (shootButtonState == "pressed" or shootButtonState == "held") then
-      M.shootButtonStates[i] = "released"
-    end
-  end
 end
 
 -- }}}

@@ -67,12 +67,9 @@ function love.update(dt) -- {{{
   local adjustedCamPositionX = obj.player.body:getX() - ((windowSizeX / 2) * cam.scaleX)
   local adjustedCamPositionY = obj.player.body:getY() - ((windowSizeY / 2) * cam.scaleY)
   cam.setPosition(adjustedCamPositionX, adjustedCamPositionY)
-  -- update player module before input module;
-  -- this is necessary because player needs the shoot event data (shoot pressed/held/released, etc) 
-  -- from this update, not last update's
+  input.update()
   obj.player.update(dt) 
   gunlib.update(dt)
-  input.update()
   obj.projectiles.update(dt)
   util.world:update(dt)
   dmgText.updateDamageNumberEvents(dt)
