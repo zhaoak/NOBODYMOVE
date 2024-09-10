@@ -173,17 +173,13 @@ end -- }}}
 -- This function creates a gun with arg-specified mods installed, adds it to `gunlist`, and returns its UID.
 -- args:
 -- events(table): table of events to add to new gun, see seededGuns.lua file for format
--- firegroup(num): the firegroup to put the new gun in, defaults to 1 if not specified
-M.createGun = function(events, firegroup) -- {{{
+M.createGun = function(events) -- {{{
   local gun = {}
   -- set cooldown of new gun
   -- `gun.current` holds all data about the gun that is modified by player actions during gameplay
   -- (cooldown, firegroup, etc)
   gun.current = {}
   gun.current.lastSetCooldownValue = M.calculateShotCooldownFromGun(gun, "onPressShoot")
-
-  -- set firegroup of new gun, default to 1 if not specified
-  gun.current.firegroup = firegroup or 1
 
   -- create shootQueue for new gun
   -- the shootQueue is used for burst fire and other mods that create time-delayed shots
@@ -222,9 +218,8 @@ end -- }}}
 -- byName(string): find and create a gun, specified by its name property in the seeded guns list
 -- byTier(number): create a random gun from the list with a specified tier
 -- (if both byName and byTier are specified, searching by name takes priority)
--- firegroup(num): the firegroup the created gun should have
 -- returns: UID of new gun instance if successful, -1 otherwise
-M.createGunFromDefinition = function(byName, byTier, firegroup) -- {{{
+M.createGunFromDefinition = function(byName, byTier) -- {{{
   local gunDefs = dofile("gundefs/seededGuns.lua")
   local foundGun
   if byName ~= nil then
@@ -253,8 +248,6 @@ M.createGunFromDefinition = function(byName, byTier, firegroup) -- {{{
   foundGun.current = {}
   foundGun.current.cooldown = 0
   foundGun.current.lastSetCooldownValue = M.calculateShotCooldownFromGun(foundGun, "onPressShoot")
-
-  foundGun.current.firegroup = firegroup or 1
 
   foundGun.current.recoilAimPenaltyOffset = 0
 
@@ -289,7 +282,6 @@ end -- }}}
 -- To shoot/render the gun from outside this file, use `gunlib.gunlist[gunUID]:shoot()`.
 -- args:
 -- gunUid (num): UID of gun to equip
--- firegroup(num): firegroup to set for gun
 -- wielder(ref): a reference to the entity wielding the gun; either a player, npc, or gun worlditem
 -- returns: true if successful, false if gun with specified UID doesn't exist
 M.equipGun = function(gunUid, firegroup, wielder) -- {{{

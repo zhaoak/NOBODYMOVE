@@ -55,10 +55,6 @@ function love.load() -- {{{ init
 
   hud.setup()
 
-  -- print("INITIAL GUNSTATE ==============================================")
-  -- gunlib.dumpGunTable()
-  -- obj.player.dumpPlayerGunIdTable()
-
 end -- }}}
 
 function love.update(dt) -- {{{
@@ -71,10 +67,10 @@ function love.update(dt) -- {{{
   obj.player.update(dt) 
   gunlib.update(dt)
   obj.projectiles.update(dt)
-  util.world:update(dt)
   dmgText.updateDamageNumberEvents(dt)
   uiBox.update(dt)
 
+  util.world:update(dt)
 end -- }}}
 
 function love.draw() -- {{{

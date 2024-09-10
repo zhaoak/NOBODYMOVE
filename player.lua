@@ -49,12 +49,12 @@ M.setup = function () -- {{{
   M.guns = {}
 
   -- give player guns with preset mod loadouts
-  table.insert(M.guns, gunlib.createGunFromDefinition("shotgun_medcal", nil, 1))
+  table.insert(M.guns, gunlib.createGunFromDefinition("shotgun_medcal", nil))
   gunlib.equipGun(M.guns[1], 1, M)
-  table.insert(M.guns, gunlib.createGunFromDefinition("burstpistol_medcal", nil, 2))
-  gunlib.equipGun(M.guns[2], 2, M)
-  table.insert(M.guns, gunlib.createGunFromDefinition("doublesniper_overcal", nil, 3))
-  gunlib.equipGun(M.guns[3], 3, M)
+  table.insert(M.guns, gunlib.createGunFromDefinition("burstpistol_medcal", nil))
+  gunlib.equipGun(M.guns[2], 3, M)
+  table.insert(M.guns, gunlib.createGunFromDefinition("doublesniper_overcal", nil))
+  gunlib.equipGun(M.guns[3], 2, M)
 
   if M.body then M.body:destroy() end
   M.contact = 0
