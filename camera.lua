@@ -4,11 +4,20 @@
 
 local M = { }
 
+-- defines {{{
+M.thisFrameWindowSizeX = 800
+M.thisFrameWindowSizeY = 600
+-- }}}
+
 M.x = 0
 M.y = 0
 M.scaleX = 1
 M.scaleY = 1
 M.rotation = 0
+
+M.update = function (dt)
+  M.thisFrameWindowSizeX, M.thisFrameWindowSizeY = love.graphics.getDimensions()
+end
 
 -- `set` should be called in `love.draw()` before all of your drawcalls;
 -- it's what applies all the transformations for the drawcalls.
