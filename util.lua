@@ -1,3 +1,5 @@
+-- Assorted utility functions that are used in multiple other modules.
+
 local M = {}
 
 local uids = {}

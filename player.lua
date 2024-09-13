@@ -1,3 +1,9 @@
+-- Player module containing all the code for handling player movement, shooting, etc.
+-- The player, NPC, and item modules have some overlap in functions, 
+-- specifically for applying and calculating knockback from shooting guns.
+-- That's because the gun objects call these specific functions on their wielders,
+-- and players, NPCs, and items can all wield guns.
+
 local gunlib = require'guns'
 -- local modlib = require'mods'
 local util = require'util'
@@ -45,7 +51,6 @@ M.guns = {} -- a list of gun UIDs, representing the guns the player is holding
 -- }}}
 
 M.setup = function () -- {{{
-  -- tmp code for guns, player just has one test gun for now
   M.guns = {}
 
   -- give player guns with preset mod loadouts

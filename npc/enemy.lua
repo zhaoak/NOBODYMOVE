@@ -1,3 +1,5 @@
+-- Module for enemies, which are an extension of the NPC class.
+
 local util = require("util")
 local npc = require("npc.npc")
 

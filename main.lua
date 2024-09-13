@@ -51,7 +51,7 @@ function love.load() -- {{{ init
   obj.player.setup(util.world)
   obj.projectiles.setup(util.world)
 
-  cam.scale(1.35)
+  cam.scale(1.25)
 
   hud.setup()
 

@@ -1,3 +1,7 @@
+-- Module for NPCs, friendly, neutral, and hostile alike.
+-- Contains functions for creating, drawing, and running AI updates, plus any moving and shooting an NPC needs to do.
+-- Also contains accessors for NPCs' world coordinates, velocity, and so on.
+
 local util = require("util")
 local filterValues = require("filterValues")
 

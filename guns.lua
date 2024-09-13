@@ -1,7 +1,15 @@
--- Gun objects.
+-- Module for guns and the various things you can do with them.
+-- Gun objects, as defined in this module, are strictly data and function-bearing constructs;
+-- no code for making them exist as a physics object in the world is present here.
+-- To be an interactable part of the game world, a gun must have a `wielder`, that is:
+-- a player, NPC, or item that "owns" the gun object.
+-- The wielder is responsible for determining and updating the gun's position and aim in the world.
+-- To make a gun that exists on its own in the game world as an item a player can pick up and has physics properties,
+-- create a gun and have an item (as defined in `items.lua`) take ownership of it.
+
 local M = { }
 
-M.gunlist = {} -- data for every gun existing in world, held by player or enemy, lives here
+M.gunlist = {} -- data for every gun created lives here, indexed by UID
 
 local projectileLib = require'projectiles'
 local util = require'util'

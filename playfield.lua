@@ -1,4 +1,6 @@
--- WARNING: not updated to work with new camera system, drawn world will be in wrong place
+-- module currently used for intializing and drawing testing map
+-- plan is to replace this later with a `maps` module that allows for
+-- dynamic level loading and creation
 local util = require'util'
 local filterVals = require'filterValues'
 

@@ -1,3 +1,6 @@
+-- Module for drawing the HUD (heads-up display) present on screen during gameplay.
+-- Displays health, gun status, and other such game-relevant information.
+
 local gunlib = require'guns'
 local player = require'player'
 local uibox = require'ui.uiBox'

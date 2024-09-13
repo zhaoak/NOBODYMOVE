@@ -1,6 +1,9 @@
+-- Module for handling inputs from gamepad/mouse/keyboard and translating them into game inputs.
+-- Also handles gamepad connection/disconnection and storing key/button binding settings.
+-- The player module uses the functions here to check what inputs are being pressed.
+
 local M = {}
 local camera = require'camera'
-
 
 -- Table contining currently connected controllers
 -- key is a number representing which player,

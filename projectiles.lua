@@ -1,3 +1,6 @@
+-- Module for any projectiles spawned and/or shot by a gun.
+-- Handles creating projectile physics objects, drawing projectiles, and resolving projectile collisions.
+
 local M = { }
 
 M.projectileList = {}

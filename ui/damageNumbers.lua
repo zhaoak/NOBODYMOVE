@@ -1,3 +1,5 @@
+-- Module for drawing damage text numbers that appear when something takes or heals damage.
+
 local util = require'util'
 local npc = require'npc.npc'
 
