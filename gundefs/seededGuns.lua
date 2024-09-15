@@ -20,14 +20,14 @@ M.seededGuns = {
   { name = "burstpistol_medcal",
     tier = 1,
     events = {
-      onPressShoot={projTweak.burstFire,proj.mediumBullet,proj.mediumBullet,proj.mediumBullet}
+      onHoldShoot={projTweak.burstFire,proj.mediumBullet,proj.mediumBullet,proj.mediumBullet}
     }
   },
 
   { name = "shotgun_medcal",
     tier = 1,
     events = {
-      onPressShoot={projTweak.shotgunify,proj.mediumBullet,proj.mediumBullet,proj.mediumBullet}
+      onHoldShoot={projTweak.shotgunify,proj.mediumBullet,proj.mediumBullet,proj.mediumBullet}
     }
   },
 
