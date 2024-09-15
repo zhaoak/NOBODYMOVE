@@ -21,7 +21,9 @@ M.startingHealth = 100
 M.playerAcceleration = 10
 M.playerLatchedKnockbackReduction = 0.5
 M.ragdoll = true
-M.currentAimAngle = 0 -- relative to world; i.e. 0 means aiming straight down from player perspective of world
+-- relative to world; i.e. 0 means aiming straight down from player perspective of world
+-- increases counterclockwise, decreases clockwise, i.e. aiming left is angle -pi/2, aiming right is pi/2
+M.currentAimAngle = 0
 M.playerMaxGuns = 8 -- the absolute cap on how many guns a player is allowed to hold at once
 -- the amount of time in seconds you have for control on the X-axis like you're grabbed even after you stop grabbing
 -- think of how in most platformers, you can jump even if you're a bit late and your character is no longer standing on the ground after running off an edge

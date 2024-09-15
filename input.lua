@@ -161,8 +161,8 @@ M.getCrossHair = function (playerPosX, playerPosY)
     if M.gamepadAxisValue("rightx", 1) ~= 0 and M.gamepadAxisValue("righty", 1) ~= 0 then
       fakeAimAngleCacheX, fakeAimAngleCacheY = M.gamepadAxisValue("rightx", 1), M.gamepadAxisValue("righty", 1)
     end
-    fakeAimX = fakeAimX + ((fakeAimAngleCacheX or M.gamepadAxisValue("rightx", 1)) * 4)
-    fakeAimY = fakeAimY + ((fakeAimAngleCacheY or M.gamepadAxisValue("righty", 1)) * 4)
+    fakeAimX = fakeAimX + ((fakeAimAngleCacheX or M.gamepadAxisValue("rightx", 1)) * 1000)
+    fakeAimY = fakeAimY + ((fakeAimAngleCacheY or M.gamepadAxisValue("righty", 1)) * 1000)
     return fakeAimX, fakeAimY
   else
     -- if mouseaim not disabled, just use mouse position
@@ -272,6 +272,7 @@ end
 function love.mousemoved()
   -- if player moves mouse, assume they want to use mouseaim
   M.mouseAimDisabled = false
+  love.mouse.setVisible(true)
 end
 
 -- on any keyboard keypress
@@ -311,6 +312,7 @@ end
 function love.gamepadaxis(joystick, axis, value)
   -- if player moves the right stick, disable mouseaim
   if axis == "rightx" or axis == "righty" then M.mouseAimDisabled = true end
+  love.mouse.setVisible(false)
 end
 
 -- }}}

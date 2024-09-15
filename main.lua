@@ -59,7 +59,7 @@ end -- }}}
 
 function love.update(dt) -- {{{
   cam.update(dt, obj.player) -- passing the cam module player data for follow functions
-  cam.setBehaviorMode("centerPlayer")
+  cam.setBehaviorMode("followAim")
   input.update()
   obj.player.update(dt) 
   gunlib.update(dt)
