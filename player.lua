@@ -160,6 +160,12 @@ M.draw = function () -- {{{
     gunlib.gunlist[gunId].draw(gunId, M)
   end
 
+  -- draw cursor
+  if input.mouseAimDisabled then
+    local x,y = input.getCrossHair(M.getX(), M.getY())
+    love.graphics.circle("fill", x, y, 3)
+  end
+
 end -- }}}
 
 -- shooting-related functions {{{
