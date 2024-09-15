@@ -13,9 +13,9 @@ M.followAimMaxOffsetDistance = 500 -- how far cam is allowed to move from player
 
 M.x = 0 -- current x pos of camera
 M.y = 0 -- current y pos of camera
-M.targetXPos = nil -- target x pos of camera, only used in specific behavior modes
-M.targetYPos = nil -- target y pos of camera, only used in specific behavior modes
-M.maxPanSpeed = 3 -- how fast camera is allowed to move on each axis per second
+M.targetXPos = nil -- target x pos of camera, only used when panning to position over time
+M.targetYPos = nil -- target y pos of camera, only used when panning to position over time
+M.maxPanSpeed = 8 -- how fast camera is allowed to move on each axis per second
 M.scaleX = 1
 M.scaleY = 1
 M.rotation = 0
@@ -26,7 +26,7 @@ M.currentBehaviorMode = "none"
 local function centerPlayer()
   local adjustedCamPositionX = M.playerObj.getX() - ((M.thisFrameWindowSizeX / 2) * M.scaleX)
   local adjustedCamPositionY = M.playerObj.getY() - ((M.thisFrameWindowSizeY / 2) * M.scaleY)
-  M.setPosition(adjustedCamPositionX, adjustedCamPositionY)
+  M.panToPosition(adjustedCamPositionX, adjustedCamPositionY, M.maxPanSpeed)
 end
 
 -- follow player, but pan toward their aim, up to a limited distance away from the player
@@ -39,9 +39,8 @@ local function followAim()
   -- find whether it's farther or closer than the max leashing distance
   -- whichever is smaller, use that value as the camera distance offset
   local offsetDistance = math.min(M.followAimMaxOffsetDistance, aimDistance)
-  local angle
   -- make positive y up and negative y down, for ease of calculations
-  angle = M.playerObj.currentAimAngle + math.pi
+  local angle = M.playerObj.currentAimAngle + math.pi
   -- then calculate the offset for X and Y axes
   local camOffsetX, camOffsetY
   if angle <= 0 then
@@ -50,8 +49,9 @@ local function followAim()
   else
     camOffsetX = math.sin(angle)*offsetDistance*-1*(offsetDistance/M.thisFrameWindowSizeX)
     camOffsetY = math.cos(angle)*offsetDistance*-1*(offsetDistance/M.thisFrameWindowSizeY)
- end
-  M.panToPosition(adjustedCamPositionX+camOffsetX, adjustedCamPositionY+camOffsetY, 5)
+  end
+  -- then, pan to that position over time
+  M.panToPosition(adjustedCamPositionX+camOffsetX, adjustedCamPositionY+camOffsetY, M.maxPanSpeed)
 end
 -- }}}
 

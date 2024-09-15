@@ -22,8 +22,8 @@ List of things still needing to be done for spoodergame
 
 - item module, throw gun/item player command
 
-- camera-follow-player-aim code
-- camera ease-to-position code (camera damping)
+- ~camera-follow-player-aim code~
+- ~camera ease-to-position code (camera damping)~
 
 - map brush helper/generation functions
 
