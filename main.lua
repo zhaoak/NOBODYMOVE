@@ -58,11 +58,8 @@ function love.load() -- {{{ init
 end -- }}}
 
 function love.update(dt) -- {{{
-  -- center camera on spooder
-  local windowSizeX, windowSizeY = love.graphics.getDimensions()
-  local adjustedCamPositionX = obj.player.body:getX() - ((windowSizeX / 2) * cam.scaleX)
-  local adjustedCamPositionY = obj.player.body:getY() - ((windowSizeY / 2) * cam.scaleY)
-  cam.setPosition(adjustedCamPositionX, adjustedCamPositionY)
+  cam.update(dt, obj.player) -- passing the cam module player data for follow functions
+  cam.setBehaviorMode("centerPlayer")
   input.update()
   obj.player.update(dt) 
   gunlib.update(dt)

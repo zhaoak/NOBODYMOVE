@@ -4,9 +4,11 @@
 
 local M = { }
 
+
 -- defines {{{
 M.thisFrameWindowSizeX = 800
 M.thisFrameWindowSizeY = 600
+M.playerObj = nil
 -- }}}
 
 M.x = 0
@@ -14,9 +16,39 @@ M.y = 0
 M.scaleX = 1
 M.scaleY = 1
 M.rotation = 0
+M.currentBehaviorMode = "none"
 
-M.update = function (dt)
+-- list of camera behavior mode update functions {{{
+local function centerPlayer()
+  local adjustedCamPositionX = M.playerObj.getX() - ((M.thisFrameWindowSizeX / 2) * M.scaleX)
+  local adjustedCamPositionY = M.playerObj.getY() - ((M.thisFrameWindowSizeY / 2) * M.scaleY)
+  M.setPosition(adjustedCamPositionX, adjustedCamPositionY)
+end
+
+local function delayedFollowPlayer()
+
+end
+-- }}}
+
+M.behaviorModes = {
+  ["centerPlayer"] = centerPlayer,
+  ["delayedFollowPlayer"] = delayedFollowPlayer
+}
+
+M.update = function (dt, player)
   M.thisFrameWindowSizeX, M.thisFrameWindowSizeY = love.graphics.getDimensions()
+  M.playerObj = player
+  if M.currentBehaviorMode ~= "none" then
+    M.behaviorModes[M.currentBehaviorMode]()
+  end
+end
+
+-- Set the camera's behavior mode. The mode determines what the camera will try to do automatically (follow player, etc.)
+-- Behavior modes are functions called every update that decide what camera transforms to apply that frame.
+-- The default mode is "none", meaning the camera will stay in one place and do nothing,
+-- unless camera transformation functions are explicitly called elsewhere in the same update.
+M.setBehaviorMode = function(newMode)
+  M.currentBehaviorMode = newMode or "none"
 end
 
 -- `set` should be called in `love.draw()` before all of your drawcalls;

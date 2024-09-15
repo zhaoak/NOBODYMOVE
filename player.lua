@@ -5,7 +5,6 @@
 -- and players, NPCs, and items can all wield guns.
 
 local gunlib = require'guns'
--- local modlib = require'mods'
 local util = require'util'
 local filterVals = require'filterValues'
 local input = require'input'
@@ -177,6 +176,22 @@ M.addToThisTickKnockback = function(knockbackX, knockbackY)
   M.thisTickTotalKnockbackX = M.thisTickTotalKnockbackX + knockbackX
   M.thisTickTotalKnockbackY = M.thisTickTotalKnockbackY + knockbackY
 end -- }}}
+
+-- game utility methods {{{
+-- damage player's health by a specific amount
+M.hurt = function(damageAmount)
+  M.current.health = M.current.health - damageAmount
+end
+
+-- get center-of-body X and Y world coordinates of player
+M.getX = function()
+  return M.body:getX()
+end
+
+M.getY = function()
+  return M.body:getY()
+end
+-- }}}
 
 -- Handlers for terrain entering/exiting player latch range {{{
 M.handleTerrainEnteringRange = function(a, b, contact)
