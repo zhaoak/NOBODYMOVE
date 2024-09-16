@@ -67,6 +67,7 @@ M.setup = function () -- {{{
 
   M.current = {}
   M.current.health = M.startingHealth
+  M.current.maxHealth = M.startingHealth
 
   M.dashUsed = false
   M.dashTimer = 0

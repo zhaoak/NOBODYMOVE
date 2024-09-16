@@ -20,7 +20,7 @@ local function drawHealthBar(self, player)
   love.graphics.setColor(1, 1, 1, 0.2)
   love.graphics.rectangle("fill", 0, 0, thisBox.width, thisBox.height, 20, 20, 20)
   love.graphics.setColor(0.8, 0.2, 0.2, 0.2)
-  love.graphics.rectangle("fill", 5, 5, thisBox.width - 10 * (player.current.health/player.startingHealth), thisBox.height - 10, 20, 20, 20)
+  love.graphics.rectangle("fill", 5, 5, (thisBox.width-10) * (player.current.health/player.current.maxHealth), thisBox.height - 10, 10, 10, 5)
   local healthNumberDisplay = {{0.65,0.15,0.15,0.9},tostring(player.current.health)}
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.print(healthNumberDisplay, 40, 10, 0, 2, 2, 0, 0)
