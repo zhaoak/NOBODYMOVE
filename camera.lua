@@ -8,7 +8,7 @@ local M = { }
 M.thisFrameWindowSizeX = 800
 M.thisFrameWindowSizeY = 600
 M.playerObj = nil
-M.followAimMaxOffsetDistance = 500 -- how far cam is allowed to move from player in "followAim" mode
+M.followAimMaxOffsetDistance = 600 -- how far cam is allowed to move from player in "followAim" mode
 -- }}}
 
 M.x = 0 -- current x pos of camera
@@ -22,7 +22,7 @@ M.rotation = 0
 M.currentBehaviorMode = "none"
 
 -- list of camera behavior mode update functions {{{
--- keep camera centered on player perfectly at all times
+-- keep camera centered on player at all times, with damping
 local function centerPlayer()
   local adjustedCamPositionX = M.playerObj.getX() - ((M.thisFrameWindowSizeX / 2) * M.scaleX)
   local adjustedCamPositionY = M.playerObj.getY() - ((M.thisFrameWindowSizeY / 2) * M.scaleY)

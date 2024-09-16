@@ -1,7 +1,6 @@
 -- Module for drawing damage text numbers that appear when something takes or heals damage.
 
 local util = require'util'
-local npc = require'npc.npc'
 
 local M = {}
 
@@ -24,10 +23,12 @@ M.damageNumberEvent = function(damageAmount, npcHitUid)
 end
 
 -- draw all damageText events
-M.drawDamageNumberEvents = function()
+-- args:
+-- npcList(table): megalist of NPCs from NPC module
+M.drawDamageNumberEvents = function(npcList)
   love.graphics.setColor(1, 0, 0, 1)
   for npcUid, damageText in ipairs(M.damageNumEventList) do
-    love.graphics.print("-"..tostring(damageText.totalDamage), npc.npcList[npcUid]:getX(), npc.npcList[npcUid]:getY())
+    love.graphics.print("-"..tostring(damageText.totalDamage), npcList[npcUid]:getX(), npcList[npcUid]:getY())
   end
 end
 

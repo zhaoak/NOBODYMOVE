@@ -8,7 +8,6 @@ M.projectileList = {}
 local util = require'util'
 local filterVals = require'filterValues'
 local npc = require'npc.npc'
-local dmgText = require'ui.damageNumbers'
 
 -- {{{ defines
 M.bulletRadius = 5 -- how wide radius of bullet hitbox is
@@ -28,7 +27,16 @@ M.createHitscanShot = function(gun, shotWorldOriginX, shotWorldOriginY, worldRel
 
 end
 
--- Projectiles are Box2D bodies and take time to travel
+-- Projectiles are Box2D bodies with position, angle, and velocity,
+-- plus any other Box2D properties a dynamic physics object has.
+-- This function creates the projectiles from a single shoot projectile mod,
+-- including any multishots if present.
+-- args:
+-- gunFiringProjectileUid(num): uid of gun firing these projectiles
+-- projMod(mod): the mod table of the mod being fired
+-- shotWorldOriginX(num): X world coordinate where the shot should spawn
+-- shotWorldOriginY(num): Y world coordinate where the shot should spawn
+-- worldRelativeAimAngle(num): angle the projectiles should travel towards, in radians
 M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle)
   while projMod.bulletCount > 0 do
     -- create physics object for new projectile
@@ -98,8 +106,9 @@ M.handleProjectileCollision = function(a, b, contact)
   local fixtureAUserData = a:getUserData()
   local fixtureBUserData = b:getUserData()
   -- determine which of the fixtures is the projectile
+
+  -- fixture A is projectile
   if fixtureAUserData.type == "projectile" and fixtureBUserData.type ~= "projectile" then
-    -- fixture A is projectile
     if fixtureBUserData.type == "terrain" then
       -- TODO: create impact decal/animation at terrain location
       -- then delete bullet from world and projectile list (unless it's a bouncy kind but stay basic for now)
@@ -107,14 +116,13 @@ M.handleProjectileCollision = function(a, b, contact)
       a:getBody():destroy()
     elseif fixtureBUserData.type == "npc" and fixtureBUserData.team == "enemy" then
       -- deal damage, destroy the projectile, and update damage numbers
-      dmgText.damageNumberEvent(fixtureAUserData.damage, fixtureBUserData.uid)
       npc.npcList[fixtureBUserData.uid]:hurt(fixtureAUserData.damage)
       M.projectileList[fixtureAUserData.uid] = nil
       a:getBody():destroy()
     end
 
+  -- fixture B is projectile
   elseif fixtureBUserData.type == "projectile" and fixtureAUserData.type ~= "projectile" then
-    -- fixture B is projectile
     if fixtureAUserData.type == "terrain" then
       -- TODO: create impact decal/animation at terrain location
       -- then delete bullet from world (unless it's a bouncy kind but stay basic for now)
@@ -122,7 +130,6 @@ M.handleProjectileCollision = function(a, b, contact)
       b:getBody():destroy()
     elseif fixtureAUserData.type == "npc" and fixtureAUserData.team == "enemy" then
       -- deal damage, destroy projectile, update damage numbers
-      dmgText.damageNumberEvent(fixtureBUserData.damage, fixtureAUserData.uid)
       npc.npcList[fixtureAUserData.uid]:hurt(fixtureBUserData.damage)
       M.projectileList[fixtureBUserData.uid] = nil
       b:getBody():destroy()

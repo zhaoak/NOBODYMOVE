@@ -4,6 +4,7 @@
 
 local util = require("util")
 local filterValues = require("filterValues")
+local dmgText = require'ui.damageNumbers'
 
 -- defining a class metatable for all NPCs
 local M = { }
@@ -120,6 +121,10 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
     self.fixture:setGroupIndex(0)
   end
 
+  -- set knockback values to zero
+  self.thisTickTotalKnockbackX = 0
+  self.thisTickTotalKnockbackY = 0
+
   -- generate and assign a UID and userdata, then add npc to npc list
   self.uid = util.gen_uid("npc")
   self.fixture:setUserData{name = userDataTable.name, type = "npc", team = userDataTable.team, health = userDataTable.health, uid = self.uid}
@@ -127,6 +132,22 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
 
   return self.uid
 end -- }}}
+
+-- NPC shooting methods {{{
+function M:calculateShotKnockback(gunKnockback, gunAimAngle)
+  -- calculate and return knockback on X and Y axes
+  local knockbackX = -math.sin(gunAimAngle)*gunKnockback
+  local knockbackY = -math.cos(gunAimAngle)*gunKnockback
+  return knockbackX, knockbackY
+end
+
+-- apply knockback from npc's shot to npc
+-- summed knockback is applied in update step
+function M:addToThisTickKnockback(knockbackX, knockbackY)
+  self.thisTickTotalKnockbackX = self.thisTickTotalKnockbackX + knockbackX
+  self.thisTickTotalKnockbackY = self.thisTickTotalKnockbackY + knockbackY
+end
+-- }}}
 
 -- npc utility methods {{{
 -- Get a specific NPC's X and Y location in the world
@@ -138,10 +159,11 @@ function M:getY()
   return self.body:getY()
 end
 
--- damages an NPC's health by damageAmount and triggers their pain animation.
+-- damages an NPC's health by damageAmount and triggers their pain animation. Also triggers damage text display.
 -- Can accept negative values to heal, but will still trigger pain animation.
 function M:hurt(damageAmount)
   local newUserData = self.fixture:getUserData()
+  dmgText.damageNumberEvent(damageAmount, self.fixture:getUserData().uid)
   newUserData.health = newUserData.health - damageAmount
   self.fixture:setUserData(newUserData)
   -- print(self.fixture:getUserData().health)
@@ -150,6 +172,23 @@ end
 
 -- }}}
 
+-- npc update methods {{{
+function M:update(dt)
+  -- apply knockback values for this update
+  self.body:applyLinearImpulse(self.thisTickTotalKnockbackX, self.thisTickTotalKnockbackY)
+  -- then set the knockback to zero after we apply it
+  self.thisTickTotalKnockbackX = 0
+  self.thisTickTotalKnockbackY = 0
+end
+
+function M.updateAllNpcs(dt)
+  for uid, npc in pairs(M.npcList) do
+    npc:update(dt)
+  end
+end
+-- }}}
+
+-- NPC draw methods {{{
 -- Draw a specific NPC, instance method
 function M:draw()
   love.graphics.setColor(0.5, 0.8, 0.8, 1)
@@ -162,6 +201,7 @@ function M.drawAllNpcs()
     npc:draw()
   end
 end
+-- }}}
 
 return M
 -- vim: foldmethod=marker

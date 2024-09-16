@@ -77,7 +77,7 @@ function love.draw() -- {{{
   obj.playfield.draw()
   obj.player.draw()
   obj.npc.drawAllNpcs()
-  dmgText.drawDamageNumberEvents()
+  dmgText.drawDamageNumberEvents(obj.npc.npcList)
 
   -- draw existing bullets and other projectiles
   obj.projectiles.draw()
@@ -158,8 +158,9 @@ function love.draw() -- {{{
     love.graphics.print("spooder velocity, x/y/total/angular: "..string.format("%.2f", spoodCurrentLinearVelocityX).." / "..string.format("%.2f", spoodCurrentLinearVelocityY).." / "..string.format("%.2f", spoodCurrentLinearVelocity).." / "..string.format("%.2f", obj.player.body:getAngularVelocity()))
     love.graphics.print("grabbing? "..tostring(obj.player.grab), 0, 20)
     love.graphics.print("world-relative aim angle (0 = directly down, pi = directly up): "..string.format("%.2f", obj.player.currentAimAngle), 0, 40)
+    -- love.graphics.print("current guns: "..gunNameDebugList, 0, 60) -- commenting out bc hud shows this info now
+    love.graphics.print("camera position x/y/xtarget/ytarget: "..string.format("%.2f", cam.x).." / "..string.format("%.2f", cam.y).." / "..(cam.targetXPos or "nil").." / "..(cam.targetYPos or "nil"), 0, 60)
     love.graphics.setColor(0, .75, .25)
-    love.graphics.print("current guns: "..gunNameDebugList, 0, 60)
     if obj.player.grab then
       local distance, x1, y1, x2, y2 = love.physics.getDistance(obj.player.hardbox.fixture, obj.player.grab.fixture)
       love.graphics.print("distance between hardbox and closest fixture and their closest points (displayed in orange): "..tostring(math.floor(distance))..", ("..tostring(math.floor(x1))..", "..tostring(math.floor(y1))..") / ("..tostring(math.floor(x2))..", "..tostring(math.floor(y2))..")", 0, 80)
