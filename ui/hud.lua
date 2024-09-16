@@ -1,8 +1,6 @@
 -- Module for drawing the HUD (heads-up display) present on screen during gameplay.
 -- Displays health, gun status, and other such game-relevant information.
 
-local gunlib = require'guns'
-local player = require'player'
 local uibox = require'ui.uiBox'
 local M = { }
 
@@ -14,7 +12,7 @@ M.healthDisplayHeight = 50
 -- }}}
 
 -- health and status bar {{{
-local function drawHealthBar()
+local function drawHealthBar(self, player)
   local thisBox = uibox.uiBoxList["hudHealthBar"]
   love.graphics.push() -- save previous transformation state
   -- then set 0,0 point for graphics calls to the top left corner of the UIbox
@@ -38,16 +36,16 @@ end
 -- }}}
 
 -- gunlist on hud present during normal gameplay {{{
-local function drawHudGunList()
+local function drawHudGunList(self, player, gunList)
   local thisBox = uibox.uiBoxList["hudGunList"]
   love.graphics.push() -- save previous transformation state
   -- then set 0,0 point for graphics calls to the top left corner of the UIbox
   love.graphics.translate(thisBox.originX, thisBox.originY)
   love.graphics.setColor(1, 1, 1, 0.2)
-  love.graphics.rectangle("fill", 0, 0, thisBox.width, thisBox.height, 20, 20, 20)
+  love.graphics.rectangle("fill", 0, 0, thisBox.width, #player.guns*M.gunHudListItemHeight, 20, 20, 20)
   local gunListYPosOffset = 0
   for i, gunId in pairs(player.guns) do
-    M.drawHudGunListItem(gunlib.gunlist[gunId], 5, gunListYPosOffset)
+    M.drawHudGunListItem(gunList[gunId], 5, gunListYPosOffset)
     gunListYPosOffset = gunListYPosOffset + M.gunHudListItemHeight
   end
   love.graphics.pop() -- return back to previous transformation state
@@ -55,7 +53,7 @@ end
 
 local function createHudGunList()
   local originX, originY = 5, uibox.thisFrameWindowSizeY * (1/10)
-  local width, height = M.gunHudListItemWidth, M.gunHudListItemHeight * #player.guns
+  local width, height = M.gunHudListItemWidth, M.gunHudListItemHeight * 4 -- for four firegroups
   local minWidth, minHeight = 200, 100
   uibox.create(originX, originY, width, height, minWidth, minHeight, "hudGunList", createHudGunList, drawHudGunList, true, false)
 end
@@ -73,9 +71,9 @@ end
 
 -- primary functions for creating/drawing/updating hud
 -- these are the ones that get called directly in main.lua {{{
-M.draw = function()
-  uibox.uiBoxList["hudGunList"]:draw()
-  uibox.uiBoxList["hudHealthBar"]:draw()
+M.draw = function(player, gunList)
+  uibox.uiBoxList["hudGunList"]:draw(player, gunList)
+  uibox.uiBoxList["hudHealthBar"]:draw(player)
 end
 
 -- for creating uiboxes for hud before first drawcall

@@ -138,7 +138,7 @@ function love.draw() -- {{{
 
   -- draw everything that doesn't move with the camera
   -- (HUD, other UI elements, etc)
-  hud.draw()
+  hud.draw(obj.player, gunlib.gunlist)
 
   -- non-camera affected debug rendering {{{
   if arg[2] == 'debug' then
