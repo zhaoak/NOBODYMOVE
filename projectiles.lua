@@ -202,6 +202,7 @@ M.update = function (dt) -- {{{
     end
 
     -- if the projectile has a despawn-below-speed value set, check its speed
+    -- and despawn it if below the value
     if projUserData.despawnBelowVelocity ~= nil then
       local despawnSpeed = math.abs(projUserData.despawnBelowVelocity)
       local bulletLinearVelocityX, bulletLinearVelocityY = proj.body:getLinearVelocity()

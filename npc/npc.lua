@@ -109,15 +109,15 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
   -- set collision filter data
   if userDataTable.team == "enemy" then
     self.fixture:setCategory(filterValues.category.enemy)
-    self.fixture:setMask(filterValues.category.enemy, filterValues.category.projectile_enemy)
+    self.fixture:setMask(filterValues.category.enemy, filterValues.category.projectile_enemy, filterValues.category.terrain_bg)
     self.fixture:setGroupIndex(0)
   elseif userDataTable.team == "friendly" then
     self.fixture:setCategory(filterValues.category.friendly)
-    self.fixture:setMask(filterValues.category.friendly, filterValues.category.projectile_player)
+    self.fixture:setMask(filterValues.category.friendly, filterValues.category.projectile_player, filterValues.category.terrain_bg)
     self.fixture:setGroupIndex(0)
   elseif userDataTable.team == "neutral" then
     self.fixture:setCategory(filterValues.category.neutral)
-    self.fixture:setMask()
+    self.fixture:setMask(filterValues.category.terrain_bg)
     self.fixture:setGroupIndex(0)
   end
 

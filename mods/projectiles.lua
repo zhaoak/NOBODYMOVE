@@ -80,12 +80,6 @@ M.smallBullet = function()
   return modTable
 end
 
-M.threeSmallBullet = function()
-  local modtable = M.smallBullet()
-  modtable.bulletCount = 3
-  return modtable
-end
-
 -- Medium caliber bullet: low-mid cooldown/knockback/damage, med-high speed, decent accuracy
 M.mediumBullet = function()
   local modTable = M.templateMod()

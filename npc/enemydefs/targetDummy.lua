@@ -14,8 +14,8 @@ M.physicsData = {
   },
   fixture = {
     density = 1,
-    restitution = 0,
-    friction = 1
+    restitution = 0.3,
+    friction = 0.75
   }
 }
 

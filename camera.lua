@@ -9,13 +9,13 @@ M.thisFrameWindowSizeX = 800
 M.thisFrameWindowSizeY = 600
 M.playerObj = nil
 M.followAimMaxOffsetDistance = 600 -- how far cam is allowed to move from player in "followAim" mode
+M.maxPanSpeed = 5 -- how fast camera is allowed to move on each axis per second
 -- }}}
 
 M.x = 0 -- current x pos of camera
 M.y = 0 -- current y pos of camera
 M.targetXPos = nil -- target x pos of camera, only used when panning to position over time
 M.targetYPos = nil -- target y pos of camera, only used when panning to position over time
-M.maxPanSpeed = 8 -- how fast camera is allowed to move on each axis per second
 M.scaleX = 1
 M.scaleY = 1
 M.rotation = 0
