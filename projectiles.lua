@@ -7,7 +7,6 @@ M.projectileList = {}
 
 local util = require'util'
 local filterVals = require'filterValues'
-local npc = require'npc.npc'
 
 -- {{{ defines
 M.bulletRadius = 5 -- how wide radius of bullet hitbox is
@@ -104,42 +103,43 @@ end
 -- }}}
 
 -- projectile collision handling {{{
-M.handleProjectileCollision = function(a, b, contact)
+M.handleProjectileCollision = function(a, b, contact, npcList)
   local fixtureAUserData = a:getUserData()
   local fixtureBUserData = b:getUserData()
-  -- determine which of the fixtures is the projectile
 
-  -- fixture A is projectile
+  -- if the things that collided are on the same team, cancel the collision, we're done here
+  if fixtureAUserData.team == fixtureBUserData.team then contact:setEnabled(false) return end
+
+  -- otherwise, start by determining which of the fixtures is the projectile, cache them and their values
+  local projectileFixture, otherFixture, projFixData, otherFixData
+  -- if fixture A is projectile
   if fixtureAUserData.type == "projectile" and fixtureBUserData.type ~= "projectile" then
-    if fixtureBUserData.type == "terrain" then
-      -- TODO: create impact decal/animation at terrain location
-      -- then delete bullet from world and projectile list (unless it's a bouncy kind but stay basic for now)
-      M.projectileList[fixtureAUserData.uid] = nil
-      a:getBody():destroy()
-    elseif fixtureBUserData.type == "npc" and fixtureBUserData.team == "enemy" then
-      -- deal damage, destroy the projectile, and update damage numbers
-      npc.npcList[fixtureBUserData.uid]:hurt(fixtureAUserData.damage)
-      M.projectileList[fixtureAUserData.uid] = nil
-      a:getBody():destroy()
-    end
-
-  -- fixture B is projectile
+    projectileFixture = a
+    projFixData = a:getUserData()
+    otherFixture = b
+    otherFixData = b:getUserData()
+  -- if fixture B is projectile
   elseif fixtureBUserData.type == "projectile" and fixtureAUserData.type ~= "projectile" then
-    if fixtureAUserData.type == "terrain" then
-      -- TODO: create impact decal/animation at terrain location
-      -- then delete bullet from world (unless it's a bouncy kind but stay basic for now)
-      M.projectileList[fixtureBUserData.uid] = nil
-      b:getBody():destroy()
-    elseif fixtureAUserData.type == "npc" and fixtureAUserData.team == "enemy" then
-      -- deal damage, destroy projectile, update damage numbers
-      npc.npcList[fixtureAUserData.uid]:hurt(fixtureBUserData.damage)
-      M.projectileList[fixtureBUserData.uid] = nil
-      b:getBody():destroy()
-    end
+    projectileFixture = b
+    projFixData = b:getUserData()
+    otherFixture = a
+    otherFixData = a:getUserData()
   else
     -- both A and B are projectiles
     print("ow!! the bullets are touching!!")
     contact:setEnabled(false)
+  end
+
+  if otherFixData.type == "terrain" then
+    -- TODO: create impact decal/animation at terrain location
+    -- then delete bullet from world and projectile list (unless it's a bouncy kind but stay basic for now)
+    M.projectileList[projFixData.uid] = nil
+    projectileFixture:getBody():destroy()
+  elseif otherFixData.type == "npc" and otherFixData.team == "enemy" then
+    -- deal damage, destroy the projectile, and update damage numbers
+    npcList[otherFixData.uid]:hurt(projFixData.damage)
+    M.projectileList[projFixData.uid] = nil
+    projectileFixture:getBody():destroy()
   end
 end
 -- }}}

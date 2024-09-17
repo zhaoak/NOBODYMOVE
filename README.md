@@ -34,10 +34,10 @@ type (string): What sort of object it is. Used in determining how the object han
                 - "projectile" : something someone shot, probably from a gun.
 name (string): The name of the entity. May be displayed to the player. Does not need to be unique.
 uid (number) : A unique ID given to each object of a given type (that is, UIDs are namespaced to specific types.)
-team (string): Who the object is allied with, relative to the player. Must be one of: "friendly", "enemy", "neutral".
 
 PROP/NPC/PLAYER/PROJECTILE TYPES ONLY ===============
 health (num) : How much damage the entity can take before being destroyed/killed. If nil, the object is immortal.
+team (string): Who the object is allied with, relative to the player. Must be one of: "friendly", "enemy", "neutral".
 
 PROJECTILE TYPES ONLY ===============================
 firedByGun (number): UID of gun this projectile was fired from.

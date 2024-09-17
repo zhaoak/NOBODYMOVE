@@ -193,11 +193,6 @@ function beginContact(a, b, contact) -- {{{
     -- ...then add the terrain to the cache of terrain items in latching range
     obj.player.handleTerrainEnteringRange(a, b, contact)
   end
-
-  -- projectile impact handling
-  if fixtureAUserData.type == "projectile" or fixtureBUserData.type == "projectile" then
-    obj.projectiles.handleProjectileCollision(a, b, contact)
-  end
 end -- }}}
 
 function endContact(a, b, contact) -- {{{
@@ -212,6 +207,8 @@ function endContact(a, b, contact) -- {{{
 end -- }}}
 
 function preSolve(a, b, contact) -- {{{
+  local fixtureAUserData = a:getUserData()
+  local fixtureBUserData = b:getUserData()
   -- Since 'sensors' senselessly sense solely shapes sharing space, shan't share specifics, shove sensors.
   -- Silly sensors, surely sharing shouldn't stress software simulation?
   -- So, set shapes: "sure, sharing space shouldn't shove shapes", so seeing spots shapes share shall succeed shortly.
@@ -223,6 +220,11 @@ function preSolve(a, b, contact) -- {{{
   -- then in code when we grab the contact we can use methods like getPositions
   if a:getUserData().semisensor or b:getUserData().semisensor then
     contact:setEnabled(false)
+  end
+
+  -- projectile impact handling
+  if fixtureAUserData.type == "projectile" or fixtureBUserData.type == "projectile" then
+    obj.projectiles.handleProjectileCollision(a, b, contact, obj.npc.npcList)
   end
 end -- }}}
 
