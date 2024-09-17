@@ -16,7 +16,7 @@ List of things still needing to be done for spoodergame
 - fix bug w/aiming at terrain near npc at angle and doing way more damage but just with 8 guns as far as i can tell??
     - may be some weirdness with collision handling, try adding npc update func and summing all damage dealt to NPC in one tick rather than on collision
     - this behavior is probably from box2d handling physics results automatically from projectile collisions, so probably...
-        - custom physics handling for projectiles hitting player/npcs
+        - ~custom physics handling for projectiles hitting player/npcs~
 
 - enemy design, AI, enemies shooting back
 

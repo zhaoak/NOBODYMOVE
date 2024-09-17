@@ -3,9 +3,10 @@ local M = {}
 M.physicsData = {
   body = {
     angularDamping = 0,
-    fixedRotation = true,
+    fixedRotation = false,
     gravityScale = 1,
-    linearDamping = 0
+    linearDamping = 0,
+    mass = 2
   },
   shape = {
     shapeType = "rectangle",

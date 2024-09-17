@@ -127,11 +127,11 @@ M.handleProjectileCollision = function(a, b, contact, npcList)
   if fixtureAUserData.team == fixtureBUserData.team then contact:setEnabled(false) return end
 
   -- always disable the contact, regardless of what got hit;
-  -- we do this so Box2D doesn't do any knockback or impact calculation for projectiles,
-  -- since we handle knockback-on-hit ourselves
+  -- we do this so Box2D doesn't apply any forces as a result of the collision automatically,
+  -- since we want to handle all that ourselves for projectile hits
   contact:setEnabled(false)
 
-  -- otherwise, start by determining which of the fixtures is the projectile, cache them and their values
+  -- start by determining which of the fixtures is the projectile, cache them and their values
   local projectileFixture, otherFixture, projFixData, otherFixData
   -- if fixture A is projectile
   if fixtureAUserData.type == "projectile" and fixtureBUserData.type ~= "projectile" then
@@ -160,14 +160,27 @@ M.handleProjectileCollision = function(a, b, contact, npcList)
 
   -- if the hit thing was an NPC on another team...
   elseif otherFixData.type == "npc" and otherFixData.team ~= projFixData.team then
-    -- deal damage, destroy the projectile, and calc+apply knockback
-    local projVelocityX, projVelocityY = projectileFixture:getBody():getLinearVelocity()
-    local angle = (util.angleBetweenVectors(0, 1, projVelocityX, projVelocityY) - (math.pi/2))
+    -- get the contact position and linear velocity of both bodies at that point
+    local cPosX, cPosY = contact:getPositions()
+    local projCPointVelocityX, projCPointVelocityY = projectileFixture:getBody():getLinearVelocityFromWorldPoint(cPosX, cPosY)
+    local npcCPointVelocityX, npcCPointVelocityY = otherFixture:getBody():getLinearVelocityFromWorldPoint(cPosX, cPosY)
+    -- then use those values to find the impact velocity
+    local relativeCPointVelocityX, relativeCPointVelocityY = projCPointVelocityX-npcCPointVelocityX, projCPointVelocityY-npcCPointVelocityY
+    -- convert the impact velocity to a world-relative impact angle
+    local angle = (util.angleBetweenVectors(0, 1, relativeCPointVelocityX, relativeCPointVelocityY) - (math.pi/2))
+    -- then calculate the hit projectile's knockback from its set knockback value and the impact angle
     local xKnockback, yKnockback = npcList[otherFixData.uid]:calculateShotKnockback(projFixData.hitKnockback, angle)
-    npcList[otherFixData.uid]:addToThisTickKnockback(xKnockback, -yKnockback)
+    -- negative yKnockback because in love Y increases downward
+    -- finally, apply the knockback at the contact position to get that angular velocity S P I N
+    npcList[otherFixData.uid]:addToThisTickKnockbackAtWorldPosition(xKnockback, -yKnockback, cPosX, cPosY)
+    -- then apply damag and destroy the projectile
     npcList[otherFixData.uid]:hurt(projFixData.damage)
     M.projectileList[projFixData.uid] = nil
     projectileFixture:getBody():destroy()
+
+  -- if the hit thing was a player...
+  elseif otherFixData.type == "player" and otherFixData.team ~= projFixData.team then
+
   end
 end
 -- }}}

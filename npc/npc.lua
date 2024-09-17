@@ -125,6 +125,9 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
   self.thisTickTotalKnockbackX = 0
   self.thisTickTotalKnockbackY = 0
 
+  -- queue for impulses at specific coords to apply in update step
+  self.thisTickImpulseAtLocationQueue = {}
+
   -- generate and assign a UID and userdata, then add npc to npc list
   self.uid = util.gen_uid("npc")
   self.fixture:setUserData{name = userDataTable.name, type = "npc", team = userDataTable.team, health = userDataTable.health, uid = self.uid}
@@ -135,6 +138,7 @@ end -- }}}
 
 -- NPC apply-knockback methods {{{
 -- calculate knockback from NPC shooting they gun
+-- converts an amount of force and angle into a velocity vector
 function M:calculateShotKnockback(gunKnockback, gunAimAngle)
   -- calculate and return knockback on X and Y axes
   local knockbackX = -math.sin(gunAimAngle)*gunKnockback
@@ -142,11 +146,21 @@ function M:calculateShotKnockback(gunKnockback, gunAimAngle)
   return knockbackX, knockbackY
 end
 
--- apply knockback to NPC
+-- apply knockback to NPC's center of mass
+-- used for handling knockback from shooting guns
 -- summed knockback is applied in update step
 function M:addToThisTickKnockback(knockbackX, knockbackY)
   self.thisTickTotalKnockbackX = self.thisTickTotalKnockbackX + knockbackX
   self.thisTickTotalKnockbackY = self.thisTickTotalKnockbackY + knockbackY
+end
+
+-- apply an impulse to an NPC at a specific position on its shape
+-- used for handling knockback from projectiles hitting specific parts of hitbox
+-- impulse is applied in npc update step
+-- posX and posY should be in world coordinates, not local
+function M:addToThisTickKnockbackAtWorldPosition(knockbackX, knockbackY, posX, posY)
+  table.insert(self.thisTickImpulseAtLocationQueue, {
+    knockbackX=knockbackX,knockbackY=knockbackY,posX=posX,posY=posY})
 end
 -- }}}
 
@@ -175,11 +189,18 @@ end
 
 -- npc update methods {{{
 function M:update(dt)
-  -- apply knockback values for this update
+  -- apply center-of-mass knockback values for this update
   self.body:applyLinearImpulse(self.thisTickTotalKnockbackX, self.thisTickTotalKnockbackY)
-  -- then set the knockback to zero after we apply it
+  -- reset center-of-mass knockback values for next tick 
   self.thisTickTotalKnockbackX = 0
   self.thisTickTotalKnockbackY = 0
+
+  -- apply at-specific-position impulses to NPC this update
+  for _, impulse in ipairs(self.thisTickImpulseAtLocationQueue) do
+    self.body:applyLinearImpulse(impulse.knockbackX, impulse.knockbackY, impulse.posX, impulse.posY)
+  end
+  -- empty the queue once everything is applied
+  self.thisTickImpulseAtLocationQueue = {}
 end
 
 function M.updateAllNpcs(dt)
