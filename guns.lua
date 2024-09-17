@@ -120,7 +120,7 @@ local function shoot (gun, shootMods, triggerCooldown, ignoreCooldown) -- {{{
     if mod.modCategory == "projectile" then
       totalCooldown = totalCooldown + mod.cooldownCost
       totalKnockback = totalKnockback + mod.holderKnockback
-      projectileLib.createProjectile(gun.uid, mod, gun.current.projectileSpawnPosX, gun.current.projectileSpawnPosY, gun.current.absoluteAimAngle)
+      projectileLib.createProjectile(gun.uid, mod, gun.current.projectileSpawnPosX, gun.current.projectileSpawnPosY, gun.current.absoluteAimAngle, gun.current.wielder.team)
     end
   end
 

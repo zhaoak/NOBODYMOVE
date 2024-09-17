@@ -21,6 +21,7 @@ M.startingHealth = 100
 M.playerAcceleration = 10
 M.playerLatchedKnockbackReduction = 0.5
 M.ragdoll = true
+M.team = "friendly" -- relative to the player, yes, the player is friendly to itself
 -- relative to world; i.e. 0 means aiming straight down from player perspective of world
 -- increases counterclockwise, decreases clockwise, i.e. aiming left is angle -pi/2, aiming right is pi/2
 M.currentAimAngle = 0

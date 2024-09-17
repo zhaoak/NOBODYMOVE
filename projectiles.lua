@@ -37,7 +37,8 @@ end
 -- shotWorldOriginX(num): X world coordinate where the shot should spawn
 -- shotWorldOriginY(num): Y world coordinate where the shot should spawn
 -- worldRelativeAimAngle(num): angle the projectiles should travel towards, in radians
-M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle)
+-- shotByTeam(string): which team the projectiles belong to, one of: "friendly", "enemy", "neutral"
+M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle, shotByTeam)
   while projMod.bulletCount > 0 do
     -- create physics object for new projectile
     local newProj = {}
@@ -49,6 +50,7 @@ M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX,
     newProj.fixture:setUserData{
       name="projectile",
       type="projectile",
+      team=shotByTeam,
       damage=projMod.projectileDamage,
       firedByGun=gunFiringProjectileUid,
       uid=util.gen_uid("projectile")

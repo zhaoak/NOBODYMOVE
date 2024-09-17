@@ -40,7 +40,7 @@ PROP/NPC/PLAYER/PROJECTILE TYPES ONLY ===============
 health (num) : How much damage the entity can take before being destroyed/killed. If nil, the object is immortal.
 
 PROJECTILE TYPES ONLY ===============================
-firedFrom (number): UID of gun this projectile was fired from.
+firedByGun (number): UID of gun this projectile was fired from.
 damage (number)   : how much damage to apply to a target directly hit by this projectile
 }
 ```
