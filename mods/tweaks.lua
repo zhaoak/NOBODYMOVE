@@ -26,18 +26,19 @@ end
 M.shotgunify = function()
   local modTable = {}
   modTable.modCategory = "tweak"
-  modTable.displayName = "Bullet Diffractor"
+  modTable.displayName = "Shotgunify"
   modTable.description = "Shoot three of every projectile, but with much lower range, accuracy and a longer cooldown"
 
   modTable.apply = function(gun, shootProjectileMods)
     -- for each shoot mod in the event...
     for _, shootMod in ipairs(shootProjectileMods) do
       -- tweak its stats like so...
-      shootMod.linearDamping = shootMod.linearDamping + 3
+      shootMod.linearDamping = shootMod.linearDamping + 3 -- slow down over time
+      shootMod.despawnBelowVelocity = 250 -- once it gets too slow, despawn it
       shootMod.inaccuracy = shootMod.inaccuracy + math.rad(15)
       shootMod.holderKnockback = shootMod.holderKnockback * 5
       -- and make it multishot two more projectiles per shot
-      shootMod.bulletCount = shootMod.bulletCount + 2
+      shootMod.spawnCount = shootMod.spawnCount + 2
     end
     -- then return the new table of shoot mods
     return shootProjectileMods

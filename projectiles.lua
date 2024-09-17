@@ -3,18 +3,10 @@
 
 local M = { }
 
-M.projectileList = {}
+M.projectileList = {} -- megalist of all projectiles existing in world
 
 local util = require'util'
 local filterVals = require'filterValues'
-
--- {{{ defines
-M.bulletRadius = 5 -- how wide radius of bullet hitbox is
-M.bulletMass = 0.2
--- if a bullet is traveling less than this fast in on the X or Y axis,
--- it will be destroyed that frame
-M.bulletDestructionVelocityThreshold = 250
--- }}}
 
 M.setup = function(world) -- {{{
   -- cache world for later
@@ -38,7 +30,7 @@ end
 -- worldRelativeAimAngle(num): angle the projectiles should travel towards, in radians
 -- shotByTeam(string): which team the projectiles belong to, one of: "friendly", "enemy", "neutral"
 M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle, shotByTeam)
-  while projMod.bulletCount > 0 do
+  while projMod.spawnCount > 0 do
     -- create physics object for new projectile
     local newProj = {}
     newProj.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
@@ -50,6 +42,10 @@ M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX,
       name="projectile",
       type="projectile",
       team=shotByTeam,
+      projectileType=projMod.projectileType,
+      maxLifetime=projMod.maxLifetime,
+      currentLifetime=0,
+      despawnBelowVelocity=projMod.despawnBelowVelocity,
       damage=projMod.projectileDamage,
       firedByGun=gunFiringProjectileUid,
       uid=util.gen_uid("projectile")
@@ -97,7 +93,7 @@ M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX,
     M.projectileList[newProj.fixture:getUserData().uid] = newProj
 
     -- decrement stat used for spawning multiple projectiles
-    projMod.bulletCount = projMod.bulletCount - 1
+    projMod.spawnCount = projMod.spawnCount - 1
   end
 end
 -- }}}
@@ -151,24 +147,43 @@ M.draw = function() -- {{{
   end
 end -- }}}
 
--- for checking timed explosives, other effects
-M.update = function (dt)
-  for i, proj in pairs(M.projectileList) do
-    if proj.fixture:getUserData().name == "projectile" then
-      -- if a bullet is travelling below a specific speed (see defines), destroy it
+M.update = function (dt) -- {{{
+  -- iterate through all existing projectiles
+  for _, proj in pairs(M.projectileList) do
+    local destroyed = false
+    local projUserData = proj.fixture:getUserData()
+
+    -- increment the projectile's lifetime timer
+    projUserData.currentLifetime = projUserData.currentLifetime + dt
+
+    -- if the projectile has been alive for longer than its max lifetime, despawn it
+    if projUserData.currentLifetime > projUserData.maxLifetime then
+      local projectileToDestroy = proj
+      M.projectileList[projUserData.uid] = nil
+      projectileToDestroy.body:destroy()
+      destroyed = true
+    end
+
+    -- if the projectile has a despawn-below-speed value set, check its speed
+    if projUserData.despawnBelowVelocity ~= nil then
+      local despawnSpeed = math.abs(projUserData.despawnBelowVelocity)
       local bulletLinearVelocityX, bulletLinearVelocityY = proj.body:getLinearVelocity()
-      if bulletLinearVelocityX < M.bulletDestructionVelocityThreshold and
-         bulletLinearVelocityY < M.bulletDestructionVelocityThreshold and
-         bulletLinearVelocityX > -M.bulletDestructionVelocityThreshold and
-         bulletLinearVelocityY > -M.bulletDestructionVelocityThreshold then
-        local bulletToDestroy = proj
-        M.projectileList[proj.fixture:getUserData().uid] = nil
-        bulletToDestroy.body:destroy()
+      if bulletLinearVelocityX < despawnSpeed and
+         bulletLinearVelocityY < despawnSpeed and
+         bulletLinearVelocityX > -despawnSpeed and
+         bulletLinearVelocityY > -despawnSpeed then
+        local projectileToDestroy = proj
+        M.projectileList[projUserData.uid] = nil
+        projectileToDestroy.body:destroy()
+        destroyed = true
       end
     end
-    -- print(proj.fixture:getUserData())
+
+    -- write the lifetime and any other updated values to the projectile's userdata,
+    -- but only if it wasn't destroyed
+    if not destroyed then proj.fixture:setUserData(projUserData) end
   end
-end
+end -- }}}
 
 return M
 -- vim: foldmethod=marker

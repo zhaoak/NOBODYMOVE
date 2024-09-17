@@ -6,13 +6,13 @@ local M = { }
 M.templateMod = function()
   local modTable = {}
 
-  -- all mods should have these fields, regardless of type
+  -- All mods should have these three fields, regardless of type:
+  -- Category of the 
   modTable.modCategory = "projectile"
+  -- Name of this mod as displayed to the player in the UI
   modTable.displayName = "Example Shoot Projectile Mod"
+  -- Description of this mod, also visible in UI
   modTable.description = "Template for projectile-spawning mods"
-
-  -- a unique string used to identify the type of projectile this function generates
-  modTable.type = "demoshot"
 
   -- the projShapeData table defines the hitbox shape and size of the projectile
   -- `hitboxShape` determines the type of shape, and must be one of: "circle", "polygon", "rectangle"
@@ -23,18 +23,41 @@ M.templateMod = function()
   -- for hitboxShape == "rectangle" : `width`, `height` : the width and height of the rectangle
   modTable.shapeData = { hitboxShape="circle", radius=2 }
 
+  -- A unique string used to identify the type of projectile this function generates
+  modTable.projectileType = "demoshot"
+
   -- shoot projectile mods must include _all_ of the following values,
   -- as these values are changed by projectileModifier mods
+
+  -- How much this mod contributes to a gun's per-shoot-event cooldown timer
   modTable.cooldownCost = 0.5
+  -- How much backward force this mod applies to the shooter when shot
   modTable.holderKnockback = 5
+  -- How much force _one_ projectile spawned by this mod should apply to a hit target
   modTable.hitKnockback = 5
+  -- How much damage _one_ projectile spawned by this mod does on hit
   modTable.projectileDamage = 3
+  -- The default maximum angle of inaccuracy of this gun in radians
+  -- (If you'd prefer to use degrees, simply convert a degree value using math.rad)
+  -- Example: a value of `math.rad(15)` means the fired shot can be fired clockwise or counterclockwise
+  -- up to 15 degrees off from the angle you're aiming at, determined at random.
+  -- This means that at inaccuracy of 15 degrees, the shot can go anywhere in a 30 degree cone.
   modTable.inaccuracy = math.rad(1)
+  -- How much velocity to apply to the projectile upon spawning it
   modTable.speed = 100
+  -- How long the projectile is allowed to exist before being forcibly despawned, in seconds
+  modTable.maxLifetime = 10
+  -- If the projectile ever drops below this speed in any direction, despawn it
+  -- (if nil, the projectile will never despawn based on speed)
+  modTable.despawnBelowVelocity = nil
+  -- The linear damping of the projectile (meaning its innate deceleration rate)
   modTable.linearDamping = 0
+  -- A multiplier value for how much the physics world's gravity should apply to the projectile
   modTable.gravityScale = 0
+  -- The projectile's mass value: note that this is not used for knockback-on-hit calculations
   modTable.mass = 0.2
-  modTable.bulletCount = 1
+  -- How many copies of the projectile to create when shooting this mod
+  modTable.spawnCount = 1
   return modTable
 end
 
@@ -43,7 +66,7 @@ M.smallBullet = function()
   local modTable = M.templateMod()
   modTable.displayName = "Shoot small bullet"
   modTable.description = "lore goes here ig"
-  modTable.type = "smallbullet"
+  modTable.projectileType = "smallbullet"
   modTable.shapeData = { hitboxShape="circle", radius=3 }
   modTable.cooldownCost = 0.10
   modTable.holderKnockback = 2
@@ -68,7 +91,7 @@ M.mediumBullet = function()
   local modTable = M.templateMod()
   modTable.displayName = "Shoot medium bullet"
   modTable.description = "lore goes here ig"
-  modTable.type = "mediumbullet"
+  modTable.projectileType = "mediumbullet"
   modTable.shapeData = { hitboxShape="circle", radius=5 }
   modTable.cooldownCost = 0.20
   modTable.holderKnockback = 4
@@ -85,7 +108,7 @@ M.largeBullet = function()
   local modTable = M.templateMod()
   modTable.displayName = "Shoot large bullet"
   modTable.description = "lore goes here ig"
-  modTable.type = "largebullet"
+  modTable.projectileType = "largebullet"
   modTable.shapeData = { hitboxShape="circle", radius=7 }
   modTable.cooldownCost = 0.35
   modTable.holderKnockback = 8
@@ -102,7 +125,7 @@ M.oversizeBullet = function()
   local modTable = M.templateMod()
   modTable.displayName = "Shoot oversize bullet"
   modTable.description = "lore goes here ig"
-  modTable.type = "oversizebullet"
+  modTable.projectileType = "oversizebullet"
   modTable.shapeData = { hitboxShape="circle", radius=9 }
   modTable.cooldownCost = 0.7
   modTable.holderKnockback = 75
