@@ -133,7 +133,8 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
   return self.uid
 end -- }}}
 
--- NPC shooting methods {{{
+-- NPC apply-knockback methods {{{
+-- calculate knockback from NPC shooting they gun
 function M:calculateShotKnockback(gunKnockback, gunAimAngle)
   -- calculate and return knockback on X and Y axes
   local knockbackX = -math.sin(gunAimAngle)*gunKnockback
@@ -141,7 +142,7 @@ function M:calculateShotKnockback(gunKnockback, gunAimAngle)
   return knockbackX, knockbackY
 end
 
--- apply knockback from npc's shot to npc
+-- apply knockback to NPC
 -- summed knockback is applied in update step
 function M:addToThisTickKnockback(knockbackX, knockbackY)
   self.thisTickTotalKnockbackX = self.thisTickTotalKnockbackX + knockbackX

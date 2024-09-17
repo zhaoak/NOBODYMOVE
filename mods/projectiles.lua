@@ -70,7 +70,7 @@ M.smallBullet = function()
   modTable.shapeData = { hitboxShape="circle", radius=3 }
   modTable.cooldownCost = 0.10
   modTable.holderKnockback = 2
-  modTable.hitKnockback = 2
+  modTable.hitKnockback = 20
   modTable.projectileDamage = 3
   modTable.inaccuracy = math.rad(5)
   modTable.speed = 250
@@ -94,8 +94,8 @@ M.mediumBullet = function()
   modTable.projectileType = "mediumbullet"
   modTable.shapeData = { hitboxShape="circle", radius=5 }
   modTable.cooldownCost = 0.20
-  modTable.holderKnockback = 4
-  modTable.hitKnockback = 6
+  modTable.holderKnockback = 25
+  modTable.hitKnockback = 50
   modTable.projectileDamage = 5
   modTable.inaccuracy = math.rad(2)
   modTable.speed = 350
@@ -111,8 +111,8 @@ M.largeBullet = function()
   modTable.projectileType = "largebullet"
   modTable.shapeData = { hitboxShape="circle", radius=7 }
   modTable.cooldownCost = 0.35
-  modTable.holderKnockback = 8
-  modTable.hitKnockback = 10
+  modTable.holderKnockback = 50
+  modTable.hitKnockback = 250
   modTable.projectileDamage = 10
   modTable.inaccuracy = math.rad(0.5)
   modTable.speed = 500
@@ -128,8 +128,8 @@ M.oversizeBullet = function()
   modTable.projectileType = "oversizebullet"
   modTable.shapeData = { hitboxShape="circle", radius=9 }
   modTable.cooldownCost = 0.7
-  modTable.holderKnockback = 75
-  modTable.hitKnockback = 45
+  modTable.holderKnockback = 400
+  modTable.hitKnockback = 500
   modTable.projectileDamage = 30
   modTable.inaccuracy = math.rad(0.5)
   modTable.speed = 1500 

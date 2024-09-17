@@ -84,7 +84,7 @@ M.setup = function (world) -- {{{
   M.climbableBg.fixture:setMask(filterVals.category.player_hardbox)
   M.climbableBg.fixture:setGroupIndex(0)
 
-  M.dummyNpcUid = enemy(2000, 1750, targetDummy.physicsData, targetDummy.userDataTable, targetDummy.spriteData)
+  M.dummyNpcUid = enemy(2000, 200, targetDummy.physicsData, targetDummy.userDataTable, targetDummy.spriteData)
 end -- }}}
 
 M.draw = function() -- {{{

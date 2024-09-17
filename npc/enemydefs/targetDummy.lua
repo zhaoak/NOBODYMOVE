@@ -2,15 +2,15 @@ local M = {}
 
 M.physicsData = {
   body = {
-    angularDamping = 1,
+    angularDamping = 0,
     fixedRotation = true,
     gravityScale = 1,
-    linearDamping = 5
+    linearDamping = 0
   },
   shape = {
     shapeType = "rectangle",
-    width = 100,
-    height = 100
+    width = 50,
+    height = 75
   },
   fixture = {
     density = 1,

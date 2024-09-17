@@ -66,6 +66,7 @@ function love.update(dt) -- {{{
   obj.projectiles.update(dt)
   dmgText.updateDamageNumberEvents(dt)
   uiBox.update(dt)
+  obj.npc.updateAllNpcs(dt)
 
   util.world:update(dt)
 end -- }}}

@@ -14,6 +14,9 @@ M.gen_uid = function(namespace) -- {{{
   end
 end -- }}}
 
+-- find the angle between two vectors with the same origin
+function M.angleBetweenVectors(x1, y1, x2, y2) return math.atan2(y2-y1, x2-x1) end
+
 -- recursively go through a table and return a clone of it
 function M.cloneTable (original) -- {{{
   local originalType = type(original)

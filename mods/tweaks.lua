@@ -9,6 +9,7 @@ M.exampleProjectileTweakMod = function()
   local modTable = {}
   -- all mods, regardless of type, have these three fields
   modTable.modCategory = "tweak"
+  -- Name of this mod as displayed to the player in the UI
   modTable.displayName = "Example Projectile Tweak Mod"
   modTable.description = "Commented demonstration of projectile tweak mod format, increases cooldown by 50%"
   -- during the triggerEvent function call, a copy of all the event's "shoot projectile" mods are run through this function in a single table
@@ -36,7 +37,7 @@ M.shotgunify = function()
       shootMod.linearDamping = shootMod.linearDamping + 3 -- slow down over time
       shootMod.despawnBelowVelocity = 250 -- once it gets too slow, despawn it
       shootMod.inaccuracy = shootMod.inaccuracy + math.rad(15)
-      shootMod.holderKnockback = shootMod.holderKnockback * 5
+      shootMod.holderKnockback = shootMod.holderKnockback * 2
       -- and make it multishot two more projectiles per shot
       shootMod.spawnCount = shootMod.spawnCount + 2
     end
