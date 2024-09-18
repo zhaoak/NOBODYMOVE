@@ -74,7 +74,9 @@ setmetatable(M, {
 --    health (number, required): how much health to give this npc
 -- }
 -- spriteData (table): sprite data. we don't have art yet so i'll get back to this
-function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spriteData) -- {{{
+-- aiCycleFunc(func): function for update call to run, 
+-- guns(iterative table of guns): table of gun IDs wielded by this NPC
+function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spriteData, aiCycleFunc, guns) -- {{{
   -- set default values
   physicsData = physicsData or {
     body={angularDamping=0,fixedRotation=false,gravityScale=1,linearDamping=0},
@@ -82,7 +84,7 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
     fixture={restitution=0,density=1}
   }
   userDataTable = userDataTable or {
-    {name="someone forgot to name me",team="enemy",health=100}
+    {name="someone forgot to name me",team="enemy",health=100, aiCycleInterval = 1}
   }
 
   -- create physics objects for new npc
@@ -130,9 +132,18 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
 
   -- generate and assign a UID and userdata, then add npc to npc list
   self.uid = util.gen_uid("npc")
-  self.fixture:setUserData{name = userDataTable.name, type = "npc", team = userDataTable.team, health = userDataTable.health, uid = self.uid}
+  self.fixture:setUserData{
+    name = userDataTable.name,
+    type = "npc",
+    team = userDataTable.team,
+    health = userDataTable.health,
+    uid = self.uid,
+    lifetime = 0,
+    lastAICycle = 0,
+    aiCycleInterval = userDataTable.aiCycleInterval,
+    aiCycleFunc = aiCycleFunc
+  }
   M.npcList[self.uid] = self
-
   return self.uid
 end -- }}}
 
@@ -188,7 +199,7 @@ end
 -- }}}
 
 -- npc update methods {{{
-function M:update(dt)
+function M:update(dt, player, npcList)
   -- apply center-of-mass knockback values for this update
   self.body:applyLinearImpulse(self.thisTickTotalKnockbackX, self.thisTickTotalKnockbackY)
   -- reset center-of-mass knockback values for next tick 
@@ -201,11 +212,25 @@ function M:update(dt)
   end
   -- empty the queue once everything is applied
   self.thisTickImpulseAtLocationQueue = {}
+
+  local selfUserData = self.fixture:getUserData()
+  -- update lifetime timer
+  selfUserData.lifetime = selfUserData.lifetime+dt
+
+  -- run own AI function, if enough time has passed since last cycle
+  if selfUserData.lifetime > (selfUserData.lastAICycle+selfUserData.aiCycleInterval) then
+    selfUserData.aiCycleFunc(self, player, npcList)
+    -- update last ai cycle value
+    selfUserData.lastAICycle = selfUserData.lifetime
+  end
+
+  -- write updated userdata
+  self.fixture:setUserData(selfUserData)
 end
 
-function M.updateAllNpcs(dt)
+function M.updateAllNpcs(dt, player, npcList)
   for uid, npc in pairs(M.npcList) do
-    npc:update(dt)
+    npc:update(dt, player, npcList)
   end
 end
 -- }}}
@@ -213,7 +238,7 @@ end
 -- NPC draw methods {{{
 -- Draw a specific NPC, instance method
 function M:draw()
-  love.graphics.setColor(0.5, 0.8, 0.8, 1)
+  love.graphics.setColor(0.8, 0.4, 0.4, 1)
   love.graphics.polygon("fill", self.body:getWorldPoints(self.shape:getPoints()))
 end
 

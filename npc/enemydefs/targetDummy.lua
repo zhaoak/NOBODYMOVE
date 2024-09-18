@@ -22,9 +22,17 @@ M.physicsData = {
 
 M.userDataTable = {
   name = "Target Dummy",
-  health = 999999999
+  health = 9999,
+  aiCycleInterval = 1
 }
 
 M.spriteData = nil
+
+M.aiCycle = function()
+  print("ayooo")
+  return nil
+end
+
+M.guns = {}
 
 return M

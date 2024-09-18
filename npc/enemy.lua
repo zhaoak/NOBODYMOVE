@@ -20,9 +20,9 @@ setmetatable(M, {
 -- since we know this is an enemy npc
 -- so userDataTable is just missing the team key/val pair
 -- this returns the new enemy's UID
-function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spriteData)
-  local enemyTeamUserDataTable = {team="enemy",name=userDataTable.name,health=userDataTable.health}
-  return npc:constructor(initialXPos, initialYPos, physicsData, enemyTeamUserDataTable, spriteData)
+function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spriteData, aiCycleFunc, guns)
+  local enemyTeamUserDataTable = {team="enemy",name=userDataTable.name,health=userDataTable.health, aiCycleInterval=userDataTable.aiCycleInterval}
+  return npc:constructor(initialXPos, initialYPos, physicsData, enemyTeamUserDataTable, spriteData, aiCycleFunc, guns)
 end
 
 
