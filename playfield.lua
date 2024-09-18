@@ -1,3 +1,5 @@
+-- this one is actually just outdated
+-- borked and all
 -- module currently used for intializing and drawing testing map
 -- plan is to replace this later with a `maps` module that allows for
 -- dynamic level loading and creation

@@ -26,7 +26,7 @@ M.userDataTable = {
   aiCycleInterval = 0.5 -- run ai function every 0.5 seconds
 }
 
-M.aiCycle = function(self, playerObj, npcList)
+M.aiCycle = function(self, world, playerObj, npcList)
   -- find shortest route between player and self
   local distance, playerX, playerY, selfX, selfY = love.physics.getDistance(playerObj.hardbox.fixture, self.fixture)
   -- cast a ray to see if there's anything in the way

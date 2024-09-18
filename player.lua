@@ -29,10 +29,10 @@ M.playerMaxGuns = 8 -- the absolute cap on how many guns a player is allowed to 
 -- the amount of time in seconds you have for control on the X-axis like you're grabbed even after you stop grabbing
 -- think of how in most platformers, you can jump even if you're a bit late and your character is no longer standing on the ground after running off an edge
 -- this also lets you dash/jump for a short period after leaving a grab
-M.ungrabGracePeriod = 0.25
+M.ungrabGracePeriod = 0.1
 M.ungrabGraceTimer = M.ungrabGracePeriod
 
--- experimental player airdash ability: recovers after grabbing terrain and cooldown done
+-- player jump/dash ability: can only be used when grabbed+0.1s after, recharges when grabbing again
 M.dashUsed = false -- whether or not the player has used their dash
 M.dashForce = 115 -- how much force to apply on each axis when player uses dash
 M.dashCooldownPeriod = 0.5 -- how long in seconds it takes for the dash to be available after being used

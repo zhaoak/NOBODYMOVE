@@ -1,4 +1,6 @@
--- nobody move prototype
+-- nobody move
+-- a video game
+-- by Allie Zhao and Spider Forrest
 
 -- utilities
 local util = require'util'
@@ -66,7 +68,7 @@ function love.update(dt) -- {{{
   obj.projectiles.update(dt)
   dmgText.updateDamageNumberEvents(dt)
   uiBox.update(dt)
-  obj.npc.updateAllNpcs(dt, obj.player, obj.npc.npcList)
+  obj.npc.updateAllNpcs(dt, util.world, obj.player, obj.npc.npcList)
 
   util.world:update(dt)
 end -- }}}

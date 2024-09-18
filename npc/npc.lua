@@ -75,7 +75,7 @@ setmetatable(M, {
 -- }
 -- spriteData (table): sprite data. we don't have art yet so i'll get back to this
 -- aiCycleFunc(func): function for update call to run, 
--- guns(iterative table of guns): table of gun IDs wielded by this NPC
+-- guns(table of gun ids): table of gun IDs wielded by this NPC
 function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spriteData, aiCycleFunc, guns) -- {{{
   -- set default values
   physicsData = physicsData or {
@@ -199,7 +199,7 @@ end
 -- }}}
 
 -- npc update methods {{{
-function M:update(dt, player, npcList)
+function M:update(dt, world, player, npcList)
   -- apply center-of-mass knockback values for this update
   self.body:applyLinearImpulse(self.thisTickTotalKnockbackX, self.thisTickTotalKnockbackY)
   -- reset center-of-mass knockback values for next tick 
@@ -219,7 +219,7 @@ function M:update(dt, player, npcList)
 
   -- run own AI function, if enough time has passed since last cycle
   if selfUserData.lifetime > (selfUserData.lastAICycle+selfUserData.aiCycleInterval) then
-    selfUserData.aiCycleFunc(self, player, npcList)
+    selfUserData.aiCycleFunc(self, world, player, npcList)
     -- update last ai cycle value
     selfUserData.lastAICycle = selfUserData.lifetime
   end

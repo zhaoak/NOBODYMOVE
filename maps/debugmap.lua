@@ -1,6 +1,5 @@
 local util = require'util'
 local filterVals = require'filterValues'
-local npc = require'npc.npc'
 local enemy = require'npc.enemy'
 local targetDummy = require'npc.enemydefs.targetDummy'
 
@@ -84,7 +83,7 @@ M.setup = function (world) -- {{{
   M.climbableBg.fixture:setMask(filterVals.category.player_hardbox)
   M.climbableBg.fixture:setGroupIndex(0)
 
-  M.dummyNpcUid = enemy(2000, 200, targetDummy.physicsData, targetDummy.userDataTable, targetDummy.spriteData, targetDummy.aiCycle, targetDummy.guns)
+  M.dummyNpcUid = enemy(2000, 200, targetDummy)
 end -- }}}
 
 M.draw = function() -- {{{

@@ -20,9 +20,11 @@ setmetatable(M, {
 -- since we know this is an enemy npc
 -- so userDataTable is just missing the team key/val pair
 -- this returns the new enemy's UID
-function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spriteData, aiCycleFunc, guns)
-  local enemyTeamUserDataTable = {team="enemy",name=userDataTable.name,health=userDataTable.health, aiCycleInterval=userDataTable.aiCycleInterval}
-  return npc:constructor(initialXPos, initialYPos, physicsData, enemyTeamUserDataTable, spriteData, aiCycleFunc, guns)
+-- args:
+-- enemyData(table): pass in the entire table returned by the enemydef file you want to use
+function M:constructor(initialXPos, initialYPos, enemyData)
+  local enemyTeamUserData = {team="enemy",name=enemyData.userDataTable.name,health=enemyData.userDataTable.health, aiCycleInterval=enemyData.userDataTable.aiCycleInterval}
+  return npc:constructor(initialXPos, initialYPos, enemyData.physicsData, enemyTeamUserData, enemyData.spriteData, enemyData.aiCycle, enemyData.guns)
 end
 
 

@@ -106,7 +106,7 @@ end -- }}}
 -- args:
 -- gun (gun object): the gun to shoot
 -- shootMods(table): an iterable table of every shoot mod to spawn a projectile for in the event
--- triggerCooldown(bool): whether or not to reset the gun's cooldown timer; true makes the cooldown reset, bypasses it
+-- triggerCooldown(bool): whether or not to reset the gun's cooldown timer; true makes the cooldown reset, false bypasses it
 -- ignoreCooldown(bool): whether or not to bypass the pre-shot cooldown check: true makes the gun always shoot, even if still on cooldown
 local function shoot (gun, shootMods, triggerCooldown, ignoreCooldown) -- {{{
   -- if the cooldown isn't over and we're not ignoring it, cancel the shot
