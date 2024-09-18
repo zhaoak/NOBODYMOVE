@@ -80,14 +80,31 @@ M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX,
     -- currently, player-fired projectiles never collide with each other, but we may change that
     -- because core nukes are cool
 
-    -- this projectile has the category:
-    newProj.fixture:setCategory(filterVals.category.projectile_player)
-    -- this projectile should NOT collide with:
-    newProj.fixture:setMask(
-      filterVals.category.friendly,
-      filterVals.category.player_hardbox,
-      filterVals.category.projectile_player,
-      filterVals.category.terrain_bg)
+    if shotByTeam == "friendly" then
+      -- this projectile has the category:
+      newProj.fixture:setCategory(filterVals.category.projectile_player)
+      -- this projectile should NOT collide with:
+      newProj.fixture:setMask(
+        filterVals.category.friendly,
+        filterVals.category.player_hardbox,
+        filterVals.category.projectile_player,
+        filterVals.category.terrain_bg)
+    elseif shotByTeam == "enemy" then
+      -- this projectile has the category:
+      newProj.fixture:setCategory(filterVals.category.projectile_enemy)
+      -- this projectile should NOT collide with:
+      newProj.fixture:setMask(
+        filterVals.category.enemy,
+        filterVals.category.projectile_enemy,
+        filterVals.category.terrain_bg)
+    elseif shotByTeam == "neutral" then
+      -- this projectile has the category:
+      newProj.fixture:setCategory(filterVals.category.neutral)
+      -- this projectile should NOT collide with:
+      newProj.fixture:setMask(
+        filterVals.category.neutral,
+        filterVals.category.terrain_bg)
+    end
 
     -- this projectile is in group:
     newProj.fixture:setGroupIndex(0)
@@ -119,7 +136,7 @@ end
 -- }}}
 
 -- projectile collision handling {{{
-M.handleProjectileCollision = function(a, b, contact, npcList)
+M.handleProjectileCollision = function(a, b, contact, npcList, player)
   local fixtureAUserData = a:getUserData()
   local fixtureBUserData = b:getUserData()
 
@@ -180,7 +197,19 @@ M.handleProjectileCollision = function(a, b, contact, npcList)
 
   -- if the hit thing was a player...
   elseif otherFixData.type == "player" and otherFixData.team ~= projFixData.team then
-
+    -- get the linear velocity of the projectile that hit the player
+    local projVelocityX, projVelocityY = projectileFixture:getBody():getLinearVelocity()
+    -- convert it to a world-relative impact angle
+    local angle = (util.angleBetweenVectors(0, 1, projVelocityX, projVelocityY) - (math.pi/2))
+    -- then calculate the hit projectile's knockback from its set knockback value and the impact angle
+    local xKnockback, yKnockback = player.calculateShotKnockback(projFixData.hitKnockback, angle)
+    -- apply the knockback to player center of mass, not impact location: 
+    -- we want the knockback when the player gets hit to be predictable, so no spin
+    player.addToThisTickKnockback(xKnockback, yKnockback)
+    -- apply damage, destroy projectile
+    player.hurt(projFixData.damage)
+    M.projectileList[projFixData.uid] = nil
+    projectileFixture:getBody():destroy()
   end
 end
 -- }}}

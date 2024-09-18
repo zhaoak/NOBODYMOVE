@@ -225,7 +225,7 @@ function preSolve(a, b, contact) -- {{{
 
   -- projectile impact handling
   if fixtureAUserData.type == "projectile" or fixtureBUserData.type == "projectile" then
-    obj.projectiles.handleProjectileCollision(a, b, contact, obj.npc.npcList)
+    obj.projectiles.handleProjectileCollision(a, b, contact, obj.npc.npcList, obj.player)
   end
 end -- }}}
 
