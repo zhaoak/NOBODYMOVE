@@ -197,16 +197,16 @@ M.handleProjectileCollision = function(a, b, contact, npcList, player)
     projectileFixture:getBody():destroy()
 
   -- if the hit thing was a player...
-  elseif otherFixData.type == "player" and otherFixData.team ~= projFixData.team then
+  elseif otherFixData.type == "player_hardbox" and otherFixData.team ~= projFixData.team then
     -- get the linear velocity of the projectile that hit the player
     local projVelocityX, projVelocityY = projectileFixture:getBody():getLinearVelocity()
     -- convert it to a world-relative impact angle
     local angle = (util.angleBetweenVectors(0, 1, projVelocityX, projVelocityY) - (math.pi/2))
     -- then calculate the hit projectile's knockback from its set knockback value and the impact angle
-    local xKnockback, yKnockback = player.calculateShotKnockback(projFixData.hitKnockback, angle)
+    local xKnockback, yKnockback = player:calculateShotKnockback(projFixData.hitKnockback, angle)
     -- apply the knockback to player center of mass, not impact location: 
     -- we want the knockback when the player gets hit to be predictable, so no spin
-    player.addToThisTickKnockback(xKnockback, yKnockback)
+    player:addToThisTickKnockback(xKnockback, -yKnockback)
     -- apply damage, destroy projectile
     player.hurt(projFixData.damage)
     M.projectileList[projFixData.uid] = nil
