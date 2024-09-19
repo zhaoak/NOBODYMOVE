@@ -207,7 +207,7 @@ function npcClass:update(dt, world, player, npcList)
   self.thisTickTotalKnockbackY = 0
 
   -- apply at-specific-position impulses to NPC this update
-  for _, impulse in ipairs(self.thisTickImpulseAtLocationQueue) do
+  for _, impulse in pairs(self.thisTickImpulseAtLocationQueue) do
     self.body:applyLinearImpulse(impulse.knockbackX, impulse.knockbackY, impulse.posX, impulse.posY)
   end
   -- empty the queue once everything is applied

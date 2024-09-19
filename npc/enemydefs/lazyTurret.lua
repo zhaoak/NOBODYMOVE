@@ -29,13 +29,27 @@ M.userDataTable = {
 M.spriteData = nil
 
 M.aiCycle = function(self, world, playerObj, npcList)
-  -- find shortest route between player and self
-  local distance, playerX, playerY, selfX, selfY = love.physics.getDistance(playerObj.hardbox.fixture, self.fixture)
-  -- cast a ray to see if there's anything in the way
-  print("eyyy")
-  -- if there is, do nothing
+  -- this enemy:
+  --   - only shoots if it has a clear shot to the player
+  --   - shoots once every update where it has a clear shot
 
-  -- otherwise, aim and shoot at player's current position
+  local hasClearShot = false
+  -- this callback func is called during raycast, when the ray hits any fixture
+  local rayHitCallback = function(fixture, x, y, xn, yn, fraction)
+    if fixture:getUserData().type == "terrain" then
+      return 0 -- returning 0 makes the raycast terminate
+    elseif fixture:getUserData().type == "player_hardbox" then
+      hasClearShot = true
+      return 0
+    else return -1 --returning -1 makes the raycast ignore this callback and continue
+    end
+  end
+  -- cast a ray to see if there's any shot-blocking terrain in the way
+  world:rayCast(self:getX(), self:getY(), playerObj.getX(), playerObj.getY(), rayHitCallback)
+  -- if we have an unobstructed shot, shoot your gun
+  if hasClearShot then
+    print("i see uu!!!!")
+  end
 end
 
 M.guns = {}
