@@ -2,7 +2,7 @@
 
 local util = require'util'
 
-local M = {}
+local M = {} -- each NPC that can be damaged has an entry, keyed by the NPC's uid
 
 -- defines {{{
 -- how many seconds damage text stays on the screen for before disappearing
@@ -26,15 +26,15 @@ end
 -- args:
 -- npcList(table): megalist of NPCs from NPC module
 M.drawDamageNumberEvents = function(npcList)
-  love.graphics.setColor(1, 0, 0, 1)
-  for npcUid, damageText in ipairs(M.damageNumEventList) do
+  love.graphics.setColor(1, 1, 1, 0.8)
+  for npcUid, damageText in pairs(M.damageNumEventList) do
     love.graphics.print("-"..tostring(damageText.totalDamage), npcList[npcUid]:getX(), npcList[npcUid]:getY())
   end
 end
 
 -- update drawing timer for damage text
 M.updateDamageNumberEvents = function(dt)
-  for npcUid, damageText in ipairs(M.damageNumEventList) do
+  for npcUid, damageText in pairs(M.damageNumEventList) do
     if damageText.remainingDrawTime <= 0 then
       M.damageNumEventList[npcUid] = nil
     else

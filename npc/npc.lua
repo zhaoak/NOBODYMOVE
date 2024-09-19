@@ -7,22 +7,22 @@ local filterValues = require("filterValues")
 local dmgText = require'ui.damageNumbers'
 
 -- defining a class metatable for all NPCs
-local M = { }
+local npcClass = { }
 
 -- assorted defines {{{
-M.hitflashDuration = 0.1
+npcClass.hitflashDuration = 0.1
 -- }}}
 
 -- if instances can't find the method in their own table, check the NPC class metatable
-M.__index = M
+npcClass.__index = npcClass
 
 -- the megalist of every NPC currently existing in the world, keyed by UID
-M.npcList = {}
+npcClass.npcList = {}
 
 -- If you don't know what I'm doing here, I'm creating a new class in Lua.
 -- Lua doesn't have builtin class functionality, so I'm using metamethods to implement it.
 -- See here for details: http://lua-users.org/wiki/ObjectOrientationTutorial
-setmetatable(M, {
+setmetatable(npcClass, {
   __call = function(cls, ...)
     local self = setmetatable({}, cls)
     self:constructor(...)
@@ -76,7 +76,7 @@ setmetatable(M, {
 -- spriteData (table): sprite data. we don't have art yet so i'll get back to this
 -- aiCycleFunc(func): function for update call to run, 
 -- guns(table of gun ids): table of gun IDs wielded by this NPC
-function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spriteData, aiCycleFunc, guns) -- {{{
+function npcClass:constructor(initialXPos, initialYPos, physicsData, userDataTable, spriteData, aiCycleFunc, guns) -- {{{
   -- set default values
   physicsData = physicsData or {
     body={angularDamping=0,fixedRotation=false,gravityScale=1,linearDamping=0},
@@ -143,14 +143,13 @@ function M:constructor(initialXPos, initialYPos, physicsData, userDataTable, spr
     aiCycleInterval = userDataTable.aiCycleInterval,
     aiCycleFunc = aiCycleFunc
   }
-  M.npcList[self.uid] = self
-  return self.uid
+  npcClass.npcList[self.uid] = self
 end -- }}}
 
 -- NPC apply-knockback methods {{{
 -- calculate knockback from NPC shooting they gun
 -- converts an amount of force and angle into a velocity vector
-function M:calculateShotKnockback(gunKnockback, gunAimAngle)
+function npcClass:calculateShotKnockback(gunKnockback, gunAimAngle)
   -- calculate and return knockback on X and Y axes
   local knockbackX = -math.sin(gunAimAngle)*gunKnockback
   local knockbackY = -math.cos(gunAimAngle)*gunKnockback
@@ -160,7 +159,7 @@ end
 -- apply knockback to NPC's center of mass
 -- used for handling knockback from shooting guns
 -- summed knockback is applied in update step
-function M:addToThisTickKnockback(knockbackX, knockbackY)
+function npcClass:addToThisTickKnockback(knockbackX, knockbackY)
   self.thisTickTotalKnockbackX = self.thisTickTotalKnockbackX + knockbackX
   self.thisTickTotalKnockbackY = self.thisTickTotalKnockbackY + knockbackY
 end
@@ -169,7 +168,7 @@ end
 -- used for handling knockback from projectiles hitting specific parts of hitbox
 -- impulse is applied in npc update step
 -- posX and posY should be in world coordinates, not local
-function M:addToThisTickKnockbackAtWorldPosition(knockbackX, knockbackY, posX, posY)
+function npcClass:addToThisTickKnockbackAtWorldPosition(knockbackX, knockbackY, posX, posY)
   table.insert(self.thisTickImpulseAtLocationQueue, {
     knockbackX=knockbackX,knockbackY=knockbackY,posX=posX,posY=posY})
 end
@@ -177,19 +176,20 @@ end
 
 -- npc utility methods {{{
 -- Get a specific NPC's X and Y location in the world
-function M:getX()
+function npcClass:getX()
   return self.body:getX()
 end
 
-function M:getY()
+function npcClass:getY()
   return self.body:getY()
 end
 
 -- damages an NPC's health by damageAmount and triggers their pain animation. Also triggers damage text display.
 -- Can accept negative values to heal, but will still trigger pain animation.
-function M:hurt(damageAmount)
+function npcClass:hurt(damageAmount)
   local newUserData = self.fixture:getUserData()
-  dmgText.damageNumberEvent(damageAmount, self.fixture:getUserData().uid)
+  print(newUserData.uid)
+  dmgText.damageNumberEvent(damageAmount, newUserData.uid)
   newUserData.health = newUserData.health - damageAmount
   self.fixture:setUserData(newUserData)
   -- print(self.fixture:getUserData().health)
@@ -199,7 +199,7 @@ end
 -- }}}
 
 -- npc update methods {{{
-function M:update(dt, world, player, npcList)
+function npcClass:update(dt, world, player, npcList)
   -- apply center-of-mass knockback values for this update
   self.body:applyLinearImpulse(self.thisTickTotalKnockbackX, self.thisTickTotalKnockbackY)
   -- reset center-of-mass knockback values for next tick 
@@ -228,27 +228,27 @@ function M:update(dt, world, player, npcList)
   self.fixture:setUserData(selfUserData)
 end
 
-function M.updateAllNpcs(dt, player, npcList)
-  for uid, npc in pairs(M.npcList) do
-    npc:update(dt, player, npcList)
+npcClass.updateAllNpcs = function (dt, world, player, npcList)
+  for _, npc in pairs(npcClass.npcList) do
+    npc:update(dt, world, player, npcList)
   end
 end
 -- }}}
 
 -- NPC draw methods {{{
 -- Draw a specific NPC, instance method
-function M:draw()
+function npcClass:draw()
   love.graphics.setColor(0.8, 0.4, 0.4, 1)
   love.graphics.polygon("fill", self.body:getWorldPoints(self.shape:getPoints()))
 end
 
 -- Draw all NPCs, static class method
-function M.drawAllNpcs()
-  for uid, npc in pairs(M.npcList) do
+function npcClass.drawAllNpcs()
+  for _, npc in pairs(npcClass.npcList) do
     npc:draw()
   end
 end
 -- }}}
 
-return M
+return npcClass
 -- vim: foldmethod=marker

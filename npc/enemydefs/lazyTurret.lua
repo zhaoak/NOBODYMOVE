@@ -26,6 +26,8 @@ M.userDataTable = {
   aiCycleInterval = 0.5 -- run ai function every 0.5 seconds
 }
 
+M.spriteData = nil
+
 M.aiCycle = function(self, world, playerObj, npcList)
   -- find shortest route between player and self
   local distance, playerX, playerY, selfX, selfY = love.physics.getDistance(playerObj.hardbox.fixture, self.fixture)

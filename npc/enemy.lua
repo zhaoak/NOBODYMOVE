@@ -4,11 +4,11 @@ local util = require("util")
 local npc = require("npc.npc")
 
 -- defining a class for all enemies, extended from NPC class
-local M = { }
+local enemyClass = { }
 
-M.__index = M
+enemyClass.__index = enemyClass
 
-setmetatable(M, {
+setmetatable(enemyClass, {
   __index = npc,
   __call = function(cls, ...)
     local self = setmetatable({}, cls)
@@ -22,12 +22,12 @@ setmetatable(M, {
 -- this returns the new enemy's UID
 -- args:
 -- enemyData(table): pass in the entire table returned by the enemydef file you want to use
-function M:constructor(initialXPos, initialYPos, enemyData)
+function enemyClass:constructor(initialXPos, initialYPos, enemyData)
   local enemyTeamUserData = {team="enemy",name=enemyData.userDataTable.name,health=enemyData.userDataTable.health, aiCycleInterval=enemyData.userDataTable.aiCycleInterval}
-  return npc:constructor(initialXPos, initialYPos, enemyData.physicsData, enemyTeamUserData, enemyData.spriteData, enemyData.aiCycle, enemyData.guns)
+  return npc.constructor(self, initialXPos, initialYPos, enemyData.physicsData, enemyTeamUserData, enemyData.spriteData, enemyData.aiCycle, enemyData.guns)
 end
 
 
 
-return M
+return enemyClass
 -- vim: foldmethod=marker

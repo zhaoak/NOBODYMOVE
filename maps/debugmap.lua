@@ -2,6 +2,7 @@ local util = require'util'
 local filterVals = require'filterValues'
 local enemy = require'npc.enemy'
 local targetDummy = require'npc.enemydefs.targetDummy'
+local lazyTurret = require'npc.enemydefs.lazyTurret'
 
 local M = { }
 
@@ -82,6 +83,8 @@ M.setup = function (world) -- {{{
   M.climbableBg.fixture:setCategory(filterVals.category.terrain_bg)
   M.climbableBg.fixture:setMask(filterVals.category.player_hardbox)
   M.climbableBg.fixture:setGroupIndex(0)
+
+  M.testTurret = enemy(2750, 1750, lazyTurret)
 
   M.dummyNpcUid = enemy(2000, 200, targetDummy)
 end -- }}}
