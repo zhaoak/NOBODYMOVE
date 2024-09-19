@@ -144,6 +144,10 @@ function npcClass:constructor(initialXPos, initialYPos, physicsData, userDataTab
     aiCycleFunc = aiCycleFunc
   }
   npcClass.npcList[self.uid] = self
+
+  -- add gun ids to gun table on instance
+  self.guns = {}
+
 end -- }}}
 
 -- NPC apply-knockback methods {{{
@@ -188,7 +192,6 @@ end
 -- Can accept negative values to heal, but will still trigger pain animation.
 function npcClass:hurt(damageAmount)
   local newUserData = self.fixture:getUserData()
-  print(newUserData.uid)
   dmgText.damageNumberEvent(damageAmount, newUserData.uid)
   newUserData.health = newUserData.health - damageAmount
   self.fixture:setUserData(newUserData)

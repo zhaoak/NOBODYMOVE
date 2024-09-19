@@ -29,7 +29,6 @@ M.userDataTable = {
 M.spriteData = nil
 
 M.aiCycle = function()
-  print("ayooo")
   return nil
 end
 
