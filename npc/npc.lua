@@ -5,6 +5,7 @@
 local util = require("util")
 local filterValues = require("filterValues")
 local dmgText = require'ui.damageNumbers'
+local gunlib = require'guns'
 
 -- defining a class metatable for all NPCs
 local npcClass = { }
@@ -146,8 +147,15 @@ function npcClass:constructor(initialXPos, initialYPos, physicsData, userDataTab
   npcClass.npcList[self.uid] = self
 
   -- add gun ids to gun table on instance
-  self.guns = {}
+  self.guns = {unpack(guns)}
 
+  -- equip each gun to firegroup 1
+  for _, gunUid in pairs(self.guns) do
+    gunlib.equipGun(gunUid, 1, self)
+  end
+  
+  -- set any other properties on the NPC instance that need to be set
+  self.currentAimAngle = 0
 end -- }}}
 
 -- NPC apply-knockback methods {{{
@@ -199,10 +207,18 @@ function npcClass:hurt(damageAmount)
   -- also trigger pain animation (we odn't have those yet)
 end
 
+-- 
+function npcClass:shootFiregroup(firegroup, event)
+  for _, gunId in pairs(self.guns) do
+    if gunlib.gunlist[gunId].current.firegroup == firegroup then
+      gunlib.gunlist[gunId]:triggerEvent(event)
+    end
+  end
+end
 -- }}}
 
 -- npc update methods {{{
-function npcClass:update(dt, world, player, npcList)
+function npcClass:update(dt, world, player, npcList, gunList)
   -- apply center-of-mass knockback values for this update
   self.body:applyLinearImpulse(self.thisTickTotalKnockbackX, self.thisTickTotalKnockbackY)
   -- reset center-of-mass knockback values for next tick 
@@ -220,20 +236,27 @@ function npcClass:update(dt, world, player, npcList)
   -- update lifetime timer
   selfUserData.lifetime = selfUserData.lifetime+dt
 
+  -- update held guns' position and angle
+  -- currently, gun position is just NPC body center
+  for _, gunUid in pairs(self.guns) do
+    gunlib.gunlist[gunUid]:updateGunPositionAndAngle(self:getX(), self:getY(), self.currentAimAngle)
+  end
+
   -- run own AI function, if enough time has passed since last cycle
   if selfUserData.lifetime > (selfUserData.lastAICycle+selfUserData.aiCycleInterval) then
-    selfUserData.aiCycleFunc(self, world, player, npcList)
+    selfUserData.aiCycleFunc(self, world, player, npcList, gunList)
     -- update last ai cycle value
     selfUserData.lastAICycle = selfUserData.lifetime
   end
+
 
   -- write updated userdata
   self.fixture:setUserData(selfUserData)
 end
 
-npcClass.updateAllNpcs = function (dt, world, player, npcList)
+npcClass.updateAllNpcs = function (dt, world, player, npcList, gunList)
   for _, npc in pairs(npcClass.npcList) do
-    npc:update(dt, world, player, npcList)
+    npc:update(dt, world, player, npcList, gunList)
   end
 end
 -- }}}

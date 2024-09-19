@@ -31,14 +31,15 @@ M.userDataTable = {
 
 M.spriteData = nil
 
-M.aiCycle = function(self, world, playerObj, npcList)
+M.aiCycle = function(self, world, playerObj, npcList, gunList)
   -- this enemy:
   --   - only shoots if it has a clear shot to the player
   --   - shoots once every update where it has a clear shot
 
   -- check if we can see the player
-  if aiUtils.canSeePlayer(self, world, playerObj) then
+  if aiUtils.canNpcSeePlayer(self, world, playerObj) then
     print("i see uu!!!!")
+    self.currentAimAngle = aiUtils.getAimAtPlayerAimAngle(self, playerObj)
   else
     print("no see u :(")
   end

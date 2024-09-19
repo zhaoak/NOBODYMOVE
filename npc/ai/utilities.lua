@@ -1,10 +1,12 @@
 -- Module for functions commonly used in NPC AI processing.
 
+local utils = require("util")
+
 local M = {}
 
--- Check if the player can be seen from the NPC's body position (i.e. is the line between player and NPC unobstructed)
+-- Check if the player can be seen from an NPC's body position (i.e. is the line between player and NPC unobstructed)
 -- Returns false if any props or terrain are between NPC and player body positions, true otherwise
-M.canSeePlayer = function(thisNpc, world, playerObj)
+M.canNpcSeePlayer = function(npc, world, playerObj)
   local closestTerrainFract = 1
   local closestPropFract = 1
   local playerFract = 0
@@ -27,13 +29,17 @@ M.canSeePlayer = function(thisNpc, world, playerObj)
     return -1
   end
   -- cast the ray, feeding it our callback
-  world:rayCast(thisNpc:getX(), thisNpc:getY(), playerObj.getX(), playerObj.getY(), rayHitCallback)
+  world:rayCast(npc:getX(), npc:getY(), playerObj.getX(), playerObj.getY(), rayHitCallback)
   -- check fraction values of what we hit
   if playerFract > closestTerrainFract or playerFract > closestPropFract then
     return false
   else
     return true
   end
+end
+
+M.getAimAtPlayerAimAngle = function(npc, playerObj)
+  return math.atan2(playerObj:getX() - npc:getX(), playerObj:getY() - npc:getY())
 end
 
 return M
