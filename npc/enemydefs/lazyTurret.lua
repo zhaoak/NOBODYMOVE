@@ -40,6 +40,11 @@ M.aiCycle = function(self, world, playerObj, npcList, gunList)
   if aiUtils.canNpcSeePlayer(self, world, playerObj) then
     print("i see uu!!!!")
     self.currentAimAngle = aiUtils.getAimAtPlayerAimAngle(self, playerObj)
+    for _, gunId in pairs(self.guns) do
+      if gunList[gunId].current.firegroup == 1 then
+        gunList[gunId]:triggerEvent("onHoldShoot")
+      end
+    end
   else
     print("no see u :(")
   end

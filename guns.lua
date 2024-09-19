@@ -120,13 +120,15 @@ local function shoot (gun, shootMods, triggerCooldown, ignoreCooldown) -- {{{
     if mod.modCategory == "projectile" then
       totalCooldown = totalCooldown + mod.cooldownCost
       totalKnockback = totalKnockback + mod.holderKnockback
-      projectileLib.createProjectile(gun.uid, mod, gun.current.projectileSpawnPosX, gun.current.projectileSpawnPosY, gun.current.absoluteAimAngle, gun.current.wielder.team)
+      projectileLib.createProjectile(gun.uid, mod, gun.current.projectileSpawnPosX, gun.current.projectileSpawnPosY, gun.current.absoluteAimAngle, gun.current.wielder:getTeam())
     end
   end
 
+  print(gun.current.wielder:getTeam())
+
   -- calculate and apply knockback from the shot to whatever physics object in the world is wielding it
-  local wielderKnockbackX, wielderKnockbackY = gun.current.wielder.calculateShotKnockback(totalKnockback, gun.current.absoluteAimAngle)
-  gun.current.wielder.addToThisTickKnockback(wielderKnockbackX, wielderKnockbackY)
+  local wielderKnockbackX, wielderKnockbackY = gun.current.wielder:calculateShotKnockback(totalKnockback, gun.current.absoluteAimAngle)
+  gun.current.wielder:addToThisTickKnockback(wielderKnockbackX, wielderKnockbackY)
 
   -- trigger the cooldown, if arg says we should
   if triggerCooldown then

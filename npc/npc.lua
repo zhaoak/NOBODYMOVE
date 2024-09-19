@@ -207,6 +207,10 @@ function npcClass:hurt(damageAmount)
   -- also trigger pain animation (we odn't have those yet)
 end
 
+function npcClass:getTeam()
+  return self.fixture:getUserData().team
+end
+
 -- 
 function npcClass:shootFiregroup(firegroup, event)
   for _, gunId in pairs(self.guns) do

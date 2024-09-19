@@ -162,10 +162,11 @@ M.handleProjectileCollision = function(a, b, contact, npcList, player)
     projFixData = b:getUserData()
     otherFixture = a
     otherFixData = a:getUserData()
-  else
-    -- both A and B are projectiles
+  -- both A and B are projectiles
+  elseif fixtureBUserData.type == "projectile" and fixtureAUserData.type == "projectile" then
     print("ow!! the bullets are touching!!")
     contact:setEnabled(false)
+    return
   end
 
   -- if the hit thing was non-background terrain...

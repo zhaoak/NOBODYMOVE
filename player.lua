@@ -21,7 +21,6 @@ M.startingHealth = 100
 M.playerAcceleration = 10
 M.playerLatchedKnockbackReduction = 0.5
 M.ragdoll = true
-M.team = "friendly" -- relative to the player, yes, the player is friendly to itself
 -- relative to world; i.e. 0 means aiming straight down from player perspective of world
 -- increases counterclockwise, decreases clockwise, i.e. aiming left is angle -pi/2, aiming right is pi/2
 M.currentAimAngle = 0
@@ -80,7 +79,7 @@ M.setup = function () -- {{{
   -- hardbox is the physical collision box of the spooder
   M.hardbox.shape = love.physics.newCircleShape(M.hardboxRadius)
   M.hardbox.fixture = love.physics.newFixture(M.body, M.hardbox.shape)
-  M.hardbox.fixture:setUserData{name = "hardbox", type = "player_hardbox"}
+  M.hardbox.fixture:setUserData{name = "hardbox", type = "player_hardbox", team = "friendly"}
   M.hardbox.fixture:setRestitution(0.2)
   M.hardbox.fixture:setFriction(1)
 
@@ -172,7 +171,7 @@ end -- }}}
 
 -- shooting-related functions {{{
 -- calculate the knockback from a shot
-M.calculateShotKnockback = function (gunKnockbackOnPlayer, gunAimAngle)
+function M:calculateShotKnockback(gunKnockbackOnPlayer, gunAimAngle)
   -- calculate and return knockback on X and Y axes
   local knockbackX = -math.sin(gunAimAngle)*gunKnockbackOnPlayer
   local knockbackY = -math.cos(gunAimAngle)*gunKnockbackOnPlayer
@@ -182,9 +181,9 @@ end
 -- apply knockback from shots to player
 -- if player shoots multiple guns per tick, each of those shots will call this function
 -- then, the total knockback will applied in the update tick
-M.addToThisTickKnockback = function(knockbackX, knockbackY)
-  M.thisTickTotalKnockbackX = M.thisTickTotalKnockbackX + knockbackX
-  M.thisTickTotalKnockbackY = M.thisTickTotalKnockbackY + knockbackY
+function M:addToThisTickKnockback(knockbackX, knockbackY)
+  self.thisTickTotalKnockbackX = self.thisTickTotalKnockbackX + knockbackX
+  self.thisTickTotalKnockbackY = self.thisTickTotalKnockbackY + knockbackY
 end -- }}}
 
 -- game utility methods {{{
@@ -200,6 +199,10 @@ end
 
 M.getY = function()
   return M.body:getY()
+end
+
+function M:getTeam()
+  return self.hardbox.fixture:getUserData().team
 end
 -- }}}
 
