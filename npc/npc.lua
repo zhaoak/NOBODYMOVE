@@ -164,7 +164,7 @@ end -- }}}
 function npcClass:calculateShotKnockback(gunKnockback, gunAimAngle)
   -- calculate and return knockback on X and Y axes
   local knockbackX = -math.sin(gunAimAngle)*gunKnockback
-  local knockbackY = -math.cos(gunAimAngle)*gunKnockback
+  local knockbackY = math.cos(gunAimAngle)*gunKnockback
   return knockbackX, knockbackY
 end
 

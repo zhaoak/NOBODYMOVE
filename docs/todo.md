@@ -5,6 +5,7 @@ List of things still needing to be done for spoodergame
 ## The list
 
 - design ui for gun mod screen
+    - bite the bullet and just use a ui lib for now, it's not worth writing your own until you figure out what you're looking for
 
 - Gun firegroups
     - ~Firegroup binds~

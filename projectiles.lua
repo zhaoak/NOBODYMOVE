@@ -117,11 +117,13 @@ M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX,
     -- then, apply the inaccuracy modifier and recoil modifier to the angle of the shot
     -- we're dummying out the accuracy penalty on shot for now
     -- local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment + gun.current.recoilAimPenaltyOffset
-    local adjustedShotAngle = worldRelativeAimAngle + inaccuracyAngleAdjustment
+    local adjustedShotAngle = util.addToAimAngle(worldRelativeAimAngle, inaccuracyAngleAdjustment)
 
     -- apply velocity to projectile
-    local projectileVelocityX = math.sin(adjustedShotAngle)*projMod.speed
-    local projectileVelocityY = math.cos(adjustedShotAngle)*projMod.speed
+    local projectileVelocityX, projectileVelocityY = util.getUnitVectorFromAimAngle(adjustedShotAngle)
+    projectileVelocityX = projectileVelocityX * projMod.speed
+    projectileVelocityY = projectileVelocityY * projMod.speed
+
     newProj.body:applyLinearImpulse(projectileVelocityX, projectileVelocityY)
 
     -- apply projectile's linear damping
@@ -190,7 +192,7 @@ M.handleProjectileCollision = function(a, b, contact, npcList, player)
     local xKnockback, yKnockback = npcList[otherFixData.uid]:calculateShotKnockback(projFixData.hitKnockback, angle)
     -- negative yKnockback because in love Y increases downward
     -- finally, apply the knockback at the contact position to get that angular velocity S P I N
-    npcList[otherFixData.uid]:addToThisTickKnockbackAtWorldPosition(xKnockback, -yKnockback, cPosX, cPosY)
+    npcList[otherFixData.uid]:addToThisTickKnockbackAtWorldPosition(xKnockback, yKnockback, cPosX, cPosY)
     -- then apply damag and destroy the projectile
     npcList[otherFixData.uid]:hurt(projFixData.damage)
     M.projectileList[projFixData.uid] = nil
@@ -206,7 +208,7 @@ M.handleProjectileCollision = function(a, b, contact, npcList, player)
     local xKnockback, yKnockback = player:calculateShotKnockback(projFixData.hitKnockback, angle)
     -- apply the knockback to player center of mass, not impact location: 
     -- we want the knockback when the player gets hit to be predictable, so no spin
-    player:addToThisTickKnockback(xKnockback, -yKnockback)
+    player:addToThisTickKnockback(xKnockback, yKnockback)
     -- apply damage, destroy projectile
     player.hurt(projFixData.damage)
     M.projectileList[projFixData.uid] = nil

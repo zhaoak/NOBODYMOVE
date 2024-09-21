@@ -38,7 +38,6 @@ M.aiCycle = function(self, world, playerObj, npcList, gunList)
 
   -- check if we can see the player
   if aiUtils.canNpcSeePlayer(self, world, playerObj) then
-    print("i see uu!!!!")
     self.currentAimAngle = aiUtils.getAimAtPlayerAimAngle(self, playerObj)
     for _, gunId in pairs(self.guns) do
       if gunList[gunId].current.firegroup == 1 then
@@ -46,7 +45,7 @@ M.aiCycle = function(self, world, playerObj, npcList, gunList)
       end
     end
   else
-    print("no see u :(")
+    -- it so lonely :(
   end
 end
 

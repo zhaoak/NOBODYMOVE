@@ -39,7 +39,7 @@ M.canNpcSeePlayer = function(npc, world, playerObj)
 end
 
 M.getAimAtPlayerAimAngle = function(npc, playerObj)
-  return math.atan2(playerObj:getX() - npc:getX(), playerObj:getY() - npc:getY())
+  return utils.getAimAngle(playerObj:getX(), playerObj:getY(), npc:getX(), npc:getY())
 end
 
 return M

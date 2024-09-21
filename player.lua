@@ -175,7 +175,7 @@ end -- }}}
 function M:calculateShotKnockback(gunKnockbackOnPlayer, gunAimAngle)
   -- calculate and return knockback on X and Y axes
   local knockbackX = -math.sin(gunAimAngle)*gunKnockbackOnPlayer
-  local knockbackY = -math.cos(gunAimAngle)*gunKnockbackOnPlayer
+  local knockbackY = math.cos(gunAimAngle)*gunKnockbackOnPlayer
   return knockbackX, knockbackY
 end
 
@@ -325,7 +325,7 @@ M.update = function(dt) -- {{{
   local aimX, aimY = input.getCrossHair(M.body:getX(), M.body:getY())
   M.crosshairCacheX = aimX
   M.crosshairCacheY = aimY
-  M.currentAimAngle = math.atan2(aimX - M.body:getX(), aimY - M.body:getY())
+  M.currentAimAngle = util.getAimAngle(aimX, aimY, M.body:getX(), M.body:getY())
 
   -- update each gun's info
   for i,gunId in pairs(M.guns) do
@@ -335,7 +335,7 @@ M.update = function(dt) -- {{{
     -- find position from player spread
     local offsetPerGun = M.aimSpread / #M.guns
     i = i - 1 -- lua arrays lol
-    local gunAimAngle = math.rad((offsetPerGun * i) - (M.aimSpread / 2)) + M.currentAimAngle
+    local gunAimAngle = M.currentAimAngle
     -- print(((M.aimSpread / #M.guns) * (i-1)) - (M.aimSpread / 2))
     -- print(((M.aimSpread / #M.guns) ), 'aaa')
     -- print(((M.aimSpread / 2) ), 'bb')
@@ -345,9 +345,9 @@ M.update = function(dt) -- {{{
     -- local gunAimAngle = math.rad(((M.aimSpread / #M.guns) * (i-1)) - (M.aimSpread / 2)) + M.currentAimAngle
 
     -- find the the world coords for where projectiles should spawn from this gun
-    local projSpawnFromPlayerOffsetX = math.sin(gunAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
-    local projSpawnFromPlayerOffsetY = math.cos(gunAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
-
+    local projSpawnFromPlayerOffsetX, projSpawnFromPlayerOffsetY = util.getUnitVectorFromAimAngle(gunAimAngle)
+    projSpawnFromPlayerOffsetX = projSpawnFromPlayerOffsetX * (M.hardboxRadius + gun.playerHoldDistance)
+    projSpawnFromPlayerOffsetY = projSpawnFromPlayerOffsetY * (M.hardboxRadius + gun.playerHoldDistance)
     gun:updateGunPositionAndAngle(M.body:getX()+projSpawnFromPlayerOffsetX, M.body:getY()+projSpawnFromPlayerOffsetY, gunAimAngle)
   end
 

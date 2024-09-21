@@ -124,8 +124,6 @@ local function shoot (gun, shootMods, triggerCooldown, ignoreCooldown) -- {{{
     end
   end
 
-  print(gun.current.wielder:getTeam())
-
   -- calculate and apply knockback from the shot to whatever physics object in the world is wielding it
   local wielderKnockbackX, wielderKnockbackY = gun.current.wielder:calculateShotKnockback(totalKnockback, gun.current.absoluteAimAngle)
   gun.current.wielder:addToThisTickKnockback(wielderKnockbackX, wielderKnockbackY)
