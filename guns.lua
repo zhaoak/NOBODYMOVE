@@ -138,46 +138,58 @@ local function shoot (gun, shootMods, triggerCooldown, ignoreCooldown) -- {{{
 end -- }}}
 
 -- update a gun instance's stored position and angle for this physics tick
-local function updateGunPositionAndAngle (gun, posX, posY, absoluteAimAngle)
-  gun.current.projectileSpawnPosX = posX
-  gun.current.projectileSpawnPosY = posY
-  gun.current.absoluteAimAngle = absoluteAimAngle
+local function updateGunPositionAndAngle (gun, x, y, angle)
+  gun.current.x = x
+  gun.current.y = y
+  gun.current.angle = angle
+  gun.current.flipped = false
+  gun.current.projectileSpawnPosX = x -- i'm not sure how it's implemented, but it probably makes more
+  gun.current.projectileSpawnPosY = y -- sense to just set gun pos and spawn bullets at the front?
+  gun.current.absoluteAimAngle = angle
 end
 
 local function draw (gunId, player) -- {{{
-  -- print("drawing gun w/id "..gunId)
   local gun = M.gunlist[gunId]
-  local adjustedAimAngle = player.currentAimAngle + gun.current.recoilAimPenaltyOffset
-
-  local spriteLocationOffsetX = math.sin(adjustedAimAngle) * (gun.playerHoldDistance + player.hardboxRadius)
-  local spriteLocationOffsetY = math.cos(adjustedAimAngle) * (gun.playerHoldDistance + player.hardboxRadius)
-  -- if the player is aiming left, flip the gun sprite
-  local flipGunSprite = 1
-  if adjustedAimAngle < 0 then
-    flipGunSprite = -1
-  end
-  if arg[2] == "debug" then
-    -- draws the angle where the player is aiming with their mouse as a line in red
-    love.graphics.setColor(1,0,0,1)
-    local aimX1 = player.body:getX()+(math.sin(player.currentAimAngle) * player.hardboxRadius)
-    local aimX2 = player.body:getX()+(math.sin(player.currentAimAngle) * player.reachRadius)
-    local aimY1 = player.body:getY()+(math.cos(player.currentAimAngle) * player.hardboxRadius)
-    local aimY2 = player.body:getY()+(math.cos(player.currentAimAngle) * player.reachRadius)
-    love.graphics.line(aimX1, aimY1, aimX2, aimY2)
-    -- draws the gun's current aim angle, factoring in recoil penalty, in orange
-    love.graphics.setColor(1,0.5,0,0.6)
-    local recoilX2 = player.body:getX()+(math.sin(player.currentAimAngle) * player.reachRadius)
-    local recoilY2 = player.body:getY()+(math.cos(player.currentAimAngle) * player.reachRadius)
-    love.graphics.line(player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, player.body:getX()+(spriteLocationOffsetX*2), player.body:getY()+(spriteLocationOffsetY*2))
-  end
-
-  -- reset the colors so gun sprite uses proper palette
   love.graphics.setColor(1,1,1,1)
 
-  -- draw the gun sprite
-  -- y-origin arg has a small positive offset to line up placeholder sprite's barrel with actual aim angle, this is temporary and will need to vary with other gun sprites
   local gunSprite = love.graphics.newImage("assets/generic_gun.png")
-  love.graphics.draw(gunSprite, player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, (math.pi/2) - adjustedAimAngle, 0.3, 0.3*flipGunSprite, 0, 15)
+  love.graphics.draw(gunSprite, gun.current.x, gun.current.y, gun.current.absoluteAimAngle, 0.3, 0.3, 0, 15)
+
+  -- the old code
+
+  -- print("drawing gun w/id "..gunId)
+  -- local gun = M.gunlist[gunId]
+  -- local adjustedAimAngle = player.currentAimAngle + gun.current.recoilAimPenaltyOffset
+  --
+  -- local spriteLocationOffsetX = math.sin(adjustedAimAngle) * (gun.playerHoldDistance + player.hardboxRadius)
+  -- local spriteLocationOffsetY = math.cos(adjustedAimAngle) * (gun.playerHoldDistance + player.hardboxRadius)
+  -- -- if the player is aiming left, flip the gun sprite
+  -- local flipGunSprite = 1
+  -- if adjustedAimAngle < 0 then
+  --   flipGunSprite = -1
+  -- end
+  -- if arg[2] == "debug" then
+  --   -- draws the angle where the player is aiming with their mouse as a line in red
+  --   love.graphics.setColor(1,0,0,1)
+  --   local aimX1 = player.body:getX()+(math.sin(player.currentAimAngle) * player.hardboxRadius)
+  --   local aimX2 = player.body:getX()+(math.sin(player.currentAimAngle) * player.reachRadius)
+  --   local aimY1 = player.body:getY()+(math.cos(player.currentAimAngle) * player.hardboxRadius)
+  --   local aimY2 = player.body:getY()+(math.cos(player.currentAimAngle) * player.reachRadius)
+  --   love.graphics.line(aimX1, aimY1, aimX2, aimY2)
+  --   -- draws the gun's current aim angle, factoring in recoil penalty, in orange
+  --   love.graphics.setColor(1,0.5,0,0.6)
+  --   local recoilX2 = player.body:getX()+(math.sin(player.currentAimAngle) * player.reachRadius)
+  --   local recoilY2 = player.body:getY()+(math.cos(player.currentAimAngle) * player.reachRadius)
+  --   love.graphics.line(player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, player.body:getX()+(spriteLocationOffsetX*2), player.body:getY()+(spriteLocationOffsetY*2))
+  -- end
+  --
+  -- -- reset the colors so gun sprite uses proper palette
+  -- love.graphics.setColor(1,1,1,1)
+  --
+  -- -- draw the gun sprite
+  -- -- y-origin arg has a small positive offset to line up placeholder sprite's barrel with actual aim angle, this is temporary and will need to vary with other gun sprites
+  -- local gunSprite = love.graphics.newImage("assets/generic_gun.png")
+  -- love.graphics.draw(gunSprite, player.body:getX()+spriteLocationOffsetX, player.body:getY()+spriteLocationOffsetY, (math.pi/2) - adjustedAimAngle, 0.3, 0.3*flipGunSprite, 0, 15)
 end -- }}}
 
 -- This function creates a gun with arg-specified mods installed, adds it to `gunlist`, and returns its UID.
@@ -188,7 +200,7 @@ M.createGun = function(events) -- {{{
   -- set cooldown of new gun
   -- `gun.current` holds all data about the gun that is modified by player actions during gameplay
   -- (cooldown, firegroup, etc)
-  gun.current = {}
+  gun.current = {x = 0, y = 0}
   gun.current.lastSetCooldownValue = M.calculateShotCooldownFromGun(gun, "onPressShoot")
 
   -- create shootQueue for new gun

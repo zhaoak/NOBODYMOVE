@@ -25,6 +25,10 @@ M.aimJoystickThresholdY = 0.05
 -- hair trigger threshold settings
 M.gamepadTriggerActivationThreshold = 0.1
 
+-- counter tracking how many times the mousewheel has moved in the last frame
+M.scrollDistance = 0
+
+
 -- File for handling keyboard and gamepad inputs and translating them into game inputs.
 M.kbMouseBinds = {
   up = 'w',
@@ -35,12 +39,13 @@ M.kbMouseBinds = {
   shootFG1 = 1, -- "FG" is short for firegroup
   shootFG2 = 2,
   shootFG3 = 3,
-  shootFG4 = 4,
-  shootFG5 = 5,
+  shootFG4 = nil,
+  shootFG5 = nil,
   shootFG6 = nil,
   shootFG7 = nil,
   shootFG8 = nil,
-  reset = 'r',
+  incSpread = 'wheelup',
+  decSpread = 'wheeldown',
 }
 
 -- Same, but for gamepad buttons.
@@ -204,6 +209,15 @@ M.keyDown = function (bind)
   if M.kbMouseBinds[bind] == nil then return false end
 
   if type(M.kbMouseBinds[bind]) == "string" then
+    -- handle scrollwheel, return a number as well as the bool
+    local x = M.scrollDistance
+    if M.kbMouseBinds[bind] == "wheelup" then
+      if x > 0 then M.scrollDistance = 0 end -- this 'consumes' the scroll distance, so reset it
+      return x > 0, x
+    elseif M.kbMouseBinds[bind] == "wheeldown" then
+      if x < 0 then M.scrollDistance = 0 end
+      return x < 0, x
+    end
     return love.keyboard.isDown(M.kbMouseBinds[bind])
   else
     return love.mouse.isDown(M.kbMouseBinds[bind])
@@ -315,6 +329,10 @@ function love.gamepadaxis(joystick, axis, value)
   love.mouse.setVisible(false)
 end
 
+-- bind mousewheel callback
+love.wheelmoved = function (_,y)
+  M.scrollDistance = M.scrollDistance + y
+end
 -- }}}
 
 -- Debug functions {{{

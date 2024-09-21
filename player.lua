@@ -24,6 +24,7 @@ M.ragdoll = true
 -- relative to world; i.e. 0 means aiming straight down from player perspective of world
 -- increases counterclockwise, decreases clockwise, i.e. aiming left is angle -pi/2, aiming right is pi/2
 M.currentAimAngle = 0
+M.aimSpread = 0 -- how far apart is the player aiming guns, in degrees
 M.playerMaxGuns = 8 -- the absolute cap on how many guns a player is allowed to hold at once
 -- the amount of time in seconds you have for control on the X-axis like you're grabbed even after you stop grabbing
 -- think of how in most platformers, you can jump even if you're a bit late and your character is no longer standing on the ground after running off an edge
@@ -327,16 +328,27 @@ M.update = function(dt) -- {{{
   M.currentAimAngle = math.atan2(aimX - M.body:getX(), aimY - M.body:getY())
 
   -- update each gun's info
-  for _,gunId in pairs(M.guns) do
+  for i,gunId in pairs(M.guns) do
     -- get gun's data from full gunlist by UID
     local gun = gunlib.gunlist[gunId]
 
-    -- find the the world coords for where projectiles should spawn from this gun
-    local projSpawnFromPlayerOffsetX = math.sin(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
-    local projSpawnFromPlayerOffsetY = math.cos(M.currentAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
+    -- find position from player spread
+    local offsetPerGun = M.aimSpread / #M.guns
+    i = i - 1 -- lua arrays lol
+    local gunAimAngle = math.rad((offsetPerGun * i) - (M.aimSpread / 2)) + M.currentAimAngle
+    -- print(((M.aimSpread / #M.guns) * (i-1)) - (M.aimSpread / 2))
+    -- print(((M.aimSpread / #M.guns) ), 'aaa')
+    -- print(((M.aimSpread / 2) ), 'bb')
 
-    -- update gun
-    gun:updateGunPositionAndAngle(M.body:getX()+projSpawnFromPlayerOffsetX, M.body:getY()+projSpawnFromPlayerOffsetY, M.currentAimAngle)
+
+
+    -- local gunAimAngle = math.rad(((M.aimSpread / #M.guns) * (i-1)) - (M.aimSpread / 2)) + M.currentAimAngle
+
+    -- find the the world coords for where projectiles should spawn from this gun
+    local projSpawnFromPlayerOffsetX = math.sin(gunAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
+    local projSpawnFromPlayerOffsetY = math.cos(gunAimAngle) * (gun.playerHoldDistance + M.hardboxRadius)
+
+    gun:updateGunPositionAndAngle(M.body:getX()+projSpawnFromPlayerOffsetX, M.body:getY()+projSpawnFromPlayerOffsetY, gunAimAngle)
   end
 
   -- may be set later, reset every frame
@@ -346,11 +358,24 @@ M.update = function(dt) -- {{{
 
   -- {{{ player input and movement
 
-  -- reset spood
-  if input.keyDown'reset' then
-    gunlib.setup()
-    M.setup()
+  -- add or substract aim spread {{{
+  -- check the inputs
+  local inc, val = input.keyDown"incSpread"
+  local dec, downVal = input.keyDown"decSpread"
+
+  -- if it's actually bound to scroll wheel, keyDown will return how much it scrolled this frame. if it's not, assume 1
+  if not val then
+    if inc then val = 1 end
+    if dec then val = -1 end
   end
+  -- modify the spread
+  if val == 0 then val = downVal end
+  M.aimSpread = M.aimSpread + (val * 16) -- number chosen at random, TODO: balance, pick number
+
+  -- limit spread; no modulo, we don't want it to wrap around
+  if M.aimSpread < 0 then M.aimSpread = 0 end
+  if M.aimSpread > 360 then M.aimSpread = 360 end
+  -- }}}
 
   -- check state of player shoot buttons, triggering events as appropriate
   for fg=1, M.playerMaxGuns, 1 do
