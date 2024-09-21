@@ -1,6 +1,8 @@
 -- Camera module shamelessly stolen from:
 -- https://ebens.me/posts/cameras-in-love2d-part-1-the-basics
 -- Thanks, Michael!
+--
+local utils = require"util"
 
 local M = { }
 
@@ -10,6 +12,7 @@ M.thisFrameWindowSizeY = 600
 M.playerObj = nil
 M.followAimMaxOffsetDistance = 600 -- how far cam is allowed to move from player in "followAim" mode
 M.maxPanSpeed = 5 -- how fast camera is allowed to move on each axis per second
+M.panAcceleration = 1 -- how fast camera is allowed to speed up while panning
 -- }}}
 
 M.x = 0 -- current x pos of camera
@@ -39,17 +42,12 @@ local function followAim()
   -- find whether it's farther or closer than the max leashing distance
   -- whichever is smaller, use that value as the camera distance offset
   local offsetDistance = math.min(M.followAimMaxOffsetDistance, aimDistance)
-  -- make positive y up and negative y down, for ease of calculations
-  local angle = M.playerObj.currentAimAngle + math.pi
+  local angle = M.playerObj.currentAimAngle
   -- then calculate the offset for X and Y axes
   local camOffsetX, camOffsetY
-  if angle <= 0 then
     camOffsetX = math.sin(angle)*offsetDistance*(offsetDistance/M.thisFrameWindowSizeX)
-    camOffsetY = math.cos(angle)*offsetDistance*(offsetDistance/M.thisFrameWindowSizeY)
-  else
-    camOffsetX = math.sin(angle)*offsetDistance*-1*(offsetDistance/M.thisFrameWindowSizeX)
-    camOffsetY = math.cos(angle)*offsetDistance*-1*(offsetDistance/M.thisFrameWindowSizeY)
-  end
+    -- making Y-offset negative to compensate for love's reversed Y-axis
+    camOffsetY = -math.cos(angle)*offsetDistance*(offsetDistance/M.thisFrameWindowSizeY)
   -- then, pan to that position over time
   M.panToPosition(adjustedCamPositionX+camOffsetX, adjustedCamPositionY+camOffsetY, M.maxPanSpeed)
 end
