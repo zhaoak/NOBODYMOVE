@@ -21,6 +21,14 @@ List of things still needing to be done for spoodergame
 
 - enemy design, AI, enemies shooting back
 
+- collision handling for damage based on things colliding
+
+- make many more mods
+
+- trigger event mods, misc mods
+
+- props and damaging spikes and such
+
 - item module, throw gun/item player command
 
 - ~camera-follow-player-aim code~
