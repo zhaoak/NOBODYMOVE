@@ -34,7 +34,7 @@ local function triggerEvent (gun, eventName) -- {{{
 
   -- find and cache "shoot projectile" mods
   local thisEventShootProjectileMods = {}
-  for _,mod in ipairs(event) do
+  for _,mod in ipairs(event.mods) do
     local thisMod = mod()
     if thisMod.modCategory == "projectile" then
       table.insert(thisEventShootProjectileMods, thisMod)
@@ -42,7 +42,7 @@ local function triggerEvent (gun, eventName) -- {{{
   end
 
   -- find "projectile modifier" mods; for each one found, apply its effects to each projectile-spawning mod
-  for _,mod in ipairs(event) do
+  for _,mod in ipairs(event.mods) do
     local thisMod = mod()
     if thisMod.modCategory == "tweak" then
       -- some projectile modifiers (like burst fire) need to access the gun's shoot queue,
@@ -51,7 +51,23 @@ local function triggerEvent (gun, eventName) -- {{{
     end
   end
 
-  -- print(util.tprint(thisEventShootProjectileMods))
+  -- find "trigger event" mods; for each found, arm it
+  for _,mod in ipairs(event.mods) do
+    local thisMod = mod()
+    if thisMod.modCategory == "event" then
+      for eventName,_ in pairs(thisMod.triggersEvents) do
+        gun.events[eventName].armed = true
+      end
+    end
+  end
+
+  -- find "misc effect" mods; for each found, run it
+  for _,mod in ipairs(event.mods) do
+    local thisMod = mod()
+    if thisMod.modCategory == "misc" then
+
+    end
+  end
 
   -- call the gun's shoot function with the freshly modified shoot projectile mods
   gun:shoot(thisEventShootProjectileMods, true, false)
@@ -63,10 +79,11 @@ end -- }}}
 -- eventName(string): a string used as the key for the event in the gun's events table
 -- modsInEvent(table): a table containing mods to put into the event at creation time (optional)
 -- returns true if successfully created, false if failed because event already exists on gun
-local function addEvent(gun, eventName, modsInEvent) -- {{{
+local function addEvent(gun, eventName, modsInEvent, setArmed) -- {{{
   if gun.events[eventName] ~= nil then return false end
   if modsInEvent == nil then modsInEvent = {} end
-  gun.events[eventName] = modsInEvent
+  gun.events[eventName].mods = modsInEvent
+  gun.events[eventName].armed = setArmed
   return true
 end -- }}}
 
@@ -82,8 +99,19 @@ end -- }}}
 local function modifyEvent(gun, eventName, newModList) -- {{{
   if gun.events[eventName] == nil then return false end
   if newModList == nil then newModList = {} end
-  gun.events[eventName] = newModList
+  gun.events[eventName].mods = newModList
   return true
+end -- }}}
+
+-- event arming getters/setters {{{
+-- function for getting whether or not a specific event is armed on a gun
+local function getArmed(gun, eventName)
+  return gun.events[eventName].armed
+end
+
+-- function for toggling whether an event is armed or not
+local function toggleArmed(gun, eventName)
+  gun.events[eventName].armed = not gun.events[eventName].armed
 end -- }}}
 
 -- function for removing an existing event on an existing gun

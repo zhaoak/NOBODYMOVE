@@ -3,7 +3,7 @@
 
 local M = { }
 
-M.templateMod = function()
+M.templateShootProjectileMod = function()
   local modTable = {}
 
   -- All mods should have these three fields, regardless of type:
@@ -63,7 +63,7 @@ end
 
 -- Small caliber bullet: low cooldown/knockback/damage, medium speed, poor accuracy
 M.smallBullet = function()
-  local modTable = M.templateMod()
+  local modTable = M.templateShootProjectileMod()
   modTable.displayName = "Shoot small bullet"
   modTable.description = "lore goes here ig"
   modTable.projectileType = "smallbullet"
@@ -82,7 +82,7 @@ end
 
 -- Medium caliber bullet: low-mid cooldown/knockback/damage, med-high speed, decent accuracy
 M.mediumBullet = function()
-  local modTable = M.templateMod()
+  local modTable = M.templateShootProjectileMod()
   modTable.displayName = "Shoot medium bullet"
   modTable.description = "lore goes here ig"
   modTable.projectileType = "mediumbullet"
@@ -99,7 +99,7 @@ end
 
 -- Large caliber bullet: medium cooldown/knockback/damage, high speed, great accuracy
 M.largeBullet = function()
-  local modTable = M.templateMod()
+  local modTable = M.templateShootProjectileMod()
   modTable.displayName = "Shoot large bullet"
   modTable.description = "lore goes here ig"
   modTable.projectileType = "largebullet"
@@ -116,7 +116,7 @@ end
 
 -- Oversize caliber bullet: high cooldown/knockback/damage/speed, great accuracy
 M.oversizeBullet = function()
-  local modTable = M.templateMod()
+  local modTable = M.templateShootProjectileMod()
   modTable.displayName = "Shoot oversize bullet"
   modTable.description = "lore goes here ig"
   modTable.projectileType = "oversizebullet"
