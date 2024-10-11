@@ -16,8 +16,17 @@ if you have an idea for a mod that you think would be cool ingame slap it here
 
 ## projectile tweak mods
 
+- shotgunify: decrease accuracy, limit range, shoot more bullet per bullet
+- burstfire: shots in event trigger sequentially instead of simultaneously, but cool down faster
 
 ## trigger event mods
 
+- on projectile (from this event) hits target:
+    - enemy
+    - terrain
+    - prop
+    - own projectile
+- X seconds after arming, trigger:
+    - arbitrary length delay timer basically
 
 ## misc effect mods
