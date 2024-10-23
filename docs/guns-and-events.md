@@ -39,6 +39,11 @@ This is how the gun and event system works
     - _misc effect_ mods, which do unique things that aren't specific enough to fall into another category
         - example: "make all projectiles of type bullet fired from this gun explode on activation"
 
+- potentially, if another limiting mechanism on fire rate/clip size is needed:
+    - give guns ammo capacity and ammo regen rate stats
+    - and give all projectile shooty mods ammo consumption per shot stats
+    - this would give guns an effective "clip" that would still be simpler to understand than noita's recharge/cast delay/mana max system
+
 ## first draft
 
 - ALL THIS STUFF IS OLD I"M JUST LEAVING IT HERE FOR IF WE WANNA REFER TO IT LATER

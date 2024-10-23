@@ -5,10 +5,12 @@ if you have an idea for a mod that you think would be cool ingame slap it here
 ## shoot projectile mods
 
 - musketball -- basic circular projectile
-    - not affected by gravity, average speed, low damage per hit, average cooldown, low knockback
+    - not affected by gravity, average speed, low damage per hit, low cooldown, low knockback
     - good for spam
 - slug -- rectangular projectile, about 3:1 width:height ratio, travels in arc and affected by gravity, launched with shorter side facing forward like a bullet
     - med-low speed, good damage, medium cooldown, high knockback, very good for bonking flying enemies around
+- flak -- small rectangular projectile, always shoots 3 at once
+    - med-low speed, med damage per pellet, average cooldown, low knockback per pellet, shotgun shell type projectile
 - rocket -- explosive projectile that accelerates over time
     - not affected by gravity, starts slow and speeds up, high explosion damage, can self-damage, high explosion knockback, explodes on hitting anything
 - grenade -- explosive projectile launched at fixed velocity, arcs with gravity
