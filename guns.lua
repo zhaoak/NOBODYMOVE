@@ -16,7 +16,7 @@ local util = require'util'
 
 -- Event trigger/add/modify/remove code {{{
 -- The function called when an event is triggered, which evaluates and executes its mods.
--- This means all mods, including shoot projectile ones; when an event is triggered,
+-- This means all mods, including barrel ones; when an event is triggered,
 -- this function will either call the gun's `shoot()` method or add shots to its queue as appropriate.
 -- This function is set as a method of every gun object in createGun functions.
 -- Thus, it can be called with colon syntax to skip the first arg, e.g. `gunObj:triggerEvent(eventString, modsInEvent)`
@@ -32,45 +32,45 @@ local function triggerEvent (gun, eventName) -- {{{
     return
   end
 
-  -- find and cache "shoot projectile" mods
-  local thisEventShootProjectileMods = {}
+  -- find and cache barrel mods
+  local thisEventBarrelMods = {}
   for _,mod in ipairs(event.mods) do
     local thisMod = mod()
-    if thisMod.modCategory == "projectile" then
-      table.insert(thisEventShootProjectileMods, thisMod)
+    if thisMod.modCategory == "barrel" then
+      table.insert(thisEventBarrelMods, thisMod)
     end
   end
 
-  -- find "projectile modifier" mods; for each one found, apply its effects to each projectile-spawning mod
+  -- find ammo mods; for each one found, apply its effects to each barrel mod
   for _,mod in ipairs(event.mods) do
     local thisMod = mod()
-    if thisMod.modCategory == "tweak" then
-      -- some projectile modifiers (like burst fire) need to access the gun's shoot queue,
+    if thisMod.modCategory == "ammo" then
+      -- some ammo mods (like burst fire) need to access the gun's shoot queue,
       -- which is why we pass the gun in as an arg
-      thisEventShootProjectileMods = thisMod.apply(gun, thisEventShootProjectileMods)
+      thisEventBarrelMods = thisMod.apply(gun, thisEventBarrelMods)
     end
   end
 
-  -- find "trigger event" mods; for each found, arm it
+  -- find trigger mods; for each found, arm it
   for _,mod in ipairs(event.mods) do
     local thisMod = mod()
-    if thisMod.modCategory == "event" then
+    if thisMod.modCategory == "trigger" then
       for eventName,_ in pairs(thisMod.triggersEvents) do
         gun.events[eventName].armed = true
       end
     end
   end
 
-  -- find "misc effect" mods; for each found, run it
+  -- find action mods; for each found, run it
   for _,mod in ipairs(event.mods) do
     local thisMod = mod()
-    if thisMod.modCategory == "misc" then
+    if thisMod.modCategory == "action" then
 
     end
   end
 
-  -- call the gun's shoot function with the freshly modified shoot projectile mods
-  gun:shoot(thisEventShootProjectileMods, true, false)
+  -- call the gun's shoot function with the freshly modified barrel mods
+  gun:shoot(thisEventBarrelMods, true, false)
 end -- }}}
 
 -- function for adding a new event to an existing gun
@@ -133,19 +133,19 @@ end -- }}}
 -- as well as applying the knockback from the shot to the gun's wielder.
 -- args:
 -- gun (gun object): the gun to shoot
--- shootMods(table): an iterable table of every shoot mod to spawn a projectile for in the event
+-- barrelMods(table): an iterable table of every barrel mod to spawn a projectile for in the event
 -- triggerCooldown(bool): whether or not to reset the gun's cooldown timer; true makes the cooldown reset, false bypasses it
 -- ignoreCooldown(bool): whether or not to bypass the pre-shot cooldown check: true makes the gun always shoot, even if still on cooldown
-local function shoot (gun, shootMods, triggerCooldown, ignoreCooldown) -- {{{
+local function shoot (gun, barrelMods, triggerCooldown, ignoreCooldown) -- {{{
   -- if the cooldown isn't over and we're not ignoring it, cancel the shot
   if not ignoreCooldown and gun.current.cooldown >= 0 then
     return
   end
-  -- spawn projectiles for every shoot projectile mod in the event, incrementing total cooldown with each projectile's contribution
+  -- spawn projectiles for every barrel mod in the event, incrementing total cooldown with each projectile's contribution
   local totalCooldown = 0
   local totalKnockback = 0
-  for _, mod in ipairs(shootMods) do
-    if mod.modCategory == "projectile" then
+  for _, mod in ipairs(barrelMods) do
+    if mod.modCategory == "barrel" then
       totalCooldown = totalCooldown + mod.cooldownCost
       totalKnockback = totalKnockback + mod.holderKnockback
       projectileLib.createProjectile(gun.uid, mod, gun.current.projectileSpawnPosX, gun.current.projectileSpawnPosY, gun.current.absoluteAimAngle, gun.current.wielder:getTeam())
@@ -358,7 +358,7 @@ local function recoverFromRecoilPenalty(dt, gun)
 end
 
 -- From a event's current mod loadout in a given gun, calculate the shot cooldown
--- This only accounts for shoot projectile mods in the event
+-- This only accounts for barrel mods in the event
 -- args:
 -- gun(gun object): the gun to calculate cooldown for
 -- eventName (string): the event to calculate cooldown for, identified by its name
@@ -371,7 +371,7 @@ M.calculateShotCooldownFromGun = function(gun, eventName)
       -- iterate through that event's mods, summing the cooldown from all its shots
       for _, mod in ipairs(event) do
       local thisMod = mod()
-        if thisMod.modCategory == "projectile" then
+        if thisMod.modCategory == "barrel" then
           totalCooldown = totalCooldown + thisMod.cooldownCost
         end
     end

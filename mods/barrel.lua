@@ -1,16 +1,21 @@
--- The data for all "shoot projectile" mods (see todo.md in docs for details) are defined here.
--- Random variance in individual instances of shoot projectile mods' stats will be implemented later.
+-- The callbacks and data for all stock barrel mods.
+-- Barrel mods fire projectiles from the gun containing them when the event the mod lives in triggers,
+-- as long as the gun's cooldown timer is < 0. They're called barrel mods because they visually change the gun's barrel appearance.
+-- All of a projectile's base stats are defined in the barrel mod that spawns it (though these stats may be changed by ammo mods.)
+-- Barrel mods have no direct access to callbacks; to give a projectile spawned by a barrel mod custom behavior,
+-- define a new trait (see mods/traits.lua) and give the mod that trait with the barrel mod's `projectileTraits` field.
+-- Random variance in stats may be implemented later.
 
 local M = { }
 
-M.templateShootProjectileMod = function()
+M.templateBarrelMod = function()
   local modTable = {}
 
   -- All mods should have these three fields, regardless of type:
   -- Category of the 
-  modTable.modCategory = "projectile"
+  modTable.modCategory = "barrel"
   -- Name of this mod as displayed to the player in the UI
-  modTable.displayName = "Example Shoot Projectile Mod"
+  modTable.displayName = "Example Barrel Mod"
   -- Description of this mod, also visible in UI
   modTable.description = "Template for projectile-spawning mods"
 
@@ -26,6 +31,9 @@ M.templateShootProjectileMod = function()
   -- A unique string used to identify the type of projectile this function generates
   modTable.projectileType = "demoshot"
 
+  -- An unordered list of traits projectiles from this mod should spawn with
+  modTable.projectileTraits = {}
+
   -- shoot projectile mods must include _all_ of the following values,
   -- as these values are changed by projectileModifier mods
 
@@ -35,7 +43,7 @@ M.templateShootProjectileMod = function()
   modTable.holderKnockback = 5
   -- How much force _one_ projectile spawned by this mod should apply to a hit target
   modTable.hitKnockback = 5
-  -- How much damage _one_ projectile spawned by this mod does on hit
+  -- How much damage _one_ projectile spawned by this mod does on collision with a damage-able thing
   modTable.projectileDamage = 3
   -- The default maximum angle of inaccuracy of this gun in radians
   -- (If you'd prefer to use degrees, simply convert a degree value using math.rad)
@@ -63,7 +71,7 @@ end
 
 -- Small caliber bullet: low cooldown/knockback/damage, medium speed, poor accuracy
 M.smallBullet = function()
-  local modTable = M.templateShootProjectileMod()
+  local modTable = M.templateBarrelMod()
   modTable.displayName = "Shoot small bullet"
   modTable.description = "lore goes here ig"
   modTable.projectileType = "smallbullet"
@@ -82,7 +90,7 @@ end
 
 -- Medium caliber bullet: low-mid cooldown/knockback/damage, med-high speed, decent accuracy
 M.mediumBullet = function()
-  local modTable = M.templateShootProjectileMod()
+  local modTable = M.templateBarrelMod()
   modTable.displayName = "Shoot medium bullet"
   modTable.description = "lore goes here ig"
   modTable.projectileType = "mediumbullet"
@@ -99,7 +107,7 @@ end
 
 -- Large caliber bullet: medium cooldown/knockback/damage, high speed, great accuracy
 M.largeBullet = function()
-  local modTable = M.templateShootProjectileMod()
+  local modTable = M.templateBarrelMod()
   modTable.displayName = "Shoot large bullet"
   modTable.description = "lore goes here ig"
   modTable.projectileType = "largebullet"
@@ -116,7 +124,7 @@ end
 
 -- Oversize caliber bullet: high cooldown/knockback/damage/speed, great accuracy
 M.oversizeBullet = function()
-  local modTable = M.templateShootProjectileMod()
+  local modTable = M.templateBarrelMod()
   modTable.displayName = "Shoot oversize bullet"
   modTable.description = "lore goes here ig"
   modTable.projectileType = "oversizebullet"

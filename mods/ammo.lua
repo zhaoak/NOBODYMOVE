@@ -1,38 +1,42 @@
--- Data for all "modify projectiles" mods is defined here.
--- See todo.md for more details on mod types.
---
+-- The callbacks and data for all stock ammo mods.
+-- Ammo mods change the stats and traits of all projectiles spawned by barrel mods in the event the two share.
+-- They're called ammo mods because they change how projectiles behave.
+-- All of a projectile's base stats are defined in the barrel mod that spawns it; these are the stats that the ammo mod modifies.
+-- Ammo mods can also add or remove traits from projectiles; see mods/traits.lua for more info on traits.
+-- Traits are how projectiles run any complex or custom-coded behavior (via callbacks.)
+
 local util = require'util'
 
 local M = { }
 
-M.exampleProjectileTweakMod = function()
+M.exampleAmmoMod = function()
   local modTable = {}
   -- all mods, regardless of type, have these three fields
-  modTable.modCategory = "tweak"
+  modTable.modCategory = "ammo"
   -- Name of this mod as displayed to the player in the UI
-  modTable.displayName = "Example Projectile Tweak Mod"
-  modTable.description = "Commented demonstration of projectile tweak mod format, increases cooldown by 50%"
-  -- during the triggerEvent function call, a copy of all the event's "shoot projectile" mods are run through this function in a single table
-  -- the passed-in shoot mods are modified and returned, and then from there,
-  -- triggerEvent() calls the gun's shoot function, passing it the processed shoot mods
-   modTable.apply = function(shootProjectileMods)
-    for _, shootMod in ipairs(shootProjectileMods) do
+  modTable.displayName = "Example Ammo Mod"
+  modTable.description = "Commented demonstration of ammo mod format, increases cooldown by 50%"
+  -- during the triggerEvent function call, a copy of all the event's barrel mods are run through this function in a single table
+  -- the passed-in barrel are modified and returned, and then from there,
+  -- triggerEvent() calls the gun's shoot function, passing it the processed barrel mods
+   modTable.apply = function(barrelMods)
+    for _, shootMod in ipairs(barrelMods) do
       shootMod.cooldownCost = shootMod.cooldownCost * 1.5
     end
-    return shootProjectileMods
+    return barrelMods
   end
   return modTable
 end
 
 M.shotgunify = function()
   local modTable = {}
-  modTable.modCategory = "tweak"
+  modTable.modCategory = "ammo"
   modTable.displayName = "Shotgunify"
   modTable.description = "Shoot three of every projectile, but with much lower range, accuracy and a longer cooldown"
 
-  modTable.apply = function(gun, shootProjectileMods)
-    -- for each shoot mod in the event...
-    for _, shootMod in ipairs(shootProjectileMods) do
+  modTable.apply = function(gun, barrelMods)
+    -- for each barrel mod in the event...
+    for _, shootMod in ipairs(barrelMods) do
       -- tweak its stats like so...
       shootMod.linearDamping = shootMod.linearDamping + 3 -- slow down over time
       shootMod.despawnBelowVelocity = 250 -- once it gets too slow, despawn it
@@ -41,8 +45,8 @@ M.shotgunify = function()
       -- and make it multishot two more projectiles per shot
       shootMod.spawnCount = shootMod.spawnCount + 2
     end
-    -- then return the new table of shoot mods
-    return shootProjectileMods
+    -- then return the new table of barrel mods
+    return barrelMods
   end
   return modTable
 
@@ -50,15 +54,15 @@ end
 
 M.burstFire = function()
   local modTable = {}
-  modTable.modCategory = "tweak"
+  modTable.modCategory = "ammo"
   modTable.displayName = "Burst fire"
   modTable.description = "Projectiles in this event rapid-fire sequentially with longer cooldown, rather than all at once"
 
-  modTable.apply = function(gun, shootProjectileMods)
+  modTable.apply = function(gun, barrelMods)
     local cumulativeShotTimer = 0 -- for tracking the summed cooldown from every shot in burst
     if gun.current.cooldown > 0 then return {} end -- if gun is on cooldown, do nothing
-    for _, mod in ipairs(shootProjectileMods) do
-      if mod.modCategory == "projectile" then
+    for _, mod in ipairs(barrelMods) do
+      if mod.modCategory == "barrel" then
         -- queue each projectile to fire sequentially after cooldown of previous shot is done
         local queuedShot = {}
         queuedShot.firesIn = cumulativeShotTimer

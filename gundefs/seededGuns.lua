@@ -5,8 +5,8 @@
 -- All "default" gun events (press/hold/release/unhold/throw) should always be armed,
 -- because they respond directly to player input
 
-local proj = require'mods.projectiles'
-local projTweak = require'mods.tweaks'
+local barrelMod = require'mods.barrel'
+local ammoMod = require'mods.ammo'
 
 local M = {}
 
@@ -16,7 +16,7 @@ M.seededGuns = {
     tier = 1,
     events = {
       onHoldShoot = {
-        mods = {proj.smallBullet},
+        mods = {barrelMod.smallBullet},
         armed = true}
     }
   },
@@ -25,7 +25,7 @@ M.seededGuns = {
     tier = 1,
     events = {
       onHoldShoot = {
-        mods = {projTweak.burstFire,proj.mediumBullet,proj.mediumBullet,proj.mediumBullet},
+        mods = {ammoMod.burstFire,barrelMod.mediumBullet,barrelMod.mediumBullet,barrelMod.mediumBullet},
         armed = true}
     }
   },
@@ -34,7 +34,7 @@ M.seededGuns = {
     tier = 1,
     events = {
       onHoldShoot = {
-        mods = {projTweak.shotgunify,proj.mediumBullet,proj.mediumBullet,proj.mediumBullet},
+        mods = {ammoMod.shotgunify,barrelMod.mediumBullet,barrelMod.mediumBullet,barrelMod.mediumBullet},
         armed = true}
     }
   },
@@ -43,7 +43,7 @@ M.seededGuns = {
     tier = 1,
     events = {
       onHoldShoot = {
-        mods = {projTweak.burstFire,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet,proj.smallBullet},
+        mods = {ammoMod.burstFire,barrelMod.smallBullet,barrelMod.smallBullet,barrelMod.smallBullet,barrelMod.smallBullet,barrelMod.smallBullet,barrelMod.smallBullet},
         armed = true}
     }
   },
@@ -53,7 +53,7 @@ M.seededGuns = {
     tier = 2,
     events = {
       onHoldShoot = {
-        mods = {proj.mediumBullet},
+        mods = {barrelMod.mediumBullet},
         armed = true}
     }
   },
@@ -62,10 +62,10 @@ M.seededGuns = {
     tier = 2,
     events = {
       onPressShoot = {
-        mods = {proj.oversizeBullet},
+        mods = {barrelMod.oversizeBullet},
         armed = true},
       onReleaseShoot = {
-        mods = {proj.oversizeBullet},
+        mods = {barrelMod.oversizeBullet},
         armed = true}
     }
   },
