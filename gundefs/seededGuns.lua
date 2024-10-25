@@ -18,7 +18,7 @@ M.seededGuns = {
     tier = -1,
     events = {
       onPressShoot = {
-        mods = {ammoMod.exampleAmmoMod,actionMod.exampleActionMod,barrelMod.smallBullet},
+        mods = {ammoMod.exampleAmmoMod,actionMod.exampleActionMod,barrelMod.mediumBullet},
       armed = true}
     }
   },

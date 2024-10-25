@@ -1,9 +1,11 @@
+local trait = require'mods.traits'
+
 -- The callbacks and data for all stock barrel mods.
 -- Barrel mods fire projectiles from the gun containing them when the event the mod lives in triggers,
 -- as long as the gun's cooldown timer is < 0. They're called barrel mods because they visually change the gun's barrel appearance.
 -- All of a projectile's base stats are defined in the barrel mod that spawns it (though these stats may be changed by ammo mods.)
 -- Barrel mods have no direct access to callbacks; to give a projectile spawned by a barrel mod custom behavior,
--- define a new trait (see mods/traits.lua) and give the mod that trait with the barrel mod's `projectileTraits` field.
+-- define a new trait (see mods/traits.lua) and give the mod that trait with the barrel mod's `traits` field.
 -- Random variance in stats may be implemented later.
 
 local M = { }
@@ -32,7 +34,7 @@ M.templateBarrelMod = function()
   modTable.projectileType = "demoshot"
 
   -- An unordered list of traits projectiles from this mod should spawn with
-  modTable.projectileTraits = {}
+  modTable.traits = {}
 
   -- shoot projectile mods must include _all_ of the following values,
   -- as these values are changed by projectileModifier mods

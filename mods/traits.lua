@@ -20,14 +20,17 @@ M.exampleTrait = function()
   traitTable.displayName = "Example Trait"
   traitTable.description = "Example Trait: makes projectile announce in the console when any of its callbacks are triggered"
 
-  traitTable.onUpdate = function()
-    print("Example Trait -- onUpdate projectile callback run!")
+  traitTable.onUpdate = function(thisProjectileUserData)
+    print("Example Trait -- onUpdate projectile callback run! Projectile lifetime: "..thisProjectileUserData.currentLifetime)
   end
 
   traitTable.onCollision = function(projectileFixture, otherFixture)
     print("Example Trait -- onCollision projectile callback run!")
+    print("Projectile collided with thing of type "..otherFixture:getUserData().type)
   end
 
+  return traitTable
 end
+
 return M
 -- vim: foldmethod=marker

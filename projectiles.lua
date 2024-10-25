@@ -69,6 +69,7 @@ M.createProjectile = function(gunFiringProjectileUid, barrelMod, shotWorldOrigin
       despawnBelowVelocity=barrelMod.despawnBelowVelocity,
       damage=barrelMod.projectileDamage,
       firedByGun=gunFiringProjectileUid,
+      traits=barrelMod.traits,
       uid=util.gen_uid("projectile")
     }
     newProj.fixture:setRestitution(0)
@@ -172,7 +173,11 @@ M.handleProjectileCollision = function(a, b, contact, npcList, player)
   end
 
   -- iterate through each trait the projectile has
-  --
+  for _, trait in pairs(projFixData.traits) do
+    if trait.onCollision ~= nil then
+      trait.onCollision(projectileFixture, otherFixture)
+    end
+  end
   -- for each trait that has an `onCollision` callback, run it
 
   -- if the hit thing was non-background terrain...
@@ -266,8 +271,13 @@ M.update = function (dt) -- {{{
       end
     end
 
-    -- run the onUpdate callbacks for each trait the projectile has, if any
-
+    -- iterate through the projectiles traits, if any,
+    -- and run the `onUpdate` callback for each if one is present
+    for _, trait in pairs(projUserData.traits) do
+      if trait.onUpdate ~= nil then
+        trait.onUpdate(projUserData)
+      end
+    end
     -- write the lifetime and any other updated values to the projectile's userdata,
     -- but only if it wasn't destroyed
     if not destroyed then proj.fixture:setUserData(projUserData) end

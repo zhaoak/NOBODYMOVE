@@ -6,6 +6,7 @@
 -- Traits are how projectiles run any complex or custom-coded behavior (via callbacks.)
 
 local util = require'util'
+local trait = require'mods.traits'
 
 local M = { }
 
@@ -15,13 +16,16 @@ M.exampleAmmoMod = function()
   modTable.modCategory = "ammo"
   -- Name of this mod as displayed to the player in the UI
   modTable.displayName = "Example Ammo Mod"
-  modTable.description = "Commented demonstration of ammo mod format, increases cooldown by 50%"
+  modTable.description = "Commented demonstration of ammo mod format, increases cooldown by 500% and applies exampleTrait"
   -- during the triggerEvent function call, a copy of all the event's barrel mods are run through this function in a single table
   -- the passed-in barrel are modified and returned, and then from there,
   -- triggerEvent() calls the gun's shoot function, passing it the processed barrel mods
-   modTable.apply = function(barrelMods)
+   modTable.apply = function(gun, barrelMods)
     for _, shootMod in ipairs(barrelMods) do
       shootMod.cooldownCost = shootMod.cooldownCost * 1.5
+      if shootMod.traits.exampleTrait == nil then
+        shootMod.traits.exampleTrait = trait.exampleTrait()
+      end
     end
     return barrelMods
   end
