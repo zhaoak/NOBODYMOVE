@@ -40,41 +40,41 @@ end
 -- Projectiles are Box2D bodies that spawn with nonzero velocity,
 -- plus any other Box2D properties a dynamic physics object has.
 -- The vast majority of things a player can shoot from a gun are spawned by this function.
--- This function creates the projectiles from a single shoot projectile mod,
+-- This function creates the projectiles from a single barrel mod,
 -- including any multishots if present.
 -- args:
 -- gunFiringProjectileUid(num): uid of gun firing these projectiles
--- projMod(table): the mod table of the mod being fired
+-- barrelMod(table): the mod table of the mod being fired
 -- shotWorldOriginX(num): X world coordinate where the shot should spawn
 -- shotWorldOriginY(num): Y world coordinate where the shot should spawn
 -- worldRelativeAimAngle(num): angle the projectiles should travel towards, in radians
 -- shotByTeam(string): which team the projectiles belong to, one of: "friendly", "enemy", "neutral"
-M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle, shotByTeam)
-  while projMod.spawnCount > 0 do
+M.createProjectile = function(gunFiringProjectileUid, barrelMod, shotWorldOriginX, shotWorldOriginY, worldRelativeAimAngle, shotByTeam)
+  while barrelMod.spawnCount > 0 do
     -- create physics object for new projectile
     local newProj = {}
     newProj.body = love.physics.newBody(M.world, shotWorldOriginX, shotWorldOriginY, "dynamic")
-    if projMod.shapeData.hitboxShape == "circle" then
-      newProj.shape = love.physics.newCircleShape(projMod.shapeData.radius)
+    if barrelMod.shapeData.hitboxShape == "circle" then
+      newProj.shape = love.physics.newCircleShape(barrelMod.shapeData.radius)
     end
     newProj.fixture = love.physics.newFixture(newProj.body, newProj.shape, 1)
     newProj.fixture:setUserData{
       name="projectile",
       type="projectile",
       team=shotByTeam,
-      projectileType=projMod.projectileType,
-      maxLifetime=projMod.maxLifetime,
+      projectileType=barrelMod.projectileType,
+      maxLifetime=barrelMod.maxLifetime,
       currentLifetime=0,
-      hitKnockback=projMod.hitKnockback,
-      despawnBelowVelocity=projMod.despawnBelowVelocity,
-      damage=projMod.projectileDamage,
+      hitKnockback=barrelMod.hitKnockback,
+      despawnBelowVelocity=barrelMod.despawnBelowVelocity,
+      damage=barrelMod.projectileDamage,
       firedByGun=gunFiringProjectileUid,
       uid=util.gen_uid("projectile")
     }
     newProj.fixture:setRestitution(0)
     newProj.body:setBullet(true) -- this is Box2D's CCD (continuous collision detection) flag
-    newProj.body:setGravityScale(projMod.gravityScale)
-    newProj.body:setMass(projMod.mass)
+    newProj.body:setGravityScale(barrelMod.gravityScale)
+    newProj.body:setMass(barrelMod.mass)
 
     -- set filterdata for new projectile
     -- currently, player-fired projectiles never collide with each other, but we may change that
@@ -112,7 +112,7 @@ M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX,
     -- adjust shot angle to account for gun inaccuracy
     local rand = math.random()
     -- give us a random modifier for the shot angle from -1*gun.inaccuracy to 1*gun.inaccuracy
-    local inaccuracyAngleAdjustment = projMod.inaccuracy - (rand * projMod.inaccuracy * 2)
+    local inaccuracyAngleAdjustment = barrelMod.inaccuracy - (rand * barrelMod.inaccuracy * 2)
     -- print(inaccuracyAngleAdjustment)
     -- then, apply the inaccuracy modifier and recoil modifier to the angle of the shot
     -- we're dummying out the accuracy penalty on shot for now
@@ -121,18 +121,18 @@ M.createProjectile = function(gunFiringProjectileUid, projMod, shotWorldOriginX,
 
     -- apply velocity to projectile
     local projectileVelocityX, projectileVelocityY = util.getUnitVectorFromAimAngle(adjustedShotAngle)
-    projectileVelocityX = projectileVelocityX * projMod.speed
-    projectileVelocityY = projectileVelocityY * projMod.speed
+    projectileVelocityX = projectileVelocityX * barrelMod.speed
+    projectileVelocityY = projectileVelocityY * barrelMod.speed
 
     newProj.body:applyLinearImpulse(projectileVelocityX, projectileVelocityY)
 
     -- apply projectile's linear damping
-    newProj.body:setLinearDamping(projMod.linearDamping)
+    newProj.body:setLinearDamping(barrelMod.linearDamping)
 
     M.projectileList[newProj.fixture:getUserData().uid] = newProj
 
     -- decrement stat used for spawning multiple projectiles
-    projMod.spawnCount = projMod.spawnCount - 1
+    barrelMod.spawnCount = barrelMod.spawnCount - 1
   end
 end
 -- }}}

@@ -16,7 +16,18 @@
 local M = {}
 
 M.exampleTrait = function()
-  
+  local traitTable = {}
+  traitTable.displayName = "Example Trait"
+  traitTable.description = "Example Trait: makes projectile announce in the console when any of its callbacks are triggered"
+
+  traitTable.onUpdate = function()
+    print("Example Trait -- onUpdate projectile callback run!")
+  end
+
+  traitTable.onCollision = function(projectileFixture, otherFixture)
+    print("Example Trait -- onCollision projectile callback run!")
+  end
 
 end
 return M
+-- vim: foldmethod=marker

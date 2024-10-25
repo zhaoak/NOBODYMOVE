@@ -7,10 +7,22 @@
 
 local barrelMod = require'mods.barrel'
 local ammoMod = require'mods.ammo'
+local triggerMod = require'mods.trigger'
+local actionMod = require'mods.action'
 
 local M = {}
 
 M.seededGuns = {
+  -- debug and other guns
+  { name = "mod_testing_gun",
+    tier = -1,
+    events = {
+      onPressShoot = {
+        mods = {ammoMod.exampleAmmoMod,actionMod.exampleActionMod,barrelMod.smallBullet},
+      armed = true}
+    }
+  },
+
   -- tier 1 guns
   { name = "smg_lowcal",
     tier = 1,
