@@ -1,0 +1,11 @@
+-- Traits are basically collections of callback functions that projectiles can run at different points during their lifetimes.
+-- A projectile either has or does not have a specific trait.
+-- The possible callbacks that can trigger for a trait are:
+--    - `onUpdate` : called during projectile update step
+--        - args: 
+--            - figuring it out
+--
+--    - `onCollision` : called when the projectile registers a Box2D collision
+--        - args:
+--            - projectileFixture : Box2D fixture for the projectile with this trait
+--            - otherFixture : Box2D fixture for the thing the projectile hit

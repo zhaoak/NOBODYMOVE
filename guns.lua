@@ -399,6 +399,11 @@ M.update = function (dt) -- {{{
       end
     end
 
+    -- run any update callbacks for this gun's events
+    -- loop through gun's events, checking for the presence of a callback on each
+    --
+    -- if there is one for that event, run it
+
     -- if player has managed to get recoil aim penalty past a full rotation counterclockwise or clockwise (impressive),
     -- modulo the value so the recoil recovery doesn't spin more than a full rotation
     -- if gun.current.recoilAimPenaltyOffset > math.pi*2 then

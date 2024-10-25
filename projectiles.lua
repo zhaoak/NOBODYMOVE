@@ -171,6 +171,10 @@ M.handleProjectileCollision = function(a, b, contact, npcList, player)
     return
   end
 
+  -- iterate through each trait the projectile has
+  --
+  -- for each trait that has an `onCollision` callback, run it
+
   -- if the hit thing was non-background terrain...
   if otherFixData.type == "terrain" then
     -- TODO: create impact decal/animation at terrain location
@@ -261,6 +265,8 @@ M.update = function (dt) -- {{{
         destroyed = true
       end
     end
+
+    -- run the onUpdate callbacks for each trait the projectile has, if any
 
     -- write the lifetime and any other updated values to the projectile's userdata,
     -- but only if it wasn't destroyed

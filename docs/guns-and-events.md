@@ -57,7 +57,9 @@ This is how the gun and event system works
             - _traits_ are any special behaviors that a projectile can do beyond just hitting an enemy and doing knockback and damage
                 - for example, exploding, homing onto enemies, fragmenting into shrapnel, ricocheting off walls, applying a status effect to hit targets, and so on
                 - traits should avoid being mutually exclusive whenever possible; having traits stack and chain off each others' effects is part of the fun
-                - traits are implemented as an `onUpdate` callback that gets run each update for each projectile tagged with that trait when the projectile update step runs
+                - traits are implemented as either an `onUpdate` callback that gets run each update for each projectile tagged with that trait when the projectile update step runs
+                - or an `onCollision` callback that gets run when the projectile hits something
+                - more callbacks may be added if necessary, like an `onModTrigger` callback
         - _trigger_ mods, name unchanged from before, activate another event when their trigger condition is met; this new event is also editable in the gun mod ui by the player
             - trigger mods can do more than just add an event and listen for it--they also allow for mod-provided callbacks to be run in the gun's update step
                 - this allows for complex behavior; for example, adding a laser tripwire effect to a gun's barrel (checking if an enemy passes in front of it in the gun's update callback) that sets off the trigger mod's associated event `onTripwireDetect`; putting barrel mods in the `onTripwireDetect` event will cause them to fire when the tripwire senses an enemy so the gun literally shoots on its own
