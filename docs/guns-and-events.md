@@ -52,13 +52,15 @@ This is how the gun and event system works
         - _barrel_ mods, previously called _shoot projectile_ mods, are all the ones that spawn projectiles from your gun on activation and have stats that can be modified
             - they're called barrel mods because these are the mods that determine what barrels visually appear on the sprite of the gun ingame
             - barrel mods can cause projectiles to spawn with specific _traits_, for example a rocket that always spawns with the explosive trait
+            - custom projectile behavior (explosions, homing, whatever) should be implemented as _traits_; barrel mods should contain no callbacks
         - _ammo_ mods, previously called _projectile tweak_ mods, which change the stats/traits of any _barrel_ mods fired in their shared event
             - _traits_ are any special behaviors that a projectile can do beyond just hitting an enemy and doing knockback and damage
                 - for example, exploding, homing onto enemies, fragmenting into shrapnel, ricocheting off walls, applying a status effect to hit targets, and so on
                 - traits should avoid being mutually exclusive whenever possible; having traits stack and chain off each others' effects is part of the fun
+                - traits are implemented as an `onUpdate` callback that gets run each update for each projectile tagged with that trait when the projectile update step runs
         - _trigger_ mods, name unchanged from before, activate another event when their trigger condition is met; this new event is also editable in the gun mod ui by the player
             - trigger mods can do more than just add an event and listen for it--they also allow for mod-provided callbacks to be run in the gun's update step
-                - this allows for complex behavior; for example, adding a laser tripwire effect to a gun's barrel that sets off the trigger mod's associated event `onTripwireDetect`; putting barrel mods in the `onTripwireDetect` event will cause them to fire when the tripwire senses an enemy so the gun literally shoots on its own
+                - this allows for complex behavior; for example, adding a laser tripwire effect to a gun's barrel (checking if an enemy passes in front of it in the gun's update callback) that sets off the trigger mod's associated event `onTripwireDetect`; putting barrel mods in the `onTripwireDetect` event will cause them to fire when the tripwire senses an enemy so the gun literally shoots on its own
             - considering completely abandoning the idea of having to "arm" trigger mods; cooldown already prevents quickly-chained events from creating projectile spam so only action mods could be quickly and repeatedly triggered, so probably action mods should avoid doing direct damage or stacking
             - alternately, just make action mods not trigger unless cooldown is done just like barrel/ammo mods
                 - this doesn't even eliminate the possibility of chaining events because, remember, if an event has no barrel mods, it incurs no cooldown timer cost when run
@@ -67,6 +69,7 @@ This is how the gun and event system works
             - or they could be exotic, broad, and ideally very stupid (e.g. "all projectiles fired from this mod's gun move at half speed for 2s on activation")
             - they can also have nothing to do with projectiles, e.g. "all enemies with `rust` effect are 50% slower for 5s on activation"
             - this category is the one that's the most ideal to put in chained events in most cases
+            - this mod is basically just a callback function that gets run when the mod triggers
 
 ## first draft
 
