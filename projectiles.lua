@@ -174,11 +174,11 @@ M.handleProjectileCollision = function(a, b, contact, npcList, player)
 
   -- iterate through each trait the projectile has
   for _, trait in pairs(projFixData.traits) do
+    -- for each trait that has an `onCollision` callback, run it
     if trait.onCollision ~= nil then
       trait.onCollision(projectileFixture, otherFixture)
     end
   end
-  -- for each trait that has an `onCollision` callback, run it
 
   -- if the hit thing was non-background terrain...
   if otherFixData.type == "terrain" then
@@ -272,10 +272,11 @@ M.update = function (dt) -- {{{
     end
 
     -- iterate through the projectiles traits, if any,
-    -- and run the `onUpdate` callback for each if one is present
+    -- and run the `onUpdate` callback for each if one is present,
+    -- passing the callback the projectile object
     for _, trait in pairs(projUserData.traits) do
       if trait.onUpdate ~= nil then
-        trait.onUpdate(projUserData)
+        trait.onUpdate(proj)
       end
     end
     -- write the lifetime and any other updated values to the projectile's userdata,

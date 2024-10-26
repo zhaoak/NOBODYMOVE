@@ -6,7 +6,7 @@
 -- The possible callbacks that can trigger for a trait are:
 --    - `onUpdate` : called during projectile update step
 --        - args: 
---            - figuring it out
+--            - projectileTable : table holding the data (body, fixture, shape) of the projectile being updated
 --
 --    - `onCollision` : called when the projectile registers a Box2D collision with another body
 --        - args:
@@ -20,8 +20,8 @@ M.exampleTrait = function()
   traitTable.displayName = "Example Trait"
   traitTable.description = "Example Trait: makes projectile announce in the console when any of its callbacks are triggered"
 
-  traitTable.onUpdate = function(thisProjectileUserData)
-    print("Example Trait -- onUpdate projectile callback run! Projectile lifetime: "..thisProjectileUserData.currentLifetime)
+  traitTable.onUpdate = function(projTable)
+    print("Example Trait -- onUpdate projectile callback run! Projectile lifetime: "..projTable.fixture:getUserData().currentLifetime)
   end
 
   traitTable.onCollision = function(projectileFixture, otherFixture)

@@ -65,7 +65,9 @@ local function triggerEvent (gun, eventName) -- {{{
   for _,mod in ipairs(event.mods) do
     local thisMod = mod()
     if thisMod.modCategory == "action" then
-
+      if thisMod.onActivation ~= nil then
+        thisMod.onActivation()
+      end
     end
   end
 

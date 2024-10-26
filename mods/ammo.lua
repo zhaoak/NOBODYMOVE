@@ -21,10 +21,11 @@ M.exampleAmmoMod = function()
   -- the passed-in barrel are modified and returned, and then from there,
   -- triggerEvent() calls the gun's shoot function, passing it the processed barrel mods
    modTable.apply = function(gun, barrelMods)
-    for _, shootMod in ipairs(barrelMods) do
-      shootMod.cooldownCost = shootMod.cooldownCost * 1.5
-      if shootMod.traits.exampleTrait == nil then
-        shootMod.traits.exampleTrait = trait.exampleTrait()
+    for _, barrelMod in ipairs(barrelMods) do
+      barrelMod.cooldownCost = barrelMod.cooldownCost * 1.5
+      if barrelMod.traits.exampleTrait == nil then
+        -- note that we also apply a trait here, checking to make sure it isn't already defined
+        barrelMod.traits.exampleTrait = trait.exampleTrait()
       end
     end
     return barrelMods
@@ -40,14 +41,14 @@ M.shotgunify = function()
 
   modTable.apply = function(gun, barrelMods)
     -- for each barrel mod in the event...
-    for _, shootMod in ipairs(barrelMods) do
+    for _, barrelMod in ipairs(barrelMods) do
       -- tweak its stats like so...
-      shootMod.linearDamping = shootMod.linearDamping + 3 -- slow down over time
-      shootMod.despawnBelowVelocity = 250 -- once it gets too slow, despawn it
-      shootMod.inaccuracy = shootMod.inaccuracy + math.rad(15)
-      shootMod.holderKnockback = shootMod.holderKnockback * 2
+      barrelMod.linearDamping = barrelMod.linearDamping + 3 -- slow down over time
+      barrelMod.despawnBelowVelocity = 250 -- once it gets too slow, despawn it
+      barrelMod.inaccuracy = barrelMod.inaccuracy + math.rad(15)
+      barrelMod.holderKnockback = barrelMod.holderKnockback * 2
       -- and make it multishot two more projectiles per shot
-      shootMod.spawnCount = shootMod.spawnCount + 2
+      barrelMod.spawnCount = barrelMod.spawnCount + 2
     end
     -- then return the new table of barrel mods
     return barrelMods
