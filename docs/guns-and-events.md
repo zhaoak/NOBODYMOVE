@@ -2,6 +2,45 @@
 
 This is how the gun and event system works
 
+## I was lying this one is the final-est draft and the most revised
+
+- _guns_ have four capacity stats: ammo capacity, barrel capacity, action capacity, and event capacity
+    - ammo, barrel, and action capacity are how many of each type of mod a gun can contain _per event_
+    - and event capacity is how many events a gun can contain; this count includes default events like `onHoldShoot` that guns may spawn with
+    - players can spend per-run currency to upgrade a gun's capacities
+
+- when an _event_'s trigger condition occurs (usually checked for in the gun update callback) and the gun is off cooldown, the mods in the event are run in this order:
+    - gun applies the effects of its ammo mods to the barrel mod's projectiles
+    - gun spawns the projectiles
+    - gun runs any action mod callbacks in the event
+- events can also be _bonus events_, which _always trigger even if the gun's cooldown is still going_
+    - obviously, `onHoldShoot` and similar easy-to-spam events shouldn't be set as bonus events, as that just completely bypasses the cooldown timer
+
+- these are the current mod categories
+    - _barrel_ mods, previously called _shoot projectile_ mods, are all the ones that spawn projectiles from your gun on activation and have stats that can be modified
+        - they're called barrel mods because these are the mods that determine what barrels visually appear on the sprite of the gun ingame
+        - barrel mods can cause projectiles to spawn with specific _traits_, for example a rocket that always spawns with the explosive trait
+        - custom projectile behavior (explosions, homing, whatever) should be implemented as _traits_; barrel mods should contain no callbacks
+    - _ammo_ mods, previously called _projectile tweak_ mods, which change the stats/traits of any _barrel_ mods fired in their shared event
+        - _traits_ are any special behaviors that a projectile can do beyond just hitting an enemy and doing knockback and damage
+            - for example, exploding, homing onto enemies, fragmenting into shrapnel, ricocheting off walls, applying a status effect to hit targets, and so on
+            - traits should avoid being mutually exclusive whenever possible; having traits stack and chain off each others' effects is part of the fun
+            - traits are implemented as either an `onUpdate` callback that gets run each update for each projectile tagged with that trait when the projectile update step runs
+            - or an `onCollision` callback that gets run when the projectile hits something
+            - more callbacks may be added if necessary, like an `onModTrigger` callback
+            - if a trait requires it, it can store data in the projectile object itself in a specially-formatted table
+    - _trigger_ mods, name unchanged from before, activate another event when their trigger condition is met; this new event is also editable in the gun mod ui by the player
+        - trigger mods can do more than just add an event and listen for it--they also allow for mod-provided callbacks to be run in the gun's update step
+            - this allows for complex behavior; for example, adding a laser tripwire effect to a gun's barrel (checking if an enemy passes in front of it in the gun's update callback) that sets off the trigger mod's associated event `onTripwireDetect`; putting barrel mods in the `onTripwireDetect` event will cause them to fire when the tripwire senses an enemy so the gun literally shoots on its own
+            - trigger mods aren't scoped to events in a gun the same way the other mods are--they directly add a new event to the gun, events don't contain any trigger mods, only guns do
+                - in the gun mod ui, trigger mods aren't placed inside events, they're added as new events in the gun
+    - _action_ mods, previously called _misc effect_ mods, which cause specific effects to happen _immediately_ when the event containing the action mod is triggered (so long as cooldown is over)
+        - this could be limited to only apply to projectiles with certain traits (e.g. "all explosive-trait projectiles detonate on activation")
+        - or they could be exotic, broad, and ideally very stupid (e.g. "all projectiles fired from this mod's gun move at half speed for 2s on activation")
+        - they can also have nothing to do with projectiles, e.g. "all enemies with `rust` effect are 50% slower for 5s on activation"
+        - this category is the one that's the most ideal to put in chained events in most cases
+        - this mod is basically just a callback function that gets run when the mod triggers
+
 ## the actual plan
 
 - guns themselves are just things that hold mods and events w/triggers; guns have no underlying stats, the mods determine all stats
