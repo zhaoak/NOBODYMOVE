@@ -51,16 +51,6 @@ local function triggerEvent (gun, eventName) -- {{{
     end
   end
 
-  -- find trigger mods; for each found, arm it
-  for _,mod in ipairs(event.mods) do
-    local thisMod = mod()
-    if thisMod.modCategory == "trigger" then
-      for eventName,_ in pairs(thisMod.triggersEvents) do
-        gun.events[eventName].armed = true
-      end
-    end
-  end
-
   -- find action mods; for each found, run it
   for _,mod in ipairs(event.mods) do
     local thisMod = mod()
@@ -70,6 +60,9 @@ local function triggerEvent (gun, eventName) -- {{{
       end
     end
   end
+
+  -- trigger mods don't live in events--only in guns
+  -- thus, they don't trigger via triggerEvent
 
   -- call the gun's shoot function with the freshly modified barrel mods
   gun:shoot(thisEventBarrelMods, true, false)

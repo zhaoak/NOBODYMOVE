@@ -19,8 +19,14 @@ M.seededGuns = {
     events = {
       onPressShoot = {
         mods = {ammoMod.exampleAmmoMod,actionMod.exampleActionMod,barrelMod.mediumBullet},
-      armed = true}
-    }
+        bonus = false} -- bonus events bypass the gun's cooldown, meaning they always fire
+    },
+    stats = {
+      barrelModCapacity = 2,
+      ammoModCapacity = 2,
+      actionModCapacity = 2,
+      eventCapacity = 2
+    },
   },
 
   -- tier 1 guns
@@ -29,7 +35,13 @@ M.seededGuns = {
     events = {
       onHoldShoot = {
         mods = {barrelMod.smallBullet},
-        armed = true}
+        bonus = false}
+    },
+    stats = {
+      barrelModCapacity = 2,
+      ammoModCapacity = 2,
+      actionModCapacity = 2,
+      eventCapacity = 2
     }
   },
 
@@ -38,7 +50,13 @@ M.seededGuns = {
     events = {
       onHoldShoot = {
         mods = {ammoMod.burstFire,barrelMod.mediumBullet,barrelMod.mediumBullet,barrelMod.mediumBullet},
-        armed = true}
+        bonus = false}
+    },
+    stats = {
+      barrelModCapacity = 2,
+      ammoModCapacity = 2,
+      actionModCapacity = 2,
+      eventCapacity = 2
     }
   },
 
@@ -47,7 +65,13 @@ M.seededGuns = {
     events = {
       onHoldShoot = {
         mods = {ammoMod.shotgunify,barrelMod.mediumBullet,barrelMod.mediumBullet,barrelMod.mediumBullet},
-        armed = true}
+        bonus = false}
+    },
+    stats = {
+      barrelModCapacity = 2,
+      ammoModCapacity = 2,
+      actionModCapacity = 2,
+      eventCapacity = 2
     }
   },
 
@@ -56,7 +80,13 @@ M.seededGuns = {
     events = {
       onHoldShoot = {
         mods = {ammoMod.burstFire,barrelMod.smallBullet,barrelMod.smallBullet,barrelMod.smallBullet,barrelMod.smallBullet,barrelMod.smallBullet,barrelMod.smallBullet},
-        armed = true}
+        bonus = false}
+    },
+    stats = {
+      barrelModCapacity = 2,
+      ammoModCapacity = 2,
+      actionModCapacity = 2,
+      eventCapacity = 2
     }
   },
 
@@ -66,7 +96,13 @@ M.seededGuns = {
     events = {
       onHoldShoot = {
         mods = {barrelMod.mediumBullet},
-        armed = true}
+        bonus = false}
+    },
+    stats = {
+      barrelModCapacity = 2,
+      ammoModCapacity = 2,
+      actionModCapacity = 2,
+      eventCapacity = 2
     }
   },
 
@@ -75,10 +111,16 @@ M.seededGuns = {
     events = {
       onPressShoot = {
         mods = {barrelMod.oversizeBullet},
-        armed = true},
+        bonus = false},
       onReleaseShoot = {
         mods = {barrelMod.oversizeBullet},
-        armed = true}
+        bonus = false}
+    },
+    stats = {
+      barrelModCapacity = 2,
+      ammoModCapacity = 2,
+      actionModCapacity = 2,
+      eventCapacity = 2
     }
   },
 }
