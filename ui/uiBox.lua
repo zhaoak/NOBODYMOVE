@@ -18,14 +18,12 @@ M.uiBoxList = {} -- table holding data for every UI box curently rendered onscre
 -- originY(num): y-coordinate of top left corner of box
 -- width(num): width in pixels of the box
 -- height(num): height in pixels of the box
--- minWidth(num): smallest possible width the uibox is allowed to shrink to
--- minHeight(num) smallest possible height the uibox is allowed to shrink to
 -- name(string): non-player visible name for the UI box, used as key in M.uiBoxList
 -- createFunc(func): function to call to recreate uibox when window size changes
 -- drawFunc(func): a function to call to draw the contents of the box
 -- shouldRender(bool): whether uibox should render this frame: may be changed anytime
 -- focusable(bool): whether player can click on, navigate with gamepad or otherwise interact with the box
-M.create = function(originX, originY, width, height, minWidth, minHeight, name, createFunc, drawFunc, shouldRender, focusable, focused)
+M.create = function(originX, originY, width, height, name, createFunc, drawFunc, shouldRender, focusable, focused)
   local newUiBox = {}
   newUiBox.shouldRender = shouldRender -- whether the box should render this frame
   newUiBox.focusable = focusable -- whether the box can listen and respond to kb/mouse/controller inputs
@@ -34,9 +32,7 @@ M.create = function(originX, originY, width, height, minWidth, minHeight, name, 
   newUiBox.originX = originX
   newUiBox.originY = originY
   newUiBox.width = width
-  newUiBox.minWidth = minWidth
   newUiBox.height = height
-  newUiBox.minHeight = minHeight
   newUiBox.name = name
   newUiBox.create = createFunc
   newUiBox.draw = drawFunc

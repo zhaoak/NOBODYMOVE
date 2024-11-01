@@ -44,6 +44,7 @@ M.kbMouseBinds = {
   shootFG6 = nil,
   shootFG7 = nil,
   shootFG8 = nil,
+  toggleGunEditMenu = "tab",
   incSpread = 'wheelup',
   decSpread = 'wheeldown',
 }
@@ -61,6 +62,7 @@ M.gamepadButtonBinds = {
   shootFG6 = nil,
   shootFG7 = nil,
   shootFG8 = nil,
+  toggleGunEditMenu = "back",
   reset = "y"
 }
 

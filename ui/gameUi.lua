@@ -1,5 +1,5 @@
--- Module for drawing the HUD (heads-up display) present on screen during gameplay.
--- Displays health, gun status, and other such game-relevant information.
+-- Module for drawing all UI present during normal gameplay.
+-- This includes the HUD, gun/event editing screen, and more.
 
 local uibox = require'ui.uiBox'
 local M = { }
@@ -9,11 +9,13 @@ M.gunHudListItemHeight = 110
 M.gunHudListItemWidth = 150
 M.healthDisplayWidth = 250
 M.healthDisplayHeight = 50
+M.gunEditMenuOpen = false
 -- }}}
 
 -- health and status bar {{{
 local function drawHealthBar(self, player)
   local thisBox = uibox.uiBoxList["hudHealthBar"]
+  if thisBox.shouldRender == false then return end
   love.graphics.push() -- save previous transformation state
   -- then set 0,0 point for graphics calls to the top left corner of the UIbox
   love.graphics.translate(thisBox.originX, thisBox.originY)
@@ -30,14 +32,14 @@ end
 local function createHealthBar()
   local originX, originY = 5, uibox.thisFrameWindowSizeY - 150
   local width, height = M.healthDisplayWidth, M.healthDisplayHeight
-  local minWidth, minHeight = 100, 25
-  uibox.create(originX, originY, width, height, minWidth, minHeight, "hudHealthBar", createHealthBar, drawHealthBar, true, false)
+  uibox.create(originX, originY, width, height, "hudHealthBar", createHealthBar, drawHealthBar, true, false)
 end
 -- }}}
 
--- gunlist on hud present during normal gameplay {{{
+-- gunlist on hud when gun editing menu closed {{{
 local function drawHudGunList(self, player, gunList)
   local thisBox = uibox.uiBoxList["hudGunList"]
+  if thisBox.shouldRender == false then return end
   love.graphics.push() -- save previous transformation state
   -- then set 0,0 point for graphics calls to the top left corner of the UIbox
   love.graphics.translate(thisBox.originX, thisBox.originY)
@@ -54,8 +56,7 @@ end
 local function createHudGunList()
   local originX, originY = 5, uibox.thisFrameWindowSizeY * (1/10)
   local width, height = M.gunHudListItemWidth, M.gunHudListItemHeight * 4 -- for four firegroups
-  local minWidth, minHeight = 200, 100
-  uibox.create(originX, originY, width, height, minWidth, minHeight, "hudGunList", createHudGunList, drawHudGunList, true, false)
+  uibox.create(originX, originY, width, height, "hudGunList", createHudGunList, drawHudGunList, true, false)
 end
 
 M.drawHudGunListItem = function(gun, topLeftPosX, topLeftPosY)
@@ -69,17 +70,66 @@ M.drawHudGunListItem = function(gun, topLeftPosX, topLeftPosY)
 end
 -- }}}
 
+-- gun editing menu {{{
+local function drawGunEditMenu(self, player, gunList)
+  local thisBox = uibox.uiBoxList["gunEditMenu"]
+  if thisBox.shouldRender == false then return end
+  love.graphics.push() -- save previous transformation state
+  -- then set 0,0 point for graphics calls to the top left corner of the UIbox
+
+  love.graphics.pop()
+end
+
+local function createGunEditMenu()
+  local originX, originY = 5, uibox.thisFrameWindowSizeY * (1/10)
+  local width, height = M.gunHudListItemWidth, M.gunHudListItemHeight * 4
+  uibox.create(originX, originY, width, height, "gunEditMenu", createGunEditMenu, drawGunEditMenu, false, true, false)
+end
+-- }}}
+
+-- player's per-run mod collection {{{
+
+-- }}}
+
+-- test menu, for testing UI code {{{
+local function drawTestUI(self)
+  local thisBox = uibox.uiBoxList["testUI"]
+  if thisBox.shouldRender == false then return end
+  love.graphics.push() -- save previous transformation state
+  -- then set 0,0 point for graphics calls to the top left corner of the UIbox
+  love.graphics.translate(thisBox.originX, thisBox.originY)
+  love.graphics.setColor(1, 1, 1, 0.2)
+  love.graphics.rectangle("fill", 0, 0, thisBox.width, thisBox.height, 20, 20, 20)
+  love.graphics.pop()
+end
+
+local function createTestUI()
+  local originX, originY = uibox.thisFrameWindowSizeX / 3, uibox.thisFrameWindowSizeY / 3
+  local width, height = 300, 300
+  uibox.create(originX, originY, width, height, "testUI", createTestUI, drawTestUI, true, false, true, false)
+end
+-- }}}
+
 -- primary functions for creating/drawing/updating hud
 -- these are the ones that get called directly in main.lua {{{
 M.draw = function(player, gunList)
   uibox.uiBoxList["hudGunList"]:draw(player, gunList)
   uibox.uiBoxList["hudHealthBar"]:draw(player)
+  uibox.uiBoxList["gunEditMenu"]:draw()
+
+  -- test code
+  uibox.uiBoxList["testUI"]:draw()
 end
 
 -- for creating uiboxes for hud before first drawcall
 M.setup = function()
   createHudGunList()
   createHealthBar()
+  createGunEditMenu()
+
+  -- test UI
+  createTestUI()
+  
 end
 
 M.update = function()

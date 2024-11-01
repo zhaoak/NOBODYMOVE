@@ -18,7 +18,7 @@ obj.npc = require("npc.npc")
 -- import required modules
 local gunlib = require'guns'
 local cam = require'camera'
-local hud = require'ui.hud'
+local gameUi = require'ui.gameUi'
 local dmgText = require'ui.damageNumbers'
 local input = require'input'
 local uiBox = require'ui.uiBox'
@@ -55,7 +55,7 @@ function love.load() -- {{{ init
 
   cam.scale(1.25)
 
-  hud.setup()
+  gameUi.setup()
 
 end -- }}}
 
@@ -141,7 +141,7 @@ function love.draw() -- {{{
 
   -- draw everything that doesn't move with the camera
   -- (HUD, other UI elements, etc)
-  hud.draw(obj.player, gunlib.gunlist)
+  gameUi.draw(obj.player, gunlib.gunlist)
 
   -- non-camera affected debug rendering {{{
   if arg[2] == 'debug' then
