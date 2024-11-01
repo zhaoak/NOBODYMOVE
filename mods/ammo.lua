@@ -22,7 +22,7 @@ M.exampleAmmoMod = function()
   -- triggerEvent() calls the gun's shoot function, passing it the processed barrel mods
    modTable.apply = function(gun, barrelMods)
     for _, barrelMod in ipairs(barrelMods) do
-      barrelMod.cooldownCost = barrelMod.cooldownCost * 1.5
+      barrelMod.cooldownCost = barrelMod.cooldownCost * 5
       if barrelMod.traits.exampleTrait == nil then
         -- note that we also apply a trait here, checking to make sure it isn't already defined
         barrelMod.traits.exampleTrait = trait.exampleTrait()

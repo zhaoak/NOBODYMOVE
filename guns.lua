@@ -24,6 +24,16 @@ local util = require'util'
 -- gunContainingEvent(gun obj): the gun containing the event you want to trigger.
 -- eventName(string): the string key for the event you want to trigger, most commonly "onPressShoot"
 local function triggerEvent (gun, eventName) -- {{{
+  -- if the event doesn't exist on the gun, do nothing
+  if gun.events[eventName] == nil then return end
+
+  -- if the event is not a bonus event and the cooldown timer isn't done,
+  -- cancel triggering the event
+  if not gun.events[eventName].bonus and gun.current.cooldown > 0 then
+    return
+  end
+
+  -- otherwise, trigger the event as normal
   -- iterate through the gun's events and find the one we're looking for, then cache its mods
   local event
   if gun.events[eventName] then
@@ -61,8 +71,8 @@ local function triggerEvent (gun, eventName) -- {{{
     end
   end
 
-  -- trigger mods don't live in events--only in guns
-  -- thus, they don't trigger via triggerEvent
+  -- trigger mods add events to guns, but are not themselves triggered by events
+  -- thus, they're ignored here
 
   -- call the gun's shoot function with the freshly modified barrel mods
   gun:shoot(thisEventBarrelMods, true, false)
@@ -73,12 +83,13 @@ end -- }}}
 -- gun(gun obj): existing gun to add the event to
 -- eventName(string): a string used as the key for the event in the gun's events table
 -- modsInEvent(table): a table containing mods to put into the event at creation time (optional)
+-- isBonus(bool): whether or not the event is a "bonus" event--i.e. whether it should ignore cooldown or not
 -- returns true if successfully created, false if failed because event already exists on gun
-local function addEvent(gun, eventName, modsInEvent, setArmed) -- {{{
+local function addEvent(gun, eventName, modsInEvent, isBonus) -- {{{
   if gun.events[eventName] ~= nil then return false end
   if modsInEvent == nil then modsInEvent = {} end
   gun.events[eventName].mods = modsInEvent
-  gun.events[eventName].armed = setArmed
+  gun.events[eventName].bonus = isBonus
   return true
 end -- }}}
 
@@ -90,23 +101,14 @@ end -- }}}
 -- gun(gun obj): existing gun to modify the events of
 -- eventName(string): string key of the event to modify
 -- newModList(table): table containing full list of mods to replace old event modlist with
+-- isBonus(bool): whether or not the post-modification event is a "bonus" event--i.e. whether it should ignore cooldown or not
 -- returns true if successfully modified, false if failed because event doesn't exist on gun
-local function modifyEvent(gun, eventName, newModList) -- {{{
+local function modifyEvent(gun, eventName, newModList, isBonus) -- {{{
   if gun.events[eventName] == nil then return false end
-  if newModList == nil then newModList = {} end
   gun.events[eventName].mods = newModList
+  if newModList == nil then newModList = {} end
+  if isBonus ~= nil then gun.events[eventName].bonus = isBonus end
   return true
-end -- }}}
-
--- event arming getters/setters {{{
--- function for getting whether or not a specific event is armed on a gun
-local function getArmed(gun, eventName)
-  return gun.events[eventName].armed
-end
-
--- function for toggling whether an event is armed or not
-local function toggleArmed(gun, eventName)
-  gun.events[eventName].armed = not gun.events[eventName].armed
 end -- }}}
 
 -- function for removing an existing event on an existing gun
@@ -132,10 +134,6 @@ end -- }}}
 -- triggerCooldown(bool): whether or not to reset the gun's cooldown timer; true makes the cooldown reset, false bypasses it
 -- ignoreCooldown(bool): whether or not to bypass the pre-shot cooldown check: true makes the gun always shoot, even if still on cooldown
 local function shoot (gun, barrelMods, triggerCooldown, ignoreCooldown) -- {{{
-  -- if the cooldown isn't over and we're not ignoring it, cancel the shot
-  if not ignoreCooldown and gun.current.cooldown >= 0 then
-    return
-  end
   -- spawn projectiles for every barrel mod in the event, incrementing total cooldown with each projectile's contribution
   local totalCooldown = 0
   local totalKnockback = 0

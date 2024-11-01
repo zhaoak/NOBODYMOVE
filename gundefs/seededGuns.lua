@@ -2,8 +2,6 @@
 -- They're classed with their tier; higher tier entries appear later in the game.
 -- Tier 1 guns are generally fairly "conventional", by video game gun standards--
 -- these are the guns that players will first encounter, so they should be as straightforward as possible to understand
--- All "default" gun events (press/hold/release/unhold/throw) should always be armed,
--- because they respond directly to player input
 
 local barrelMod = require'mods.barrel'
 local ammoMod = require'mods.ammo'
