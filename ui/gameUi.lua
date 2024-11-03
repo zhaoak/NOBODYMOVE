@@ -85,6 +85,10 @@ local function createGunEditMenu()
   local width, height = M.gunHudListItemWidth, M.gunHudListItemHeight * 4
   uibox.create(originX, originY, width, height, "gunEditMenu", createGunEditMenu, drawGunEditMenu, false, true, false)
 end
+
+M.toggleGunEditMenuOpen = function()
+
+end
 -- }}}
 
 -- player's per-run mod collection {{{
@@ -111,14 +115,15 @@ end
 -- }}}
 
 -- primary functions for creating/drawing/updating hud
--- these are the ones that get called directly in main.lua {{{
+-- these are the ones that get called directly in main.lua 
+-- {{{
 M.draw = function(player, gunList)
   uibox.uiBoxList["hudGunList"]:draw(player, gunList)
   uibox.uiBoxList["hudHealthBar"]:draw(player)
   uibox.uiBoxList["gunEditMenu"]:draw()
 
   -- test code
-  uibox.uiBoxList["testUI"]:draw()
+  -- uibox.uiBoxList["testUI"]:draw()
 end
 
 -- for creating uiboxes for hud before first drawcall
@@ -128,13 +133,14 @@ M.setup = function()
   createGunEditMenu()
 
   -- test UI
-  createTestUI()
+  -- createTestUI()
   
 end
 
 M.update = function()
 
 end -- }}}
+
 
 
 return M

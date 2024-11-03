@@ -11,7 +11,7 @@ M.lastFrameWindowSizeY = 600
 
 M.uiBoxList = {} -- table holding data for every UI box curently rendered onscreen, keyed by name
 
--- create a new UI box
+-- create a new UIbox
 -- if the uibox with the specified key 'name' already exists, it gets overwritten by the newly created one
 -- args:
 -- originX(num): x-coordinate of top left corner of box
