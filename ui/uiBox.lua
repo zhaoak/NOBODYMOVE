@@ -36,6 +36,7 @@ M.create = function(originX, originY, width, height, name, createFunc, drawFunc,
   newUiBox.name = name
   newUiBox.create = createFunc
   newUiBox.draw = drawFunc
+  newUiBox.children = {}
   M.uiBoxList[name] = newUiBox
 end
 

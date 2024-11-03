@@ -21,6 +21,7 @@ M.startingHealth = 100
 M.playerAcceleration = 10
 M.playerLatchedKnockbackReduction = 0.5
 M.ragdoll = true
+
 -- relative to world; i.e. 0 means aiming straight down from player perspective of world
 -- increases counterclockwise, decreases clockwise, i.e. aiming left is angle -pi/2, aiming right is pi/2
 M.currentAimAngle = 0
@@ -36,6 +37,10 @@ M.ungrabGraceTimer = M.ungrabGracePeriod
 M.dashUsed = false -- whether or not the player has used their dash
 M.dashForce = 115 -- how much force to apply on each axis when player uses dash
 M.dashCooldownPeriod = 0.5 -- how long in seconds it takes for the dash to be available after being used
+
+-- timer used to prevent player from toggling gun editing UI open/closed every single frame
+M.gunEditMenuToggleTimer = 0
+M.gunEditMenuToggleCooldownPeriod = 0.5
 
 M.thisTickTotalKnockbackX = 0
 M.thisTickTotalKnockbackY = 0
@@ -409,6 +414,18 @@ M.update = function(dt) -- {{{
         end
       end
     end
+  end
+
+  -- check if player has opened/closed gun editing menu this update,
+  -- with a cooldown timer so it doesn't spam open/closed every frame
+  if M.gunEditMenuToggleTimer <= 0 and input.getGunMenuToggleDown() then
+    -- reset timer
+    M.gunEditMenuToggleTimer = M.gunEditMenuToggleCooldownPeriod
+    -- toggle gun editing UI open/closed
+    print("toggle gun edit ui")
+  else
+    -- decrement the timer otherwise
+    M.gunEditMenuToggleTimer = M.gunEditMenuToggleTimer - dt
   end
 
   -- {{{ directional movement

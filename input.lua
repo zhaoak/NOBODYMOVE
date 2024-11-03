@@ -117,6 +117,15 @@ M.getRagdollDown = function()
   end
 end
 
+-- get if gun menu toggle button input is currently down
+M.getGunMenuToggleDown = function()
+  if M.keyDown("toggleGunEditMenu") or M.gamepadButtonDown("toggleGunEditMenu", 1) then
+    return true
+  else
+    return false
+  end
+end
+
 -- get if the player is currently trying to move on the X-axis
 -- checks both kb/mouse and gamepad inputs, and returns a value from -1 to 1 for left to right
 -- obviously, kb inputs will only ever return -1, 0, or 1
