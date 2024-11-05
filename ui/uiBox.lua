@@ -1,5 +1,7 @@
--- Module for making rectangular menus or UI boxes that render above everything else and can be focusable/interactable
--- UiBoxes are responsible for resizing in response to window size changes
+-- Module for making rectangular menus or UI boxes that render above everything else and can be interactable.
+-- UiBoxes are responsible for resizing in response to window size changes.
+-- They also can have callbacks for specific input interactions (assuming the `interactable` flag is set.)
+
 local M = {}
 
 -- defines {{{
@@ -21,13 +23,13 @@ M.uiBoxList = {} -- table holding data for every UI box curently rendered onscre
 -- name(string): non-player visible name for the UI box, used as key in M.uiBoxList
 -- createFunc(func): function to call to recreate uibox when window size changes
 -- drawFunc(func): a function to call to draw the contents of the box
+-- onClick(func): a callback function triggered when player clicks on the UIbox
 -- shouldRender(bool): whether uibox should render this frame: may be changed anytime
--- focusable(bool): whether player can click on, navigate with gamepad or otherwise interact with the box
-M.create = function(originX, originY, width, height, name, createFunc, drawFunc, shouldRender, focusable, focused)
+-- interactable(bool): whether player can click on, navigate with gamepad or otherwise interact with the box
+M.create = function(originX, originY, width, height, name, createFunc, drawFunc, shouldRender, interactable)
   local newUiBox = {}
   newUiBox.shouldRender = shouldRender -- whether the box should render this frame
-  newUiBox.focusable = focusable -- whether the box can listen and respond to kb/mouse/controller inputs
-  newUiBox.focused = false -- whether the box is currently listening to kb/mouse/controller inputs
+  newUiBox.interactable = interactable -- whether the box should listen and respond to kb/mouse/controller inputs
   newUiBox.borderColor = {1, 1, 1, 1} -- table containing RGBA value for color of box border
   newUiBox.originX = originX
   newUiBox.originY = originY
@@ -36,6 +38,9 @@ M.create = function(originX, originY, width, height, name, createFunc, drawFunc,
   newUiBox.name = name
   newUiBox.create = createFunc
   newUiBox.draw = drawFunc
+  -- `children` is a table of additional UIBoxes that are contained within this UIBox;
+  -- think of them like selectable list items contained within a parent box,
+  -- where each child can have children of its own.
   newUiBox.children = {}
   M.uiBoxList[name] = newUiBox
 end

@@ -43,6 +43,9 @@ M.dashCooldownPeriod = 0.5 -- how long in seconds it takes for the dash to be av
 M.gunEditMenuToggleTimer = 0
 M.gunEditMenuToggleCooldownPeriod = 0.5
 
+-- whether the gun editing menu is open or not, used to determine how to interpret player inputs
+M.gunEditMenuOpen = false
+
 M.thisTickTotalKnockbackX = 0
 M.thisTickTotalKnockbackY = 0
 
@@ -424,6 +427,8 @@ M.update = function(dt) -- {{{
     M.gunEditMenuToggleTimer = M.gunEditMenuToggleCooldownPeriod
     -- toggle gun editing UI open/closed
     gameUi.toggleGunEditMenuOpen()
+    -- and start/stop listening for menu nav inputs
+    M.gunEditMenuOpen = not M.gunEditMenuOpen
   else
     -- decrement the timer otherwise
     M.gunEditMenuToggleTimer = M.gunEditMenuToggleTimer - dt

@@ -85,13 +85,13 @@ end
 local function createGunEditMenu()
   local originX, originY = 5, uibox.thisFrameWindowSizeY * (1/10)
   local width, height = M.gunHudListItemWidth, M.gunHudListItemHeight * 4
-  uibox.create(originX, originY, width, height, "gunEditMenu", createGunEditMenu, drawGunEditMenu, false, true, false)
+  uibox.create(originX, originY, width, height, "gunEditMenu", createGunEditMenu, drawGunEditMenu, false, false)
 end
 
 M.toggleGunEditMenuOpen = function()
   uibox.uiBoxList["gunEditMenu"].shouldRender = not uibox.uiBoxList["gunEditMenu"].shouldRender
   uibox.uiBoxList["hudGunList"].shouldRender = not uibox.uiBoxList["hudGunList"].shouldRender
-  uibox.uiBoxList["gunEditMenu"].focused = not uibox.uiBoxList["gunEditMenu"].focused
+  uibox.uiBoxList["gunEditMenu"].interactable = not uibox.uiBoxList["gunEditMenu"].interactable
   M.gunEditMenuOpen = not M.gunEditMenuOpen
 end
 -- }}}
@@ -115,7 +115,8 @@ end
 local function createTestUI()
   local originX, originY = uibox.thisFrameWindowSizeX / 3, uibox.thisFrameWindowSizeY / 3
   local width, height = 300, 300
-  uibox.create(originX, originY, width, height, "testUI", createTestUI, drawTestUI, true, false, true, false)
+  uibox.create(originX, originY, width, height, "testUI", createTestUI, drawTestUI, true, true)
+  uibox.uiBoxList["testUI"].onClick = function() print("test uibox clicked") end
 end
 -- }}}
 
@@ -128,7 +129,7 @@ M.draw = function(player, gunList)
   uibox.uiBoxList["gunEditMenu"]:draw(player, gunList)
 
   -- test code
-  -- uibox.uiBoxList["testUI"]:draw()
+  uibox.uiBoxList["testUI"]:draw()
 end
 
 -- for creating uiboxes for hud before first drawcall
@@ -138,8 +139,7 @@ M.setup = function()
   createGunEditMenu()
 
   -- test UI
-  -- createTestUI()
-  
+  createTestUI()
 end
 
 M.update = function()
