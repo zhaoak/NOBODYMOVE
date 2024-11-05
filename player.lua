@@ -8,6 +8,7 @@ local gunlib = require'guns'
 local util = require'util'
 local filterVals = require'filterValues'
 local input = require'input'
+local gameUi = require'ui.gameUi'
 
 -- {{{ defines
 local M = {reach={}, hardbox={}, latchbox={}}
@@ -422,7 +423,7 @@ M.update = function(dt) -- {{{
     -- reset timer
     M.gunEditMenuToggleTimer = M.gunEditMenuToggleCooldownPeriod
     -- toggle gun editing UI open/closed
-    print("toggle gun edit ui")
+    gameUi.toggleGunEditMenuOpen()
   else
     -- decrement the timer otherwise
     M.gunEditMenuToggleTimer = M.gunEditMenuToggleTimer - dt

@@ -30,7 +30,7 @@ local function drawHealthBar(self, player)
 end
 
 local function createHealthBar()
-  local originX, originY = 5, uibox.thisFrameWindowSizeY - 150
+  local originX, originY = 5, uibox.thisFrameWindowSizeY - M.healthDisplayHeight 
   local width, height = M.healthDisplayWidth, M.healthDisplayHeight
   uibox.create(originX, originY, width, height, "hudHealthBar", createHealthBar, drawHealthBar, true, false)
 end
@@ -76,7 +76,9 @@ local function drawGunEditMenu(self, player, gunList)
   if thisBox.shouldRender == false then return end
   love.graphics.push() -- save previous transformation state
   -- then set 0,0 point for graphics calls to the top left corner of the UIbox
-
+  love.graphics.translate(thisBox.originX, thisBox.originY)
+  love.graphics.setColor(1, 1, 1, 0.2)
+  love.graphics.rectangle("fill", 0, 0, thisBox.width, #player.guns*M.gunHudListItemHeight, 20, 20, 20)
   love.graphics.pop()
 end
 
@@ -87,7 +89,10 @@ local function createGunEditMenu()
 end
 
 M.toggleGunEditMenuOpen = function()
-
+  uibox.uiBoxList["gunEditMenu"].shouldRender = not uibox.uiBoxList["gunEditMenu"].shouldRender
+  uibox.uiBoxList["hudGunList"].shouldRender = not uibox.uiBoxList["hudGunList"].shouldRender
+  uibox.uiBoxList["gunEditMenu"].focused = not uibox.uiBoxList["gunEditMenu"].focused
+  M.gunEditMenuOpen = not M.gunEditMenuOpen
 end
 -- }}}
 
@@ -120,7 +125,7 @@ end
 M.draw = function(player, gunList)
   uibox.uiBoxList["hudGunList"]:draw(player, gunList)
   uibox.uiBoxList["hudHealthBar"]:draw(player)
-  uibox.uiBoxList["gunEditMenu"]:draw()
+  uibox.uiBoxList["gunEditMenu"]:draw(player, gunList)
 
   -- test code
   -- uibox.uiBoxList["testUI"]:draw()
