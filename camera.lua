@@ -11,7 +11,7 @@ M.thisFrameWindowSizeX = 800
 M.thisFrameWindowSizeY = 600
 M.playerObj = nil
 M.followAimMaxOffsetDistance = 600 -- how far cam is allowed to move from player in "followAim" mode
-M.maxPanSpeed = 5 -- how fast camera is allowed to move on each axis per second
+M.maxPanSpeed = 3 -- how fast camera is allowed to move on each axis per second
 M.panAcceleration = 1 -- how fast camera is allowed to speed up while panning
 -- }}}
 

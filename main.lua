@@ -21,7 +21,7 @@ local cam = require'camera'
 local gameUi = require'ui.gameUi'
 local dmgText = require'ui.damageNumbers'
 local input = require'input'
-local uiBox = require'ui.uiBox'
+local uiWindow = require'ui.uiWindow'
 
 function love.load() -- {{{ init
   local optionsTable = {
@@ -67,7 +67,7 @@ function love.update(dt) -- {{{
   gunlib.update(dt)
   obj.projectiles.update(dt)
   dmgText.updateDamageNumberEvents(dt)
-  uiBox.update(dt)
+  uiWindow.update(dt)
   obj.npc.updateAllNpcs(dt, util.world, obj.player, obj.npc.npcList, gunlib.gunlist)
 
   util.world:update(dt)

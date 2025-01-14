@@ -1,7 +1,9 @@
 -- Module for drawing all UI present during normal gameplay.
 -- This includes the HUD, gun/event editing screen, and more.
+-- Each UI element (examples: health display, gun status display) gets its own uiWindow.
+-- See `uiWindow.lua` for how they work.
 
-local uibox = require'ui.uiBox'
+local uiWindow = require'ui.uiWindow'
 local M = { }
 
 -- defines {{{
@@ -14,15 +16,15 @@ M.gunEditMenuOpen = false
 
 -- health and status bar {{{
 local function drawHealthBar(self, player)
-  local thisBox = uibox.uiBoxList["hudHealthBar"]
-  if thisBox.shouldRender == false then return end
+  local thisWindow = uiWindow.uiWindowList["hudHealthBar"]
+  if thisWindow.shouldRender == false then return end
   love.graphics.push() -- save previous transformation state
-  -- then set 0,0 point for graphics calls to the top left corner of the UIbox
-  love.graphics.translate(thisBox.originX, thisBox.originY)
+  -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
+  love.graphics.translate(thisWindow.originX, thisWindow.originY)
   love.graphics.setColor(1, 1, 1, 0.2)
-  love.graphics.rectangle("fill", 0, 0, thisBox.width, thisBox.height, 20, 20, 20)
+  love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
   love.graphics.setColor(0.8, 0.2, 0.2, 0.2)
-  love.graphics.rectangle("fill", 5, 5, (thisBox.width-10) * (player.current.health/player.current.maxHealth), thisBox.height - 10, 10, 10, 5)
+  love.graphics.rectangle("fill", 5, 5, (thisWindow.width-10) * (player.current.health/player.current.maxHealth), thisWindow.height - 10, 10, 10, 5)
   local healthNumberDisplay = {{0.65,0.15,0.15,0.9},tostring(player.current.health)}
   love.graphics.setColor(1, 1, 1, 1)
   love.graphics.print(healthNumberDisplay, 40, 10, 0, 2, 2, 0, 0)
@@ -30,21 +32,21 @@ local function drawHealthBar(self, player)
 end
 
 local function createHealthBar()
-  local originX, originY = 5, uibox.thisFrameWindowSizeY - M.healthDisplayHeight 
+  local originX, originY = 5, uiWindow.thisFrameGameResolutionY - M.healthDisplayHeight 
   local width, height = M.healthDisplayWidth, M.healthDisplayHeight
-  uibox.create(originX, originY, width, height, "hudHealthBar", createHealthBar, drawHealthBar, true, false)
+  uiWindow.create(originX, originY, width, height, "hudHealthBar", createHealthBar, drawHealthBar, true, false)
 end
 -- }}}
 
 -- gunlist on hud when gun editing menu closed {{{
 local function drawHudGunList(self, player, gunList)
-  local thisBox = uibox.uiBoxList["hudGunList"]
-  if thisBox.shouldRender == false then return end
+  local thisWindow = uiWindow.uiWindowList["hudGunList"]
+  if thisWindow.shouldRender == false then return end
   love.graphics.push() -- save previous transformation state
-  -- then set 0,0 point for graphics calls to the top left corner of the UIbox
-  love.graphics.translate(thisBox.originX, thisBox.originY)
+  -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
+  love.graphics.translate(thisWindow.originX, thisWindow.originY)
   love.graphics.setColor(1, 1, 1, 0.2)
-  love.graphics.rectangle("fill", 0, 0, thisBox.width, #player.guns*M.gunHudListItemHeight, 20, 20, 20)
+  love.graphics.rectangle("fill", 0, 0, thisWindow.width, #player.guns*M.gunHudListItemHeight, 20, 20, 20)
   local gunListYPosOffset = 0
   for i, gunId in pairs(player.guns) do
     M.drawHudGunListItem(gunList[gunId], 5, gunListYPosOffset)
@@ -54,9 +56,9 @@ local function drawHudGunList(self, player, gunList)
 end
 
 local function createHudGunList()
-  local originX, originY = 5, uibox.thisFrameWindowSizeY * (1/10)
+  local originX, originY = 5, uiWindow.thisFrameGameResolutionY * (1/10)
   local width, height = M.gunHudListItemWidth, M.gunHudListItemHeight * 4 -- for four firegroups
-  uibox.create(originX, originY, width, height, "hudGunList", createHudGunList, drawHudGunList, true, false)
+  uiWindow.create(originX, originY, width, height, "hudGunList", createHudGunList, drawHudGunList, true, false)
 end
 
 M.drawHudGunListItem = function(gun, topLeftPosX, topLeftPosY)
@@ -72,26 +74,26 @@ end
 
 -- gun editing menu {{{
 local function drawGunEditMenu(self, player, gunList)
-  local thisBox = uibox.uiBoxList["gunEditMenu"]
-  if thisBox.shouldRender == false then return end
+  local thisWindow = uiWindow.uiWindowList["gunEditMenu"]
+  if thisWindow.shouldRender == false then return end
   love.graphics.push() -- save previous transformation state
-  -- then set 0,0 point for graphics calls to the top left corner of the UIbox
-  love.graphics.translate(thisBox.originX, thisBox.originY)
+  -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
+  love.graphics.translate(thisWindow.originX, thisWindow.originY)
   love.graphics.setColor(1, 1, 1, 0.2)
-  love.graphics.rectangle("fill", 0, 0, thisBox.width, #player.guns*M.gunHudListItemHeight, 20, 20, 20)
+  love.graphics.rectangle("fill", 0, 0, thisWindow.width, #player.guns*M.gunHudListItemHeight, 20, 20, 20)
   love.graphics.pop()
 end
 
 local function createGunEditMenu()
-  local originX, originY = 5, uibox.thisFrameWindowSizeY * (1/10)
+  local originX, originY = 5, uiWindow.thisFrameGameResolutionY * (1/10)
   local width, height = M.gunHudListItemWidth, M.gunHudListItemHeight * 4
-  uibox.create(originX, originY, width, height, "gunEditMenu", createGunEditMenu, drawGunEditMenu, false, false)
+  uiWindow.create(originX, originY, width, height, "gunEditMenu", createGunEditMenu, drawGunEditMenu, false, false)
 end
 
 M.toggleGunEditMenuOpen = function()
-  uibox.uiBoxList["gunEditMenu"].shouldRender = not uibox.uiBoxList["gunEditMenu"].shouldRender
-  uibox.uiBoxList["hudGunList"].shouldRender = not uibox.uiBoxList["hudGunList"].shouldRender
-  uibox.uiBoxList["gunEditMenu"].interactable = not uibox.uiBoxList["gunEditMenu"].interactable
+  uiWindow.uiWindowList["gunEditMenu"].shouldRender = not uiWindow.uiWindowList["gunEditMenu"].shouldRender
+  uiWindow.uiWindowList["hudGunList"].shouldRender = not uiWindow.uiWindowList["hudGunList"].shouldRender
+  uiWindow.uiWindowList["gunEditMenu"].interactable = not uiWindow.uiWindowList["gunEditMenu"].interactable
   M.gunEditMenuOpen = not M.gunEditMenuOpen
 end
 -- }}}
@@ -100,23 +102,31 @@ end
 
 -- }}}
 
+-- general ui elements -- text labels, mod slots, etc {{{
+
+-- Draw text onscreen. Intended to be used for ingame UI.
+local function drawTextLabel(textTable, font, x, y, lineLimit, align, angle, sx, sy, ox, oy, kx, ky)
+  
+end
+-- }}}
+
 -- test menu, for testing UI code {{{
 local function drawTestUI(self)
-  local thisBox = uibox.uiBoxList["testUI"]
-  if thisBox.shouldRender == false then return end
+  local thisWindow = uiWindow.uiWindowList["testUI"]
+  if thisWindow.shouldRender == false then return end
   love.graphics.push() -- save previous transformation state
-  -- then set 0,0 point for graphics calls to the top left corner of the UIbox
-  love.graphics.translate(thisBox.originX, thisBox.originY)
+  -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
+  love.graphics.translate(thisWindow.originX, thisWindow.originY)
   love.graphics.setColor(1, 1, 1, 0.2)
-  love.graphics.rectangle("fill", 0, 0, thisBox.width, thisBox.height, 20, 20, 20)
+  love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
   love.graphics.pop()
 end
 
 local function createTestUI()
-  local originX, originY = uibox.thisFrameWindowSizeX / 3, uibox.thisFrameWindowSizeY / 3
+  local originX, originY = uiWindow.thisFrameGameResolutionX / 3, uiWindow.thisFrameGameResolutionY / 3
   local width, height = 300, 300
-  uibox.create(originX, originY, width, height, "testUI", createTestUI, drawTestUI, true, true)
-  uibox.uiBoxList["testUI"].onClick = function() print("test uibox clicked") end
+  uiWindow.create(originX, originY, width, height, "testUI", createTestUI, drawTestUI, true, true)
+  uiWindow.uiWindowList["testUI"].onClick = function() print("test uiWindow clicked") end
 end
 -- }}}
 
@@ -124,15 +134,15 @@ end
 -- these are the ones that get called directly in main.lua 
 -- {{{
 M.draw = function(player, gunList)
-  uibox.uiBoxList["hudGunList"]:draw(player, gunList)
-  uibox.uiBoxList["hudHealthBar"]:draw(player)
-  uibox.uiBoxList["gunEditMenu"]:draw(player, gunList)
+  uiWindow.uiWindowList["hudGunList"]:draw(player, gunList)
+  uiWindow.uiWindowList["hudHealthBar"]:draw(player)
+  uiWindow.uiWindowList["gunEditMenu"]:draw(player, gunList)
 
   -- test code
-  uibox.uiBoxList["testUI"]:draw()
+  uiWindow.uiWindowList["testUI"]:draw()
 end
 
--- for creating uiboxes for hud before first drawcall
+-- for creating uiWindow for hud before first drawcall
 M.setup = function()
   createHudGunList()
   createHealthBar()
