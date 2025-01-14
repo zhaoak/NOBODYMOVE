@@ -7,6 +7,8 @@ local uiWindow = require'ui.uiWindow'
 local M = { }
 
 -- defines {{{
+-- Pixel width/height values for various UI elements when uiScale = 1.
+-- In other words, the defaults.
 M.gunHudListItemHeight = 110
 M.gunHudListItemWidth = 150
 M.healthDisplayWidth = 250
@@ -33,7 +35,7 @@ end
 
 local function createHealthBar()
   local originX, originY = 5, uiWindow.thisFrameGameResolutionY - M.healthDisplayHeight 
-  local width, height = M.healthDisplayWidth, M.healthDisplayHeight
+  local width, height = M.healthDisplayWidth*uiWindow.uiScale, M.healthDisplayHeight*uiWindow.uiScale
   uiWindow.create(originX, originY, width, height, "hudHealthBar", createHealthBar, drawHealthBar, true, false)
 end
 -- }}}
@@ -57,7 +59,7 @@ end
 
 local function createHudGunList()
   local originX, originY = 5, uiWindow.thisFrameGameResolutionY * (1/10)
-  local width, height = M.gunHudListItemWidth, M.gunHudListItemHeight * 4 -- for four firegroups
+  local width, height = M.gunHudListItemWidth*uiWindow.uiScale, M.gunHudListItemHeight*uiWindow.uiScale*4 -- for four firegroups
   uiWindow.create(originX, originY, width, height, "hudGunList", createHudGunList, drawHudGunList, true, false)
 end
 
@@ -80,13 +82,13 @@ local function drawGunEditMenu(self, player, gunList)
   -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
   love.graphics.translate(thisWindow.originX, thisWindow.originY)
   love.graphics.setColor(1, 1, 1, 0.2)
-  love.graphics.rectangle("fill", 0, 0, thisWindow.width, #player.guns*M.gunHudListItemHeight, 20, 20, 20)
+  love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
   love.graphics.pop()
 end
 
 local function createGunEditMenu()
-  local originX, originY = 5, uiWindow.thisFrameGameResolutionY * (1/10)
-  local width, height = M.gunHudListItemWidth, M.gunHudListItemHeight * 4
+  local originX, originY = 5+(M.gunHudListItemWidth*uiWindow.uiScale), uiWindow.thisFrameGameResolutionY * (1/10)
+  local width, height = uiWindow.thisFrameGameResolutionX-2*M.gunHudListItemWidth, uiWindow.thisFrameGameResolutionY - (uiWindow.thisFrameGameResolutionY*(1/5))
   uiWindow.create(originX, originY, width, height, "gunEditMenu", createGunEditMenu, drawGunEditMenu, false, false)
 end
 
@@ -105,8 +107,26 @@ end
 -- general ui elements -- text labels, mod slots, etc {{{
 
 -- Draw text onscreen. Intended to be used for ingame UI.
-local function drawTextLabel(textTable, font, x, y, lineLimit, align, angle, sx, sy, ox, oy, kx, ky)
-  
+-- Colors provided via `textTable` are *not* affected by color currently set via `love.graphics.setColor`.
+-- args:
+-- textTable(table): Table containing strings and colors to print them in in the following format:
+--  `{color1, string1, color2, string2, ...}`
+--    - color1(table): Table containing red, green, blue, and optional alpha values in format: `{r, g, b, a}`
+--    - string1(table): String to render using the corresponding color1 values.
+--    color2 and string2 correspond, as do any additional pairs provided.
+-- font(Font): Love font object to use when drawing text.
+-- x(number): text position on x-axis
+-- y(number): text position on y-axis
+-- lineLimit(number): wrap the line after this many horizontal pixels
+-- align(string): alignment mode of text, one of: "center", "left", "right", "justify"
+-- angle(number): rotation of text in radians; 0 is normal, un-rotated text
+-- sx,sy(numbers): x/y scale factors for text
+-- ox,oy(numbers): x/y origin offsets for text
+-- kx, ky(numbers): x/y shearing factors
+local function drawText(textTable, font, x, y, lineLimit, align, angle, sx, sy, ox, oy, kx, ky)
+  local colorCacheR,colorCacheG,colorCacheB,colorCacheA = love.graphics.getColor()
+  love.graphics.printf(textTable, font, x, y, lineLimit, align, angle, sx, sy, ox, oy, kx, ky)
+  love.graphics.setColor(colorCacheR, colorCacheG, colorCacheB, colorCacheA)
 end
 -- }}}
 
@@ -139,7 +159,7 @@ M.draw = function(player, gunList)
   uiWindow.uiWindowList["gunEditMenu"]:draw(player, gunList)
 
   -- test code
-  uiWindow.uiWindowList["testUI"]:draw()
+  -- uiWindow.uiWindowList["testUI"]:draw()
 end
 
 -- for creating uiWindow for hud before first drawcall

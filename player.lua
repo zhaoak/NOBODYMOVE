@@ -19,7 +19,7 @@ M.walkboxRadius = M.hardboxRadius * 1.5 -- range within which player can exert m
 M.reachRadius = M.hardboxRadius * 3 -- maximum range at which player's legs can latch to things; if in walkbox but not reach, cannot move
 M.maxWalkingSpeed = 300
 M.startingHealth = 100
-M.playerAcceleration = 10
+M.playerAcceleration = 20
 M.playerLatchedKnockbackReduction = 0.5
 M.ragdoll = true
 

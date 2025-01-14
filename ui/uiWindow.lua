@@ -9,6 +9,7 @@ M.thisFrameGameResolutionX = 800
 M.thisFrameGameResolutionY = 600
 M.lastFrameGameResolutionX = 800
 M.lastFrameGameResolutionY = 600
+M.uiScale = 1 -- scaling factor to use for all uiWindows; 1 is normal size
 -- }}}
 
 M.uiWindowList = {} -- table holding data for every UiWindow curently rendered onscreen, keyed by name
