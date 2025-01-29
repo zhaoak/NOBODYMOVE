@@ -38,19 +38,25 @@ M.gunEditMenuOpen = false
   -- ox,oy(numbers): x/y origin offsets for text
   -- kx, ky(numbers): x/y shearing factors
 local function drawText(values)
-   local textTable = values.textTable or {color1={1,0,0,1},string1="HEY YOU DIDNT PUT TEXT TO DRAW IN THE FUNCTIONG THAT DRQWS IT"}
-   local font = values.textTable or love.graphics.getFont() -- come back once there is a custom font implemented at all
-   local x = values.x or 0
-   local y = values.y or 0
-   local lineLimit = values.lineLimit or 200
-   local align = values.align or "left"
-   local angle = values.angle or 0
-   local sx = values.sx or 1
-   local sy = values.sy or 1
-   local ox = values.ox or 0
-   local oy = values.oy or 0
-   local kx = values.kx or 0
-   local ky = values.ky or 0
+  local textTable
+  if values.textTable then -- take either textTable with lots of colors and texts or just take 'text' and 'color'
+    textTable = values.textTable
+  else
+    textTable = {color1=values.color or {1,0,0,1}, string1=values.text or "HEY YOU DIDNT PUT TEXT TO DRAW IN THE FUNCTIONG THAT DRQWS IT"}
+  end
+
+  local font = values.textTable or love.graphics.getFont() -- come back once there is a custom font implemented at all
+  local x = values.x or 0
+  local y = values.y or 0
+  local lineLimit = values.lineLimit or 200
+  local align = values.align or "left"
+  local angle = values.angle or 0
+  local sx = values.sx or 1
+  local sy = values.sy or 1
+  local ox = values.ox or 0
+  local oy = values.oy or 0
+  local kx = values.kx or 0
+  local ky = values.ky or 0
   local colorCacheR,colorCacheG,colorCacheB,colorCacheA = love.graphics.getColor()
   love.graphics.printf(textTable, font, x, y, lineLimit, align, angle, sx, sy, ox, oy, kx, ky)
   love.graphics.setColor(colorCacheR, colorCacheG, colorCacheB, colorCacheA)
@@ -124,7 +130,7 @@ local function drawGunEditMenu(self, player, gunList)
   love.graphics.translate(thisWindow.originX, thisWindow.originY)
   love.graphics.setColor(1, 1, 1, 0.2)
   love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
-  drawText{textTable={{0,0,0,1}, "hi this is test text"}, font=nil, x=5, y=5}
+  drawText{color={0,0,0,1}, text="hi this is test text", font=nil, x=5, y=5}
   love.graphics.pop()
 end
 
