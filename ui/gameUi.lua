@@ -129,9 +129,30 @@ local function drawGunEditMenu(self, player, gunList)
   love.graphics.push() -- save previous transformation state
   -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
   love.graphics.translate(thisWindow.originX, thisWindow.originY)
+  -- draw the window shape
   love.graphics.setColor(1, 1, 1, 0.2)
   love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
   drawText{textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}, x=10, y=10}
+  -- iterate through all the player's guns, creating UI elements within the window for each one
+    for i,gunId in ipairs(player.guns) do
+      -- get the data for the currently-examined gun
+      local thisGun = gunList[gunId]
+      -- determine how much space to allocate for the gun's UI elements
+      
+      -- draw the gun sprite display panel
+    
+      -- draw the gun mod capacity display panel
+    
+      -- draw the gun stat display panel
+    
+      -- draw the gun lore display panel
+    
+      -- iterate through the gun's events, drawing an editable element for each
+        
+        -- draw event's mod list
+    
+        -- draw event's trigger condition display
+    end
   love.graphics.pop()
 end
 
@@ -152,7 +173,6 @@ end
 -- player's per-run mod collection {{{
 
 -- }}}
-
 
 -- test menu, for testing UI code {{{
 local function drawTestUI(self)

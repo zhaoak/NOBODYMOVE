@@ -1,6 +1,6 @@
--- Module for making UI windows that render above ingame graphics and can be interactable.
+-- Module for making UI windows that render above ingame graphics and can contain interactable elements.
+-- Examples of uiWindows include: the pause menu, HUD health display, and gun status HUD display.
 -- Windows are responsible for resizing in response to window size changes.
--- They also can have callbacks for specific input interactions (assuming the `interactable` flag is set.)
 
 local M = {}
 
