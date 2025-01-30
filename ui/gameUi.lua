@@ -21,14 +21,15 @@ M.gunEditMenuOpen = false
 -- Draw text onscreen. Intended to be used for ingame UI.
 -- Colors provided via `textTable` are *not* affected by color currently set via `love.graphics.setColor`.
 -- args:
--- values(table): table containing the following keys:
-  -- colors(table): 
-  -- textTable(table): Table containing strings and colors to print them in in the following format:
+-- values(table):
+  -- textTable(table): Table containing string-color pairs to print in the following format:
   --  `{color1, string1, color2, string2, ...}`
   --    - color1(table): Table containing red, green, blue, and optional alpha values in format: `{r, g, b, a}`
   --    - string1(table): String to render using the corresponding color1 values.
   --    color2 and string2 correspond, as do any additional pairs provided.
-  -- font(Font): Love font object to use when drawing text.
+  --    So, a textTable value of `{{1,0,0,1}, "horse", {0,1,0,1}, "crime"}` would print:
+  --    "horsecrime" with "horse" in red and "crime" in green.
+  -- font(Font): Love font object to use when drawing text. Defaults to currently set font.
   -- x(number): text position on x-axis
   -- y(number): text position on y-axis
   -- lineLimit(number): wrap the line after this many horizontal pixels
@@ -39,16 +40,15 @@ M.gunEditMenuOpen = false
   -- kx, ky(numbers): x/y shearing factors
 local function drawText(values)
   local textTable
-  if values.textTable then -- take either textTable with lots of colors and texts or just take 'text' and 'color'
+  if values.textTable then
     textTable = values.textTable
   else
-    textTable = {color1=values.color or {1,0,0,1}, string1=values.text or "HEY YOU DIDNT PUT TEXT TO DRAW IN THE FUNCTIONG THAT DRQWS IT"}
+    textTable = {values.color or {1,0,0,1}, values.text or "HEY YOU DIDNT PUT TEXT TO DRAW IN THE FUNCTIONG THAT DRQWS IT"}
   end
-
-  local font = values.textTable or love.graphics.getFont() -- come back once there is a custom font implemented at all
+  local font = values.font or love.graphics.getFont() -- come back once there is a custom font implemented at all
   local x = values.x or 0
   local y = values.y or 0
-  local lineLimit = values.lineLimit or 200
+  local lineLimit = values.lineLimit or 500
   local align = values.align or "left"
   local angle = values.angle or 0
   local sx = values.sx or 1
@@ -58,6 +58,7 @@ local function drawText(values)
   local kx = values.kx or 0
   local ky = values.ky or 0
   local colorCacheR,colorCacheG,colorCacheB,colorCacheA = love.graphics.getColor()
+  love.graphics.setColor(1,1,1,1)
   love.graphics.printf(textTable, font, x, y, lineLimit, align, angle, sx, sy, ox, oy, kx, ky)
   love.graphics.setColor(colorCacheR, colorCacheG, colorCacheB, colorCacheA)
 end
@@ -130,7 +131,7 @@ local function drawGunEditMenu(self, player, gunList)
   love.graphics.translate(thisWindow.originX, thisWindow.originY)
   love.graphics.setColor(1, 1, 1, 0.2)
   love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
-  drawText{color={0,0,0,1}, text="hi this is test text", font=nil, x=5, y=5}
+  drawText{textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}, x=10, y=10}
   love.graphics.pop()
 end
 
