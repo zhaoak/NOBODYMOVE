@@ -4,6 +4,7 @@
 -- See `uiWindow.lua` for how they work.
 
 local uiWindow = require'ui.uiWindow'
+local elements = require'ui.uiElements'
 local M = { }
 
 -- defines {{{
@@ -16,52 +17,10 @@ M.healthDisplayHeight = 50
 M.gunEditMenuOpen = false
 -- }}}
 
--- general ui elements -- text labels, mod slots, etc {{{
-
--- Draw text onscreen. Intended to be used for ingame UI.
--- Colors provided via `textTable` are *not* affected by color currently set via `love.graphics.setColor`.
--- args:
--- values(table):
-  -- textTable(table): Table containing string-color pairs to print in the following format:
-  --  `{color1, string1, color2, string2, ...}`
-  --    - color1(table): Table containing red, green, blue, and optional alpha values in format: `{r, g, b, a}`
-  --    - string1(table): String to render using the corresponding color1 values.
-  --    color2 and string2 correspond, as do any additional pairs provided.
-  --    So, a textTable value of `{{1,0,0,1}, "horse", {0,1,0,1}, "crime"}` would print:
-  --    "horsecrime" with "horse" in red and "crime" in green.
-  -- font(Font): Love font object to use when drawing text. Defaults to currently set font.
-  -- x(number): text position on x-axis
-  -- y(number): text position on y-axis
-  -- lineLimit(number): wrap the line after this many horizontal pixels
-  -- align(string): alignment mode of text, one of: "center", "left", "right", "justify"
-  -- angle(number): rotation of text in radians; 0 is normal, un-rotated text
-  -- sx,sy(numbers): x/y scale factors for text
-  -- ox,oy(numbers): x/y origin offsets for text
-  -- kx, ky(numbers): x/y shearing factors
-local function drawText(values)
-  local textTable
-  if values.textTable then
-    textTable = values.textTable
-  else
-    textTable = {values.color or {1,0,0,1}, values.text or "HEY YOU DIDNT PUT TEXT TO DRAW IN THE FUNCTIONG THAT DRQWS IT"}
+-- UI event callbacks {{{
+  local function testCallback()
+    print("Test callback triggered.")
   end
-  local font = values.font or love.graphics.getFont() -- come back once there is a custom font implemented at all
-  local x = values.x or 0
-  local y = values.y or 0
-  local lineLimit = values.lineLimit or 500
-  local align = values.align or "left"
-  local angle = values.angle or 0
-  local sx = values.sx or 1
-  local sy = values.sy or 1
-  local ox = values.ox or 0
-  local oy = values.oy or 0
-  local kx = values.kx or 0
-  local ky = values.ky or 0
-  local colorCacheR,colorCacheG,colorCacheB,colorCacheA = love.graphics.getColor()
-  love.graphics.setColor(1,1,1,1)
-  love.graphics.printf(textTable, font, x, y, lineLimit, align, angle, sx, sy, ox, oy, kx, ky)
-  love.graphics.setColor(colorCacheR, colorCacheG, colorCacheB, colorCacheA)
-end
 -- }}}
 
 -- health and status bar {{{
@@ -84,7 +43,11 @@ end
 local function createHealthBar()
   local originX, originY = 5, uiWindow.thisFrameGameResolutionY - M.healthDisplayHeight 
   local width, height = M.healthDisplayWidth*uiWindow.uiScale, M.healthDisplayHeight*uiWindow.uiScale
-  uiWindow.create(originX, originY, width, height, "hudHealthBar", createHealthBar, drawHealthBar, true, false)
+  if uiWindow.uiWindowList["hudHeathBar"] == nil then
+    uiWindow.new(originX, originY, width, height, "hudHealthBar", createHealthBar, drawHealthBar, true, false)
+  else
+    return originX, originY, width, height
+  end
 end
 -- }}}
 
@@ -108,7 +71,11 @@ end
 local function createHudGunList()
   local originX, originY = 5, uiWindow.thisFrameGameResolutionY * (1/10)
   local width, height = M.gunHudListItemWidth*uiWindow.uiScale, M.gunHudListItemHeight*uiWindow.uiScale*4 -- for four firegroups
-  uiWindow.create(originX, originY, width, height, "hudGunList", createHudGunList, drawHudGunList, true, false)
+  if uiWindow.uiWindowList["hudGunList"] == nil then
+    uiWindow.new(originX, originY, width, height, "hudGunList", createHudGunList, drawHudGunList, true, false)
+  else
+    return originX, originY, width, height
+  end
 end
 
 M.drawHudGunListItem = function(gun, topLeftPosX, topLeftPosY)
@@ -132,7 +99,7 @@ local function drawGunEditMenu(self, player, gunList)
   -- draw the window shape
   love.graphics.setColor(1, 1, 1, 0.2)
   love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
-  drawText{textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}, x=10, y=10}
+  elements.drawText{textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}, x=10, y=10}
   -- iterate through all the player's guns, creating UI elements within the window for each one
     for i,gunId in ipairs(player.guns) do
       -- get the data for the currently-examined gun
@@ -159,7 +126,11 @@ end
 local function createGunEditMenu()
   local originX, originY = 5+(M.gunHudListItemWidth*uiWindow.uiScale), uiWindow.thisFrameGameResolutionY * (1/10)
   local width, height = uiWindow.thisFrameGameResolutionX-2*M.gunHudListItemWidth, uiWindow.thisFrameGameResolutionY - (uiWindow.thisFrameGameResolutionY*(1/5))
-  uiWindow.create(originX, originY, width, height, "gunEditMenu", createGunEditMenu, drawGunEditMenu, false, false)
+  if uiWindow.uiWindowList["gunEditMenu"] == nil then
+    uiWindow.new(originX, originY, width, height, "gunEditMenu", createGunEditMenu, drawGunEditMenu, false, false)
+  else
+    return originX, originY, width, height
+  end
 end
 
 M.toggleGunEditMenuOpen = function()
@@ -175,23 +146,23 @@ end
 -- }}}
 
 -- test menu, for testing UI code {{{
-local function drawTestUI(self)
-  local thisWindow = uiWindow.uiWindowList["testUI"]
-  if thisWindow.shouldRender == false then return end
-  love.graphics.push() -- save previous transformation state
-  -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
-  love.graphics.translate(thisWindow.originX, thisWindow.originY)
-  love.graphics.setColor(1, 1, 1, 0.2)
-  love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
-  love.graphics.pop()
-end
-
-local function createTestUI()
-  local originX, originY = uiWindow.thisFrameGameResolutionX / 3, uiWindow.thisFrameGameResolutionY / 3
-  local width, height = 300, 300
-  uiWindow.create(originX, originY, width, height, "testUI", createTestUI, drawTestUI, true, true)
-  uiWindow.uiWindowList["testUI"].onClick = function() print("test uiWindow clicked") end
-end
+-- local function drawTestUI(self)
+--   local thisWindow = uiWindow.uiWindowList["testUI"]
+--   if thisWindow.shouldRender == false then return end
+--   love.graphics.push() -- save previous transformation state
+--   -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
+--   love.graphics.translate(thisWindow.originX, thisWindow.originY)
+--   love.graphics.setColor(1, 1, 1, 0.2)
+--   love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
+--   love.graphics.pop()
+-- end
+--
+-- local function createTestUI()
+--   local originX, originY = uiWindow.thisFrameGameResolutionX / 3, uiWindow.thisFrameGameResolutionY / 3
+--   local width, height = 300, 300
+--   uiWindow.create(originX, originY, width, height, "testUI", createTestUI, drawTestUI, true, true)
+--   uiWindow.uiWindowList["testUI"].onClick = function() print("test uiWindow clicked") end
+-- end
 -- }}}
 
 -- primary functions for creating/drawing/updating hud
@@ -213,7 +184,7 @@ M.setup = function()
   createGunEditMenu()
 
   -- test UI
-  createTestUI()
+  -- createTestUI()
 end
 
 M.update = function()

@@ -12,9 +12,9 @@ M.lastFrameGameResolutionY = 600
 M.uiScale = 1 -- scaling factor to use for all uiWindows; 1 is normal size
 -- }}}
 
-M.uiWindowList = {} -- table holding data for every UiWindow curently rendered onscreen, keyed by name
+M.uiWindowList = {} -- list with data for every UiWindow created, keyed by name
 
--- create a new uiWindow
+-- create a new uiWindow and add it to the tracked list of uiWindows
 -- if the UiWindow with the specified key 'name' already exists, it gets overwritten by the newly created one
 -- args:
 -- originX(num): x-coordinate of top left corner of window
@@ -27,7 +27,7 @@ M.uiWindowList = {} -- table holding data for every UiWindow curently rendered o
 -- onClick(func): a callback function triggered when player clicks on the UiWindow
 -- shouldRender(bool): whether window should render this frame: may be changed anytime
 -- interactable(bool): whether player can click on, navigate with gamepad or otherwise interact with the window
-M.create = function(originX, originY, width, height, name, createFunc, drawFunc, shouldRender, interactable)
+M.new = function(originX, originY, width, height, name, createFunc, drawFunc, shouldRender, interactable)
   local newUiWindow = {}
   newUiWindow.shouldRender = shouldRender -- whether the window should render this frame
   newUiWindow.interactable = interactable -- whether the window should listen and respond to kb/mouse/controller inputs
@@ -41,11 +41,29 @@ M.create = function(originX, originY, width, height, name, createFunc, drawFunc,
   newUiWindow.name = name
   newUiWindow.create = createFunc
   newUiWindow.draw = drawFunc
-  -- `children` is a table of additional UiWindows that are contained within this UiWindow;
-  -- think of them like selectable list items contained within a parent UiWindow,
-  -- where each child can have children of its own.
-  newUiWindow.children = {}
+  -- `contains` contains all ui elements (defined in `uiElements.lua`) within the window
+  newUiWindow.contains = {}
   M.uiWindowList[name] = newUiWindow
+end
+
+-- Add an element to a window. The window will render the element each frame,
+-- as well as dynamically resize and reposition it.
+M.addElement = function(uiWindowName, element)
+
+end
+
+-- Resize a window in response to the game's output resolution changing.
+M.resize = function(uiWindowName)
+  local window = M.uiWindowList[uiWindowName]
+  -- get sizes appropriate sizes for new resolution
+  local originX, originY, width, height = M.uiWindowList[uiWindowName]:create()
+  -- set window's new screen coordinates, width/height
+  window.originX = originX
+  window.originY = originY
+  window.width = width
+  window.height = height
+  -- set new screen coords/width/height for elements inside window being resized
+  --
 end
 
 M.destroy = function(uiWindowUid)
@@ -57,12 +75,14 @@ M.update = function (dt)
   M.lastFrameWindowSizeX, M.lastFrameWindowSizeY = M.thisFrameGameResolutionX, M.thisFrameGameResolutionY
   M.thisFrameGameResolutionX, M.thisFrameGameResolutionY = love.graphics.getDimensions()
 
-  -- check if the window size has changed, and if it has, recreate the uiwindow for new windowsize before next draw
+  -- check if the window size has changed, and if it has, resize each uiwindow for new resolution before next draw
   if M.lastFrameWindowSizeX ~= M.thisFrameGameResolutionX or M.lastFrameWindowSizeY ~= M.thisFrameGameResolutionY then
     for i,window in pairs(M.uiWindowList) do
-      window:create()
+      M.resize(i)
     end
   end
+
+  -- 
 end
 
 return M
