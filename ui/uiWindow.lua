@@ -22,8 +22,8 @@ M.uiWindowList = {} -- list with data for every UiWindow created, keyed by name
 -- width(num): width in pixels of the window
 -- height(num): height in pixels of the window
 -- name(string): non-player visible name for the UI window, used as key in M.uiWindowList
--- createFunc(func): function to call to recreate window when window size changes
--- drawFunc(func): a function to call to draw the contents of the window
+-- createFunc(func): "creator" function for uiWindow from `gameUi.lua`
+-- drawFunc(func): rendering function for uiWindow from `gameUi.lua` 
 -- onClick(func): a callback function triggered when player clicks on the UiWindow
 -- shouldRender(bool): whether window should render this frame: may be changed anytime
 -- interactable(bool): whether player can click on, navigate with gamepad or otherwise interact with the window

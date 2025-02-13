@@ -3,6 +3,8 @@
 
 local M = {}
 
+-- utility rendering functions {{{
+
 -- Draw text onscreen. Intended to be used for ingame UI.
 -- Colors provided via `textTable` are *not* affected by color currently set via `love.graphics.setColor`.
 -- args:
@@ -47,6 +49,7 @@ M.drawText = function(values)
   love.graphics.printf(textTable, font, x, y, lineLimit, align, angle, sx, sy, ox, oy, kx, ky)
   love.graphics.setColor(colorCacheR, colorCacheG, colorCacheB, colorCacheA)
 end
+--- }}}
 
 -- Button that does a thing once when pressed. Can be activated by mouse click or controller input.
 -- args:
