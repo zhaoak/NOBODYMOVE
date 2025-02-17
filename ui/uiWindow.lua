@@ -52,6 +52,11 @@ M.addElement = function(uiWindowName, element)
 
 end
 
+-- Call the draw functions of each element in the window's `contains` table.
+M.drawChildren = function(uiWindowName)
+  
+end
+
 -- Resize a window in response to the game's output resolution changing.
 M.resize = function(uiWindowName)
   local window = M.uiWindowList[uiWindowName]

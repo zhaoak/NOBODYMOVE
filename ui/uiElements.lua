@@ -1,5 +1,9 @@
 -- Module for creating UI elements (buttons, sliders, etc.)
 -- Elements must live inside a uiWindow.
+-- Note that all elements' positioning is stored as an offset from the position values
+-- (originX and originY) of the element's containing uiWindow.
+-- That is, when rendered, the element's position is calculated by treating its' parent uiWindow's
+-- position values as (0, 0).
 
 local M = {}
 
@@ -51,13 +55,57 @@ M.drawText = function(values)
 end
 --- }}}
 
+-- List of elements {{{
+
+-- Text display of arbitrary size and length.
+--
+-- args:
+-- name(string): internal name of element. Used as key by uiWindow containing this element.
+-- x,y(numbers): screen coords of top-right corner of label, offset from originX/originY of containing uiWindow
+-- width,height(nums): in pixels, height/width of label
+-- values(table): a table that gets directly passed to `drawText` as its argument.
+--                If you want to customize how the text is displayed, see the docs on that function.
+-- 
+-- returns: table containing data for new label
+M.createLabel = function(name, x, y, width, height, values)
+  local newLabel = {}
+  newLabel.name = name
+  newLabel.x = x or 0
+  newLabel.y = y or 0
+  newLabel.width = width or 100
+  newLabel.height = height or 20
+  newLabel.values = values
+  newLabel.values.x = newLabel.x
+  newLabel.values.y = newLabel.y
+  newLabel.values.lineLimit = newLabel.width
+  newLabel.drawFunc = function() M.drawText(newLabel.values) end
+  return newLabel
+end
+
 -- Button that does a thing once when pressed. Can be activated by mouse click or controller input.
+--
 -- args:
 -- name(string): internal name of button. Used as key and identifier by the uiwindow containing the button.
--- x(number): 
-local function createButton(name, x, y, drawFunc, onActivation)
+-- x,y(numbers): screen coordinates of the top-right corner of the button,
+--               *relative to `originX` and `originY` values of the containing `uiWindow`*
+-- width,height(nums): in pixels, width/height of button
+-- drawFunc(func): callback function for rendering this specific button
+-- onActivation(func): callback function to run once when button is pressed
+--
+-- returns: table containing data for new button
+M.createButton = function (name, x, y, width, height, drawFunc, onActivation)
   local newButton = {}
+  newButton.x = x
+  newButton.y = y
+  newButton.name = name
+  newButton.width = width or 100
+  newButton.height = height or 30
+  newButton.drawFunc = drawFunc
+  newButton.onActivation = onActivation
+  return newButton
 end
+
+-- }}}
 
 
 return M

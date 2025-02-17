@@ -10,8 +10,11 @@ A defined area of the screen (a window, if you will) that UI elements can be dra
 A uiWindow will handle resizing itself and the elements inside it in response
 to game window size/resolution changes.
 
-A window's rendering function is always called before its elements' rendering functions.
-This means that elements will always visually render on top of windows.
+A `uiWindow` can contain both `uiElements` and other `uiWindow`s.
+A `uiWindow` and `uiElement` only render if its parent's `shouldRender` property is true.
+
+A window's rendering function is always called before its children's rendering functions.
+Since elements cannot contain windows, this means that elements will always visually render on top of windows.
 
 ## uiElement (uiElements.lua)
 
