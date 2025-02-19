@@ -49,16 +49,18 @@ end
 -- Add an element to a window. The window will render the element each frame,
 -- as well as dynamically resize and reposition it.
 M.addElement = function(uiWindowName, element)
-
+  M.uiWindowList[uiWindowName].contains[element.name] = element
 end
 
 -- Call the draw functions of each element in the window's `contains` table.
 M.drawChildren = function(uiWindowName)
-  
+  for i,child in pairs(M.uiWindowList[uiWindowName].contains) do
+    child.drawFunc()
+  end
 end
 
 -- Resize a window in response to the game's output resolution changing.
-M.resize = function(uiWindowName)
+M.resize = function(uiWindowName, scalingRatioX, scalingRatioY)
   local window = M.uiWindowList[uiWindowName]
   -- get sizes appropriate sizes for new resolution
   local originX, originY, width, height = M.uiWindowList[uiWindowName]:create()
@@ -68,7 +70,7 @@ M.resize = function(uiWindowName)
   window.width = width
   window.height = height
   -- set new screen coords/width/height for elements inside window being resized
-  --
+
 end
 
 M.destroy = function(uiWindowUid)
@@ -82,8 +84,9 @@ M.update = function (dt)
 
   -- check if the window size has changed, and if it has, resize each uiwindow for new resolution before next draw
   if M.lastFrameWindowSizeX ~= M.thisFrameGameResolutionX or M.lastFrameWindowSizeY ~= M.thisFrameGameResolutionY then
+    local scalingRatioX, scalingRatioY = M.thisFrameGameResolutionX/M.lastFrameWindowSizeX, M.thisFrameGameResolutionY/M.lastFrameWindowSizeY
     for i,window in pairs(M.uiWindowList) do
-      M.resize(i)
+      M.resize(i, scalingRatioX, scalingRatioY)
     end
   end
 

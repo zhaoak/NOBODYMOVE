@@ -64,8 +64,8 @@ end
 -- x,y(numbers): screen coords of top-right corner of label, offset from originX/originY of containing uiWindow
 -- width,height(nums): in pixels, height/width of label
 -- values(table): a table that gets directly passed to `drawText` as its argument.
---                If you want to customize how the text is displayed, see the docs on that function.
--- 
+--                See the `drawText` function in this file for table format.
+--
 -- returns: table containing data for new label
 M.createLabel = function(name, x, y, width, height, values)
   local newLabel = {}

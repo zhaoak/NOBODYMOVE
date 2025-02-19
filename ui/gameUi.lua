@@ -99,7 +99,10 @@ local function drawGunEditMenu(self, player, gunList)
   -- draw the window shape
   love.graphics.setColor(1, 1, 1, 0.2)
   love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
-  elements.drawText{textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}, x=10, y=10}
+
+  -- draw all of this window's children
+  uiWindow.drawChildren("gunEditMenu")
+
   -- iterate through all the player's guns, creating UI elements within the window for each one
     for i,gunId in ipairs(player.guns) do
       -- get the data for the currently-examined gun
@@ -128,6 +131,9 @@ local function createGunEditMenu()
   local width, height = uiWindow.thisFrameGameResolutionX-2*M.gunHudListItemWidth, uiWindow.thisFrameGameResolutionY - (uiWindow.thisFrameGameResolutionY*(1/5))
   if uiWindow.uiWindowList["gunEditMenu"] == nil then
     uiWindow.new(originX, originY, width, height, "gunEditMenu", createGunEditMenu, drawGunEditMenu, false, false)
+    local testText = {textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}}
+    local testLabel = elements.createLabel("testLabel", 5, 5, 500, 20, testText)
+    uiWindow.addElement("gunEditMenu", testLabel)
   else
     return originX, originY, width, height
   end
