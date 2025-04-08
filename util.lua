@@ -90,6 +90,16 @@ function M.cloneTable (original) -- {{{
   return copy
 end -- }}}
 
+-- print the keys/values of one table, skipping any nested tables
+function M.shallowTPrint (tbl) -- {{{
+  print("==============================")
+  for k, v in pairs(tbl) do
+    print(tostring(k).." : "..tostring(v))
+  end
+  print("==============================")
+end -- }}}
+
+-- recursively print table to console
 function M.tprint (tbl, indent) -- {{{
   -- this one is stolen directly from stack overflow
   -- https://stackoverflow.com/questions/41942289/display-contents-of-tables-in-lua

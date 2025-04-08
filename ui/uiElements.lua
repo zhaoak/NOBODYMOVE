@@ -7,6 +7,8 @@
 
 local M = {}
 
+M.uiElementList = {} -- List containing every uiElement created, keyed by name
+
 -- utility rendering functions {{{
 
 -- Draw text onscreen. Intended to be used for ingame UI.
@@ -55,12 +57,26 @@ M.drawText = function(values)
 end
 --- }}}
 
--- List of elements {{{
+M.newElement = function(name, originX, originY, width, height, shouldRender, interactable, selectable)
+  local newUiElement = {}
+  newUiElement.name = name
+  newUiElement.originX = originX
+  newUiElement.originY = originY
+  newUiElement.width = width
+  newUiElement.height = height
+  newUiElement.shouldRender = shouldRender or false
+  newUiElement.interactable = interactable or false
+  newUiElement.selectable = selectable or false
+  M.uiElementList[name] = newUiElement
+  return newUiElement
+end
+
+-- List of element creation functions {{{
 
 -- Text display of arbitrary size and length.
 --
 -- args:
--- name(string): internal name of element. Used as key by uiWindow containing this element.
+-- name(string): internal name of element, used for human identification of item.
 -- x,y(numbers): screen coords of top-right corner of label, offset from originX/originY of containing uiWindow
 -- width,height(nums): in pixels, height/width of label
 -- values(table): a table that gets directly passed to `drawText` as its argument.

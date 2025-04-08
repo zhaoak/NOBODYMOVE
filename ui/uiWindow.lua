@@ -46,13 +46,13 @@ M.new = function(originX, originY, width, height, name, createFunc, drawFunc, sh
   M.uiWindowList[name] = newUiWindow
 end
 
--- Add an element to a window. The window will render the element each frame,
+-- Add an element to a window's `contains` list. The window will render the element each frame,
 -- as well as dynamically resize and reposition it.
 M.addElement = function(uiWindowName, element)
   M.uiWindowList[uiWindowName].contains[element.name] = element
 end
 
--- Call the draw functions of each element in the window's `contains` table.
+-- Call the draw functions of each element or window in the window's `contains` table.
 M.drawChildren = function(uiWindowName)
   for i,child in pairs(M.uiWindowList[uiWindowName].contains) do
     child.drawFunc()

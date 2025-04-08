@@ -5,6 +5,7 @@
 
 local uiWindow = require'ui.uiWindow'
 local elements = require'ui.uiElements'
+local util = require'util'
 local M = { }
 
 -- defines {{{
@@ -132,8 +133,12 @@ local function createGunEditMenu()
   if uiWindow.uiWindowList["gunEditMenu"] == nil then
     uiWindow.new(originX, originY, width, height, "gunEditMenu", createGunEditMenu, drawGunEditMenu, false, false)
     local testText = {textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}}
+    local testText2 = {textTable={{1,1,0,1},"[",{0,1,1,1},"print function test",{1,1,0,1},"]"}}
     local testLabel = elements.createLabel("testLabel", 5, 5, 500, 20, testText)
     uiWindow.addElement("gunEditMenu", testLabel)
+    local testLabel2 = elements.createLabel("testLabel2", 300, 100, 500, 20, testText2)
+    uiWindow.addElement("gunEditMenu", testLabel2)
+    util.shallowTPrint(uiWindow.uiWindowList["gunEditMenu"].contains)
   else
     return originX, originY, width, height
   end
@@ -193,8 +198,8 @@ M.setup = function()
   -- createTestUI()
 end
 
-M.update = function()
-
+M.update = function(dt)
+  util.shallowTPrint(uiWindow.uiWindowList)
 end -- }}}
 
 

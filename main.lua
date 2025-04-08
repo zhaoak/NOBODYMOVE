@@ -67,6 +67,7 @@ function love.update(dt) -- {{{
   gunlib.update(dt)
   obj.projectiles.update(dt)
   dmgText.updateDamageNumberEvents(dt)
+  gameUi.update(dt)
   uiWindow.update(dt)
   obj.npc.updateAllNpcs(dt, util.world, obj.player, obj.npc.npcList, gunlib.gunlist)
 
