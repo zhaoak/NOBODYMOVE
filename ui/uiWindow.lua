@@ -107,7 +107,7 @@ M.update = function (dt)
   if M.lastFrameWindowSizeX ~= M.thisFrameGameResolutionX or M.lastFrameWindowSizeY ~= M.thisFrameGameResolutionY then
     local scalingRatioX, scalingRatioY = M.thisFrameGameResolutionX/M.lastFrameWindowSizeX, M.thisFrameGameResolutionY/M.lastFrameWindowSizeY
     for i,window in ipairs(M.uiWindowList) do
-      -- M.resize(i, scalingRatioX, scalingRatioY) -- broken with shift to using UIDs, will fix later
+      M.resize(i, scalingRatioX, scalingRatioY)
     end
   end
 
