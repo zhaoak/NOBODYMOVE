@@ -57,7 +57,8 @@ M.drawText = function(values)
 end
 --- }}}
 
-M.newElement = function(name, originX, originY, width, height, shouldRender, interactable, selectable)
+-- extra is for any custom data needed by specific elements (slider values, checkbox status, etc)
+M.newElement = function(name, originX, originY, width, height, shouldRender, interactable, selectable, extra)
   local newUiElement = {}
   newUiElement.name = name
   newUiElement.originX = originX
