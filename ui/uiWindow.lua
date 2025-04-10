@@ -5,6 +5,7 @@
 local M = {}
 
 local util = require'util'
+local elements = require'ui.uiElements'
 
 -- defines {{{
 M.thisFrameGameResolutionX = 800
@@ -24,26 +25,29 @@ M.uiWindowList = {} -- list with data for every uiWindow created, keyed by UID
 -- width(num): width in pixels of the window
 -- height(num): height in pixels of the window
 -- name(string): non-player visible name for the UI window, for programmer use
--- createFunc(func): "creator" function for uiWindow from `gameUi.lua`
 -- drawFunc(func): rendering function for uiWindow from `gameUi.lua` 
 -- onClick(func): a callback function triggered when player clicks on the UiWindow
 -- shouldRender(bool): whether window should render this frame: may be changed anytime
 -- interactable(bool): whether player can click on, navigate with gamepad or otherwise interact with the window
 --
 -- returns: UID for newly created window
-M.new = function(originX, originY, width, height, name, createFunc, drawFunc, shouldRender, interactable)
+M.new = function(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable)
   local newUiWindow = {}
   newUiWindow.shouldRender = shouldRender or false -- whether the window should render this frame
   newUiWindow.interactable = interactable or false -- whether the window should listen and respond to kb/mouse/controller inputs
   newUiWindow.scrollable = false -- whether the window's contents should be scrollable vertically
   newUiWindow.currentScrollOffset = 0 -- how many pixels down the window's contents are currently scrolled
   newUiWindow.borderColor = {1, 1, 1, 1} -- table containing RGBA value for color of window border
-  newUiWindow.originX = originX
-  newUiWindow.originY = originY
-  newUiWindow.width = width
-  newUiWindow.height = height
+  newUiWindow.originXTarget = originXTarget
+  newUiWindow.originYTarget = originYTarget
+  newUiWindow.widthTarget = widthTarget
+  newUiWindow.heightTarget = heightTarget
+  -- newUiWindow.originX = originX
+  -- newUiWindow.originY = originY
+  -- newUiWindow.width = width
+  -- newUiWindow.height = height
+  newUiWindow.parentWindowUid = -1 -- default to no parent; use addItem() to change this
   newUiWindow.name = name
-  newUiWindow.create = createFunc
   newUiWindow.draw = drawFunc
   -- `contains` contains all ui elements (defined in `uiElements.lua`) within the window
   newUiWindow.contains = {}
@@ -56,6 +60,12 @@ end
 -- as well as dynamically resize and reposition it.
 M.addItem = function(uiWindowUid, item)
   table.insert(M.uiWindowList[uiWindowUid].contains, item)
+  -- if adding a window as a child...
+  if item.windowUid ~= nil then
+    M.uiWindowList[item.windowUid].parentWindowUid = uiWindowUid
+  end
+  -- if adding an element as a child...
+  --
 end
 
 -- Call the draw functions of each element or window in the window's `contains` table.
@@ -65,19 +75,6 @@ M.drawChildren = function(uiWindowUid)
   end
 end
 
--- Resize a window in response to the game's output resolution changing.
-M.resize = function(uiWindowUid, scalingRatioX, scalingRatioY)
-  local window = M.uiWindowList[uiWindowUid]
-  -- get sizes appropriate sizes for new resolution
-  local originX, originY, width, height = M.uiWindowList[uiWindowUid]:create()
-  -- set window's new screen coordinates, width/height
-  window.originX = originX
-  window.originY = originY
-  window.width = width
-  window.height = height
-  -- TODO: set new screen coords/width/height for elements inside window being resized
-
-end
 
 -- Gets a window's UID by its programmer-visible name.
 M.getWindowUid = function(windowName)
@@ -94,8 +91,82 @@ M.namedWindowExists = function(windowName)
   return false -- window doesn't exist
 end
 
+-- Gets the originX, originY, width, and height values for a given window, specified by window UID.
+-- If given -1 as a UID, returns 0 for originX/originY and the current screen dimensions for width/height.
+-- (-1 is the value used to specify that a window has no parent.)
+M.getWindowDimensions = function(windowUid)
+  if windowUid == -1 then
+    return 0, 0, M.thisFrameGameResolutionX, M.thisFrameGameResolutionY
+  else
+    return M.uiWindowList[windowUid].originX, M.uiWindowList[windowUid].originY, M.uiWindowList[windowUid].width, M.uiWindowList[windowUid].height
+  end
+end
+
 M.destroy = function(uiWindowUid)
   table.remove(M.uiWindowList, uiWindowUid)
+end
+
+-- Resize a single window, identified by its UID.
+-- Uses the parent's dimension values to calculate the specified window's size and position.
+-- This means that parent windows must be resized before their children.
+-- If the window has no parent (a parentWindowUid value of -1),
+-- this function uses the current screen resolution and 0,0 as values.
+M.resizeWindow = function(uiWindowUid)
+  local thisWindow = M.uiWindowList[uiWindowUid]
+  if thisWindow.parentWindowUid == -1 then
+    -- if window has no parent, base on game resolution
+    thisWindow.originX = thisWindow.originXTarget* M.thisFrameGameResolutionX
+    thisWindow.originY = thisWindow.originYTarget * M.thisFrameGameResolutionY
+    thisWindow.width = thisWindow.widthTarget * M.thisFrameGameResolutionX
+    thisWindow.height = thisWindow.heightTarget * M.thisFrameGameResolutionY
+  else
+    -- otherwise, use the parent window's values
+    local parentX, parentY, parentWidth, parentHeight = M.getWindowDimensions(thisWindow.parentWindowUid)
+    thisWindow.originX = parentX + (thisWindow.originXTarget*parentWidth)
+    thisWindow.originY = parentY + (thisWindow.originYTarget*parentHeight)
+    thisWindow.width = parentWidth * thisWindow.widthTarget
+    thisWindow.height = parentHeight * thisWindow.heightTarget
+  end
+end
+
+-- Resize all windows and elements in response to the game's output resolution changing.
+M.resizeAll = function(newResX, newResY)
+  -- Starting with windows that are parentless, adjust their dimensions to fit the new resolution.
+  -- Then, check the children of those parentless windows and update their dimensions,
+  -- since the children's dimensions depend on the parent's dimensions.
+  -- Then do the children's children, and so on, until all items have been resized.
+  local windowsToResize = util.shallowCopyTable(M.uiWindowList)
+  local parentExaminationQueue = {-1}
+
+  while #windowsToResize > 0 do
+    for uid, window in ipairs(M.uiWindowList) do
+      if window.parentWindowUid == parentExaminationQueue[1] then
+        M.resizeWindow(uid)
+        table.remove(windowsToResize, uid)
+        table.insert(parentExaminationQueue, uid)
+      end
+    end
+    table.remove(parentExaminationQueue, 1)
+  end
+
+  -- once all the windows are resized, elements can be safely batch-resized
+  -- (since elements can be children of windows, but not vice versa)
+  for _, element in ipairs(elements.uiElementList) do
+    if element.parentWindowUid == -1 then
+      -- if element has no parent, base on game resolution
+      element.originX = element.originXTarget * M.thisFrameGameResolutionX
+      element.originY = element.originYTarget * M.thisFrameGameResolutionY
+      element.width = element.widthTarget * M.thisFrameGameResolutionX
+      element.height = element.heightTarget * M.thisFrameGameResolutionY
+    else
+      -- otherwise, use the parent window's values
+      local parentX, parentY, parentWidth, parentHeight = M.getWindowDimensions(element.parentWindowUid)
+      element.originX = parentX + (element.originXTarget*parentWidth)
+      element.originY = parentY + (element.originYTarget*parentHeight)
+      element.width = parentWidth * element.widthTarget
+      element.height = parentHeight * element.heightTarget
+    end
+  end
 end
 
 M.update = function (dt)
@@ -103,12 +174,9 @@ M.update = function (dt)
   M.lastFrameWindowSizeX, M.lastFrameWindowSizeY = M.thisFrameGameResolutionX, M.thisFrameGameResolutionY
   M.thisFrameGameResolutionX, M.thisFrameGameResolutionY = love.graphics.getDimensions()
 
-  -- check if the window size has changed, and if it has, resize each uiwindow for new resolution before next draw
+  -- check if the window size has changed, and if it has, resize all windows for new resolution before next draw
   if M.lastFrameWindowSizeX ~= M.thisFrameGameResolutionX or M.lastFrameWindowSizeY ~= M.thisFrameGameResolutionY then
-    local scalingRatioX, scalingRatioY = M.thisFrameGameResolutionX/M.lastFrameWindowSizeX, M.thisFrameGameResolutionY/M.lastFrameWindowSizeY
-    for i,window in ipairs(M.uiWindowList) do
-      M.resize(i, scalingRatioX, scalingRatioY)
-    end
+      M.resizeAll(M.thisFrameGameResolutionX, M.thisFrameGameResolutionY)
   end
 
   -- 

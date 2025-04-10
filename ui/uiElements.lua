@@ -7,6 +7,8 @@
 
 local M = {}
 
+local util = require'util'
+
 M.uiElementList = {} -- List containing every uiElement created, keyed by name
 
 -- utility rendering functions {{{
@@ -61,6 +63,7 @@ end
 M.newElement = function(name, originX, originY, width, height, shouldRender, interactable, selectable, extra)
   local newUiElement = {}
   newUiElement.name = name
+  newUiElement.elementUid = util.gen_uid("uiElements")
   newUiElement.originX = originX
   newUiElement.originY = originY
   newUiElement.width = width
@@ -124,6 +127,20 @@ end
 
 -- }}}
 
+-- Get an element's UID by its programmer-visible name
+M.getElementUid = function(elementName)
+  for _, v in ipairs(M.uiElementList) do
+    if v.name == elementName then return v.elementUid end
+  end
+end
+
+-- Checks if an element with a given internal name exists already
+M.namedElementExists = function(elementName)
+  for _, v in ipairs(M.uiElementList) do
+    if v.name == elementName then return true end
+  end
+  return false
+end
 
 return M
 -- vim: foldmethod=marker

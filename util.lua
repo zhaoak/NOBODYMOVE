@@ -90,6 +90,21 @@ function M.cloneTable (original) -- {{{
   return copy
 end -- }}}
 
+-- shallowly copy a table
+function M.shallowCopyTable (original)
+  local originalType = type(original)
+  local copy
+  if originalType == 'table' then
+    copy = {}
+    for i,v in pairs(original) do
+      copy[i] = v
+    end
+  else
+    copy = original
+  end
+  return copy
+end
+
 -- print the keys/values of one table, skipping any nested tables
 function M.shallowTPrint (tbl) -- {{{
   print("==============================")

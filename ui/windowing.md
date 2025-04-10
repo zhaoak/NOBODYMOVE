@@ -11,8 +11,11 @@ A defined area of the screen (a window, if you will) that can be drawn to and ca
 
 Children are stored in an int-keyed table called `contains`, where the key of each child represents
 the order the children are in in terms of navigating UI with controller inputs.
-*NOTE*: Any children's `originX`/`originY` values are specified *relative to their parents origin*;
-that is, they use their parent window's `originX`/`originY` as (0, 0).
+
+*NOTE*: 
+All `originX`/`originY` values are specified in pixel *screen coordinates*,
+where (0,0) is the top-left corner of the game window.
+Similarly, width/height values are always in pixels.
 
 A uiWindow will handle resizing itself and the elements/subwindows inside it in response
 to game window size/resolution changes.
@@ -25,7 +28,7 @@ This means that child elements will always visually render on top of their paren
 ### `uiWindow` exclusive properties
 
 - `windowUid`(num): UID value for this `uiWindow`
-- `contains`(tbl, int-keyed): An ordered list of a `uiWindow`s children
+- `contains`(tbl, int-keyed): An ordered list of a `uiWindow`s children. **Do not put the same child in multiple parents!**
 - `scrollable`(bool, default false): Whether the window's contents can be scrolled
 - `currentScrollOffset`(num): How many pixels down the window is currently scrolled
 - `create`(func): "Creation" function, see "How to use" section
@@ -43,9 +46,14 @@ Shares many properties with `uiWindow`s, listed below.
 ### properties shared between `uiWindow` and `uiElement`
 
 - `name`(string): Internal name, used for identification by human 
-- `originX`,`originY`(nums): Top-left corner position of item. See note in `uiWindow` section.
-- `width`,`height`(nums): Width and height of item in pixels.
-- `borderColor`(tbl): Table for RGBA color value of item border in format `{R, G, B, A}`
+- `originX`,`originY`(nums): Current top-left corner position of item. See note in `uiWindow` section.
+- `width`,`height`(nums): Current width and height of item in pixels.
+- `originXTarget`,`originYTarget`(nums): A number between 0 and 1 describing where the origin point for this item should reside on an axis relative to its parent's origin.
+                                         0 = the parent window's originX/originY, 1 = the parent window's originX/originY + parent window's width/height.
+                                         If the item has no parent window, uses the game window's dimensions for width/height and (0,0) for the parent's origin point.
+- `widthTarget`,`heightTarget`(nums): A number between 0 and 1 describing how wide/tall the item should be compared to its parent's width/height.
+                                      If the item has no parent window, uses the game window's dimensions for comparisons.
+- `parentWindowUid`(num): UID of parent window. If item has no parent, this is set to -1.
 - `shouldRender`(bool): Whether item should be rendered this frame
 - `interactable`(bool): Whether item can be interacted with/manipulated via mouse/controller inputs
 - `selectable`(bool): Whether item can be "selected" by scrolling through parent window's `contains` list using controller inputs
@@ -56,9 +64,10 @@ Shares many properties with `uiWindow`s, listed below.
 To create a new piece of UI onscreen (for example, a health bar), you should:
 
 Write a "creation" and "draw" function for the new piece of UI in `gameUi.lua`.
-The creation function should only create a new uiWindow if it doesn't already exist,
-and only return desired screen coordinates/width/height values if it already does.
+The creation function should only create a new uiWindow if it doesn't already exist.
+It should also create any subwindows of the newly created window, if there are any,
+and add the subwindows as children using the `addItem` function.
 The draw function should draw the window and its contents, including any elements contained
 within the uiWindow's data.
-
-
+Call the creation function for your new UI in the `setup` function in `gameUi.lua`,
+and your new UI should appear ingame.
