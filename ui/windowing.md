@@ -1,6 +1,6 @@
 # No Defenestration Allowed
 
-This document explains the UI windowing system present in NOBODY MOVE.
+This document explains the UI and windowing system present in NOBODY MOVE.
 
 The components of the windowing/UI system are as follows:
 
@@ -31,7 +31,6 @@ This means that child elements will always visually render on top of their paren
 - `contains`(tbl, int-keyed): An ordered list of a `uiWindow`s children. **Do not put the same child in multiple parents!**
 - `scrollable`(bool, default false): Whether the window's contents can be scrolled
 - `currentScrollOffset`(num): How many pixels down the window is currently scrolled
-- `create`(func): "Creation" function, see "How to use" section
 
 ## uiElement (uiElements.lua)
 
@@ -41,13 +40,16 @@ Shares many properties with `uiWindow`s, listed below.
 ### `uiElement` exclusive properties
 
 - `elementUid`(num): UID value for this `uiElement`
+- `extra`(table): Table containing any additional data needed to render the element or track its state.
+                  Contents will vary based on the type of element and its data storage needs.
+                  See the "uiElement Types" section for specifics.
 - many properties may be used to store data for specific elements, such as sliders, buttons, or checkboxes
 
 ### properties shared between `uiWindow` and `uiElement`
 
-- `name`(string): Internal name, used for identification by human 
-- `originX`,`originY`(nums): Current top-left corner position of item. See note in `uiWindow` section.
-- `width`,`height`(nums): Current width and height of item in pixels.
+- `name`(string): Internal name, used for identification by programmer
+- `originX`,`originY`(nums): Current top-left corner position of item. Auto-set by resizing code.
+- `width`,`height`(nums): Current width and height of item in pixels. Auto-set by resizing code.
 - `originXTarget`,`originYTarget`(nums): A number between 0 and 1 describing where the origin point for this item should reside on an axis relative to its parent's origin.
                                          0 = the parent window's originX/originY, 1 = the parent window's originX/originY + parent window's width/height.
                                          If the item has no parent window, uses the game window's dimensions for width/height and (0,0) for the parent's origin point.
@@ -59,6 +61,28 @@ Shares many properties with `uiWindow`s, listed below.
 - `selectable`(bool): Whether item can be "selected" by scrolling through parent window's `contains` list using controller inputs
 - `draw`(func): rendering function for item
 
+## uiElement types
+
+### Textbox
+
+Rectangular section of the screen to display text in.
+To change the text's font, rotation, size, or other properties,
+specify what you want in the `values` table using the following list of keys.
+The `values` table is then passed to the `createTextBox` function as an argument.
+
+- textTable(table): Table containing string-color pairs to print in the following format: `{color1, string1, color2, string2, ...}`
+    - color1(table): Table containing red, green, blue, and optional alpha values in format: `{r, g, b, a}`
+    - string1(table): String to render using the corresponding color1 values.
+        - color2 and string2 correspond, as do any additional pairs provided.
+        - So, a textTable value of `{{1,0,0,1}, "horse", {0,1,0,1}, "crime"}` would print:
+        - "horsecrime" with "horse" in red and "crime" in green.
+- font(Font): Love font object to use when drawing text. Defaults to currently set font.
+- align(string): alignment mode of text, one of: "center", "left", "right", "justify"
+- angle(number): rotation of text in radians; 0 is normal, un-rotated text, pi is upside-down, 2pi is equal to 0
+- sx,sy(numbers): x/y scale factors for text, 1 is normal scale
+- ox,oy(numbers): x/y origin offsets for text, 0 is no offset
+- kx, ky(numbers): x/y shearing factors
+
 # How to use
 
 To create a new piece of UI onscreen (for example, a health bar), you should:
@@ -66,7 +90,7 @@ To create a new piece of UI onscreen (for example, a health bar), you should:
 Write a "creation" and "draw" function for the new piece of UI in `gameUi.lua`.
 The creation function should also create any subwindows of the newly created window, if there are any,
 and add the subwindows as children using the `addItem` function.
-The draw function should draw the window and its contents, including any elements contained
-within the uiWindow's data.
+The draw function should draw the window, but not any of its children;
+each child will get its own draw function.
 Call the creation function for your new UI in the `setup` function in `gameUi.lua`,
 and your new UI should appear ingame.

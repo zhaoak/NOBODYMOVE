@@ -9,7 +9,7 @@ M.uiElementList = {} -- List containing every uiElement created, keyed by UID
 
 -- utility rendering functions {{{
 
--- Draw text onscreen. Intended to be used for ingame UI.
+-- Draw text onscreen at an arbitrary location. Intended to be used for ingame UI.
 -- Colors provided via `textTable` are *not* affected by color currently set via `love.graphics.setColor`.
 -- args:
 -- values(table):
@@ -34,7 +34,7 @@ M.drawText = function(values, x, y, lineLimit)
   if values.textTable then
     textTable = values.textTable
   else
-    textTable = {values.color or {1,0,0,1}, values.text or "HEY YOU DIDNT PUT TEXT TO DRAW IN THE FUNCTIONG THAT DRQWS IT"}
+    textTable = {values.color or {1,0,0,1}, values.text or "YOU DIDNT SAY WHAT TEXT TO DRAW BUDDY"}
   end
   local font = values.font or love.graphics.getFont() -- come back once there is a custom font implemented at all
   local widthLimit = lineLimit
