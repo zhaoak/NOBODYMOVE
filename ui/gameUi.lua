@@ -187,16 +187,14 @@ local function createGunEditMenu()
   -- test code
   local testText = {textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}}
   local testText2 = {textTable={{1,1,0,1},"[",{0,1,1,1},"print function test",{1,1,0,1},"]"}}
-  local testLabelUid = elements.createTextBox(0.01, 0.01, 0.9, 0.1, "testLabel", testText, true, false)
+  local testLabelUid = elements.createTextBox(0.01, 0.01, 0.9, 0.1, "testLabel", testText, false, false)
   uiWindow.addItem(rightSubWindowUid, elements.uiElementList[testLabelUid])
-  local testLabel2Uid = elements.createTextBox(0.01, 0.05, 0.9, 0.1, "testLabel2", testText2, true, false)
+  local testLabel2Uid = elements.createTextBox(0.01, 0.05, 0.9, 0.1, "testLabel2", testText2, false, false)
   uiWindow.addItem(rightSubWindowUid, elements.uiElementList[testLabel2Uid])
 end
 
 M.toggleGunEditMenuOpen = function()
   uiWindow.toggleRendering(M.uiWindowUidCache["gunEditMenu"])
-  uiWindow.toggleRendering(M.uiWindowUidCache["gunEditMenu-LeftSplit"])
-  uiWindow.toggleRendering(M.uiWindowUidCache["gunEditMenu-RightSplit"])
   uiWindow.toggleInteractable(M.uiWindowUidCache["gunEditMenu"])
   M.gunEditMenuOpen = not M.gunEditMenuOpen
 end

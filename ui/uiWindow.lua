@@ -100,9 +100,25 @@ M.getWindowDimensions = function(windowUid)
   end
 end
 
+-- Recursive function used to toggle 
+local function renderToggleRecurse(item, newValue)
+  item.shouldRender = newValue
+  -- if item is a window, it could have children to toggle, so do so 
+  if item.windowUid ~= nil then
+    for _, child in ipairs(item.contains) do
+      renderToggleRecurse(child, newValue)
+    end
+  end
+  -- otherwise, it's an element, and elements can't have children
+  -- thus the recursion ends here
+end
+
 -- Toggles a window's `shouldRender` property, given its UID.
+-- Also sets all the window's children, both direct and indirect, to match its `shouldRender` state.
 M.toggleRendering = function(windowUid)
-  M.uiWindowList[windowUid].shouldRender = not M.uiWindowList[windowUid].shouldRender
+  local thisWindow = M.uiWindowList[windowUid]
+  local newValue = not thisWindow.shouldRender
+  renderToggleRecurse(thisWindow, newValue)
 end
 
 -- Toggles a window's `interactable` property, given its UID.
@@ -138,7 +154,7 @@ M.resizeWindow = function(uiWindowUid)
 end
 
 -- Resize all windows and elements in response to the game's output resolution changing.
-M.resizeAll = function(newResX, newResY)
+M.resizeAll = function()
   -- Starting with windows that are parentless, adjust their dimensions to fit the new resolution.
   -- Then, check the children of those parentless windows and update their dimensions,
   -- since the children's dimensions depend on the parent's dimensions.
@@ -184,7 +200,7 @@ M.update = function (dt)
 
   -- check if the window size has changed, and if it has, resize all windows for new resolution before next draw
   if M.lastFrameWindowSizeX ~= M.thisFrameGameResolutionX or M.lastFrameWindowSizeY ~= M.thisFrameGameResolutionY then
-      M.resizeAll(M.thisFrameGameResolutionX, M.thisFrameGameResolutionY)
+      M.resizeAll()
   end
 
   -- 

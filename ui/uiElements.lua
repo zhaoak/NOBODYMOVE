@@ -85,10 +85,11 @@ M.newElement = function(originXTarget, originYTarget, widthTarget, heightTarget,
   return newUiElement.elementUid
 end
 
--- List of element creation functions {{{
+-- Create/draw functions for individual element types  {{{
 
 M.drawTextBox = function(textBoxUid)
   local thisTextBox = M.uiElementList[textBoxUid]
+  if thisTextBox.shouldRender == false then return end
   M.drawText(thisTextBox.extra.textContent, thisTextBox.originX, thisTextBox.originY, thisTextBox.width)
 end
 
@@ -101,6 +102,7 @@ end
 -- heightTarget(num): percentege of parent's height this element should take up
 -- name(string): non-player visible name for the element, for programmer use
 -- values(table): a table that gets directly passed to `drawText` as its argument.
+--                Specifies what text to draw, as well as how to format it.
 --                See the `drawText` function in this file for table format.
 -- shouldRender(bool): whether element should render this frame: may be changed anytime
 -- interactable(bool): whether player can click on, navigate with gamepad or otherwise interact with the element
@@ -124,17 +126,17 @@ end
 -- onActivation(func): callback function to run once when button is pressed
 --
 -- returns: table containing data for new button
-M.createButton = function (name, x, y, width, height, drawFunc, onActivation)
-  local newButton = {}
-  newButton.x = x
-  newButton.y = y
-  newButton.name = name
-  newButton.width = width or 100
-  newButton.height = height or 30
-  newButton.drawFunc = drawFunc
-  newButton.onActivation = onActivation
-  return newButton
-end
+-- M.createButton = function (name, x, y, width, height, drawFunc, onActivation)
+--   local newButton = {}
+--   newButton.x = x
+--   newButton.y = y
+--   newButton.name = name
+--   newButton.width = width or 100
+--   newButton.height = height or 30
+--   newButton.drawFunc = drawFunc
+--   newButton.onActivation = onActivation
+--   return newButton
+-- end
 
 -- }}}
 
