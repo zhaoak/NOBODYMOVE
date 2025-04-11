@@ -108,7 +108,7 @@ local function drawGunEditMenu(self, player, gunList)
   love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
 
   -- draw all of this window's children
-  uiWindow.drawChildren(thisWindowUid)
+  -- uiWindow.drawChildren(thisWindowUid)
 
   -- iterate through all the player's guns, creating UI elements within the window for each one
     for i,gunId in ipairs(player.guns) do
@@ -133,6 +133,33 @@ local function drawGunEditMenu(self, player, gunList)
   love.graphics.pop()
 end
 
+local function drawGunEditLSplit()
+  local thisWindowUid = uiWindow.getWindowUid("gunEditMenu-LeftSplit")
+  local thisWindow = uiWindow.uiWindowList[thisWindowUid]
+  if thisWindow.shouldRender == false then return end
+  love.graphics.push() -- save previous transformation state
+  -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
+  love.graphics.translate(thisWindow.originX, thisWindow.originY)
+  -- draw the window shape
+  love.graphics.setColor(1, 1, 1, 0.2)
+  love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
+  love.graphics.pop()
+end
+
+local function drawGunEditRSplit()
+  local thisWindowUid = uiWindow.getWindowUid("gunEditMenu-RightSplit")
+  local thisWindow = uiWindow.uiWindowList[thisWindowUid]
+  if thisWindow.shouldRender == false then return end
+  love.graphics.push() -- save previous transformation state
+  -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
+  love.graphics.translate(thisWindow.originX, thisWindow.originY)
+  -- draw the window shape
+  love.graphics.setColor(1, 1, 1, 0.2)
+  love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
+  love.graphics.pop()
+end
+
+
 local function createGunEditMenu()
   -- set correct origin point/width/height
   local targetX, targetY = 0.1, 0.1
@@ -143,9 +170,18 @@ local function createGunEditMenu()
   M.uiWindowUidCache["gunEditMenu"] = newWindowUid
 
   -- create left and right subwindows of edit window
-  -- local lSubWindowOriginX, lSubWindowOriginY = originX + 5, originY + 5
-  -- local lSubWindowWidth, lSubWindowHeight = width * 0.9, height * 0.9
-  -- local leftSubWindowUid = uiWindow.new(lSubWindowOriginX, lSubWindowOriginY, "leftSideGunEditMenu", 
+  local lSubTargetX, lSubTargetY = 0, 0
+  local lSubTargetWidth, lSubTargetHeight = 0.19, 1 
+  local leftSubWindowUid = uiWindow.new(lSubTargetX, lSubTargetY, lSubTargetWidth, lSubTargetHeight, "gunEditMenu-LeftSplit", drawGunEditLSplit, false, false)
+  uiWindow.addItem(newWindowUid, uiWindow.uiWindowList[leftSubWindowUid])
+  M.uiWindowUidCache["gunEditMenu-LeftSplit"] = leftSubWindowUid
+
+  local rSubTargetX, rSubTargetY = 0.2, 0
+  local rSubTargetWidth, rSubTargetHeight = 0.8, 1
+  local rightSubWindowUid = uiWindow.new(rSubTargetX, rSubTargetY, rSubTargetWidth, rSubTargetHeight, "gunEditMenu-RightSplit", drawGunEditRSplit, false, false)
+  uiWindow.addItem(newWindowUid, uiWindow.uiWindowList[rightSubWindowUid])
+  M.uiWindowUidCache["gunEditMenu-RightSplit"] = rightSubWindowUid
+
   -- test code
   -- local testText = {textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}}
   -- local testText2 = {textTable={{1,1,0,1},"[",{0,1,1,1},"print function test",{1,1,0,1},"]"}}
@@ -155,14 +191,11 @@ local function createGunEditMenu()
   -- uiWindow.addItem(newWindowUid, testLabel2)
 end
 
-local function createGunEditLeftSubWindow()
-
-end
-
 M.toggleGunEditMenuOpen = function()
-  uiWindow.uiWindowList[M.uiWindowUidCache["gunEditMenu"]].shouldRender = not uiWindow.uiWindowList[M.uiWindowUidCache["gunEditMenu"]].shouldRender
-  -- uiWindow.uiWindowList[M.uiWindowUidCache["hudGunList"]].shouldRender = not uiWindow.uiWindowList[M.uiWindowUidCache["hudGunList"]].shouldRender
-  uiWindow.uiWindowList[M.uiWindowUidCache["gunEditMenu"]].interactable = not uiWindow.uiWindowList[M.uiWindowUidCache["gunEditMenu"]].interactable
+  uiWindow.toggleRendering(M.uiWindowUidCache["gunEditMenu"])
+  uiWindow.toggleRendering(M.uiWindowUidCache["gunEditMenu-LeftSplit"])
+  uiWindow.toggleRendering(M.uiWindowUidCache["gunEditMenu-RightSplit"])
+  uiWindow.toggleInteractable(M.uiWindowUidCache["gunEditMenu"])
   M.gunEditMenuOpen = not M.gunEditMenuOpen
 end
 -- }}}
@@ -180,7 +213,7 @@ M.draw = function(player, gunList)
   -- uiWindow.uiWindowList["gunEditMenu"]:draw(player, gunList)
 
   for _,v in pairs(M.uiWindowUidCache) do
-    -- util.shallowTPrint(uiWindow.uiWindowList[v])
+    util.shallowTPrint(uiWindow.uiWindowList[v])
     uiWindow.uiWindowList[v]:draw(player, gunList)
   end
 end

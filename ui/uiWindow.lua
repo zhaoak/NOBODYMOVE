@@ -20,10 +20,10 @@ M.uiWindowList = {} -- list with data for every uiWindow created, keyed by UID
 -- create a new uiWindow and add it to the tracked list of uiWindows
 --
 -- args:
--- originX(num): x-coordinate of top left corner of window
--- originY(num): y-coordinate of top left corner of window
--- width(num): width in pixels of the window
--- height(num): height in pixels of the window
+-- originXTarget(num): accepts values of 0-1, representing at what point along parent's width to place origin
+-- originYTarget(num): same as above, but for height value of parent
+-- widthTarget(num): percentage of parent's width this window should take up
+-- heightTarget(num): percentege of parent's height this window should take up
 -- name(string): non-player visible name for the UI window, for programmer use
 -- drawFunc(func): rendering function for uiWindow from `gameUi.lua` 
 -- onClick(func): a callback function triggered when player clicks on the UiWindow
@@ -100,6 +100,16 @@ M.getWindowDimensions = function(windowUid)
   else
     return M.uiWindowList[windowUid].originX, M.uiWindowList[windowUid].originY, M.uiWindowList[windowUid].width, M.uiWindowList[windowUid].height
   end
+end
+
+-- Toggles a window's `shouldRender` property, given its UID.
+M.toggleRendering = function(windowUid)
+  M.uiWindowList[windowUid].shouldRender = not M.uiWindowList[windowUid].shouldRender
+end
+
+-- Toggles a window's `interactable` property, given its UID.
+M.toggleInteractable = function(windowUid)
+  M.uiWindowList[windowUid].interactable = not M.uiWindowList[windowUid].interactable
 end
 
 M.destroy = function(uiWindowUid)
