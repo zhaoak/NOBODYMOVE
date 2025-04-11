@@ -51,133 +51,120 @@ local function drawHealthBar(self, player)
 end
 
 local function createHealthBar()
-  local targetX, targetY = 0.025, 0.80
+  local targetX, targetY = 0.01, 0.95
   local targetWidth, targetHeight = 0.20, 0.07
-  if uiWindow.namedWindowExists("hudHealthBar") == false then
-    local newWindowUid
-    newWindowUid = uiWindow.new(targetX, targetY, targetWidth, targetHeight, "hudHealthBar", drawHealthBar, true, false)
-    M.uiWindowUidCache["hudHealthBar"] = newWindowUid
-  else
-    return originX, originY, width, height
-  end
+  local newWindowUid
+  newWindowUid = uiWindow.new(targetX, targetY, targetWidth, targetHeight, "hudHealthBar", drawHealthBar, true, false)
+  M.uiWindowUidCache["hudHealthBar"] = newWindowUid
 end
 -- }}}
 
 -- gunlist on hud when gun editing menu closed {{{
--- local function drawHudGunList(self, player, gunList)
---   local thisWindowUid = uiWindow.getWindowUid("hudGunList")
---   local thisWindow = uiWindow.uiWindowList[thisWindowUid]
---   if thisWindow.shouldRender == false then return end
---   love.graphics.push() -- save previous transformation state
---   -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
---   love.graphics.translate(thisWindow.originX, thisWindow.originY)
---   love.graphics.setColor(1, 1, 1, 0.2)
---   love.graphics.rectangle("fill", 0, 0, thisWindow.width, #player.guns*M.gunHudListItemHeight, 20, 20, 20)
---   local gunListYPosOffset = 0
---   for i, gunId in pairs(player.guns) do
---     M.drawHudGunListItem(gunList[gunId], 5, gunListYPosOffset)
---     gunListYPosOffset = gunListYPosOffset + M.gunHudListItemHeight
---   end
---   love.graphics.pop() -- return back to previous transformation state
--- end
---
--- local function createHudGunList()
---   local originX, originY = 5, uiWindow.thisFrameGameResolutionY * (1/10)
---   local width, height = M.gunHudListItemWidth*uiWindow.uiScale, M.gunHudListItemHeight*uiWindow.uiScale*4 -- for four firegroups
---   if uiWindow.namedWindowExists("hudGunList") == false then
---     local newWindowUid = uiWindow.new(originX, originY, width, height, "hudGunList", createHudGunList, drawHudGunList, true, false)
---     M.uiWindowUidCache["hudGunList"] = newWindowUid
---   else
---     return originX, originY, width, height
---   end
--- end
---
--- M.drawHudGunListItem = function(gun, topLeftPosX, topLeftPosY)
---   love.graphics.setColor(1, 1, 1, 0.7)
---   love.graphics.line(5, topLeftPosY, math.max(5, topLeftPosX+(gun.current.cooldown/gun.current.lastSetCooldownValue)*M.gunHudListItemWidth), topLeftPosY)
---   love.graphics.setColor(1, 1, 1, 1)
---   if gun.current.cooldown >= 0 then love.graphics.setColor(0.6, 0.6, 0.6, 0.3) end
---   love.graphics.print(gun.name, topLeftPosX, topLeftPosY+5)
---   local gunSprite = love.graphics.newImage("assets/generic_gun.png")
---   love.graphics.draw(gunSprite, topLeftPosX, topLeftPosY+25)
--- end
+local function drawHudGunList(self, player, gunList)
+  local thisWindowUid = uiWindow.getWindowUid("hudGunList")
+  local thisWindow = uiWindow.uiWindowList[thisWindowUid]
+  if thisWindow.shouldRender == false then return end
+  love.graphics.push() -- save previous transformation state
+  -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
+  love.graphics.translate(thisWindow.originX, thisWindow.originY)
+  love.graphics.setColor(1, 1, 1, 0.2)
+  love.graphics.rectangle("fill", 0, 0, thisWindow.width, #player.guns*M.gunHudListItemHeight, 20, 20, 20)
+  local gunListYPosOffset = 0
+  for i, gunId in pairs(player.guns) do
+    M.drawHudGunListItem(gunList[gunId], 5, gunListYPosOffset)
+    gunListYPosOffset = gunListYPosOffset + M.gunHudListItemHeight
+  end
+  love.graphics.pop() -- return back to previous transformation state
+end
+
+local function createHudGunList()
+  local targetX, targetY = 0.01, 0.15
+  local targetWidth, targetHeight = 0.07, 0.4
+  local newWindowUid = uiWindow.new(targetX, targetY, targetWidth, targetHeight, "hudGunList", drawHudGunList, true, false)
+  M.uiWindowUidCache["hudGunList"] = newWindowUid
+end
+
+M.drawHudGunListItem = function(gun, topLeftPosX, topLeftPosY)
+  love.graphics.setColor(1, 1, 1, 0.7)
+  love.graphics.line(5, topLeftPosY, math.max(5, topLeftPosX+(gun.current.cooldown/gun.current.lastSetCooldownValue)*M.gunHudListItemWidth), topLeftPosY)
+  love.graphics.setColor(1, 1, 1, 1)
+  if gun.current.cooldown >= 0 then love.graphics.setColor(0.6, 0.6, 0.6, 0.3) end
+  love.graphics.print(gun.name, topLeftPosX, topLeftPosY+5)
+  local gunSprite = love.graphics.newImage("assets/generic_gun.png")
+  love.graphics.draw(gunSprite, topLeftPosX, topLeftPosY+25)
+end
 -- }}}
 
 -- gun editing menu {{{
--- local function drawGunEditMenu(self, player, gunList)
---   local thisWindowUid = uiWindow.getWindowUid("gunEditMenu")
---   local thisWindow = uiWindow.uiWindowList[thisWindowUid]
---   if thisWindow.shouldRender == false then return end
---   love.graphics.push() -- save previous transformation state
---   -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
---   love.graphics.translate(thisWindow.originX, thisWindow.originY)
---   -- draw the window shape
---   love.graphics.setColor(1, 1, 1, 0.2)
---   love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
---
---   -- draw all of this window's children
---   uiWindow.drawChildren(thisWindowUid)
---
---   -- iterate through all the player's guns, creating UI elements within the window for each one
---     for i,gunId in ipairs(player.guns) do
---       -- get the data for the currently-examined gun
---       local thisGun = gunList[gunId]
---       -- determine how much space to allocate for the gun's UI elements
---
---       -- draw the gun sprite display panel
---
---       -- draw the gun mod capacity display panel
---
---       -- draw the gun stat display panel
---
---       -- draw the gun lore display panel
---
---       -- iterate through the gun's events, drawing an editable element for each
---
---         -- draw event's mod list
---
---         -- draw event's trigger condition display
---     end
---   love.graphics.pop()
--- end
---
--- local function createGunEditMenu()
---   -- set correct origin point/width/height
---   local originX, originY = 5+(M.gunHudListItemWidth*uiWindow.uiScale), uiWindow.thisFrameGameResolutionY * (1/10)
---   local width, height = uiWindow.thisFrameGameResolutionX-2*M.gunHudListItemWidth, uiWindow.thisFrameGameResolutionY - (uiWindow.thisFrameGameResolutionY*(1/5))
---
---   -- if editing window hasn't been created yet, create it
---   if uiWindow.namedWindowExists("gunEditMenu") == false then
---     local newWindowUid = uiWindow.new(originX, originY, width, height, "gunEditMenu", createGunEditMenu, drawGunEditMenu, false, false)
---     M.uiWindowUidCache["gunEditMenu"] = newWindowUid
---
---     -- create left and right subwindows of edit window
---     local lSubWindowOriginX, lSubWindowOriginY = originX + 5, originY + 5
---     local lSubWindowWidth, lSubWindowHeight = width * 0.9, height * 0.9
---     local leftSubWindowUid = uiWindow.new(lSubWindowOriginX, lSubWindowOriginY, "leftSideGunEditMenu", 
---     -- test code
---     local testText = {textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}}
---     local testText2 = {textTable={{1,1,0,1},"[",{0,1,1,1},"print function test",{1,1,0,1},"]"}}
---     local testLabel = elements.createLabel("testLabel", 5, 5, 500, 20, testText)
---     uiWindow.addItem(newWindowUid, testLabel)
---     local testLabel2 = elements.createLabel("testLabel2", 300, 100, 500, 20, testText2)
---     uiWindow.addItem(newWindowUid, testLabel2)
---   else
---   -- otherwise, just return where it should be and its width/height given current game resolution
---     return originX, originY, width, height
---   end
--- end
---
--- local function createGunEditLeftSubWindow()
---
--- end
---
--- M.toggleGunEditMenuOpen = function()
---   uiWindow.uiWindowList[M.uiWindowUidCache["gunEditMenu"]].shouldRender = not uiWindow.uiWindowList[M.uiWindowUidCache["gunEditMenu"]].shouldRender
---   uiWindow.uiWindowList[M.uiWindowUidCache["hudGunList"]].shouldRender = not uiWindow.uiWindowList[M.uiWindowUidCache["hudGunList"]].shouldRender
---   uiWindow.uiWindowList[M.uiWindowUidCache["gunEditMenu"]].interactable = not uiWindow.uiWindowList[M.uiWindowUidCache["gunEditMenu"]].interactable
---   M.gunEditMenuOpen = not M.gunEditMenuOpen
--- end
+local function drawGunEditMenu(self, player, gunList)
+  local thisWindowUid = uiWindow.getWindowUid("gunEditMenu")
+  local thisWindow = uiWindow.uiWindowList[thisWindowUid]
+  if thisWindow.shouldRender == false then return end
+  love.graphics.push() -- save previous transformation state
+  -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
+  love.graphics.translate(thisWindow.originX, thisWindow.originY)
+  -- draw the window shape
+  love.graphics.setColor(1, 1, 1, 0.2)
+  love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
+
+  -- draw all of this window's children
+  uiWindow.drawChildren(thisWindowUid)
+
+  -- iterate through all the player's guns, creating UI elements within the window for each one
+    for i,gunId in ipairs(player.guns) do
+      -- get the data for the currently-examined gun
+      local thisGun = gunList[gunId]
+      -- determine how much space to allocate for the gun's UI elements
+
+      -- draw the gun sprite display panel
+
+      -- draw the gun mod capacity display panel
+
+      -- draw the gun stat display panel
+
+      -- draw the gun lore display panel
+
+      -- iterate through the gun's events, drawing an editable element for each
+
+        -- draw event's mod list
+
+        -- draw event's trigger condition display
+    end
+  love.graphics.pop()
+end
+
+local function createGunEditMenu()
+  -- set correct origin point/width/height
+  local targetX, targetY = 0.1, 0.1
+  local targetWidth, targetHeight = 0.8, 0.8
+
+  -- if editing window hasn't been created yet, create it
+  local newWindowUid = uiWindow.new(targetX, targetY, targetWidth, targetHeight, "gunEditMenu", drawGunEditMenu, false, false)
+  M.uiWindowUidCache["gunEditMenu"] = newWindowUid
+
+  -- create left and right subwindows of edit window
+  -- local lSubWindowOriginX, lSubWindowOriginY = originX + 5, originY + 5
+  -- local lSubWindowWidth, lSubWindowHeight = width * 0.9, height * 0.9
+  -- local leftSubWindowUid = uiWindow.new(lSubWindowOriginX, lSubWindowOriginY, "leftSideGunEditMenu", 
+  -- test code
+  -- local testText = {textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}}
+  -- local testText2 = {textTable={{1,1,0,1},"[",{0,1,1,1},"print function test",{1,1,0,1},"]"}}
+  -- local testLabel = elements.createLabel("testLabel", 5, 5, 500, 20, testText)
+  -- uiWindow.addItem(newWindowUid, testLabel)
+  -- local testLabel2 = elements.createLabel("testLabel2", 300, 100, 500, 20, testText2)
+  -- uiWindow.addItem(newWindowUid, testLabel2)
+end
+
+local function createGunEditLeftSubWindow()
+
+end
+
+M.toggleGunEditMenuOpen = function()
+  uiWindow.uiWindowList[M.uiWindowUidCache["gunEditMenu"]].shouldRender = not uiWindow.uiWindowList[M.uiWindowUidCache["gunEditMenu"]].shouldRender
+  -- uiWindow.uiWindowList[M.uiWindowUidCache["hudGunList"]].shouldRender = not uiWindow.uiWindowList[M.uiWindowUidCache["hudGunList"]].shouldRender
+  uiWindow.uiWindowList[M.uiWindowUidCache["gunEditMenu"]].interactable = not uiWindow.uiWindowList[M.uiWindowUidCache["gunEditMenu"]].interactable
+  M.gunEditMenuOpen = not M.gunEditMenuOpen
+end
 -- }}}
 
 -- player's per-run mod collection {{{
@@ -200,9 +187,9 @@ end
 
 -- for creating uiWindow for hud before first drawcall
 M.setup = function()
-  -- createHudGunList()
+  createHudGunList()
   createHealthBar()
-  -- createGunEditMenu()
+  createGunEditMenu()
 end
 
 M.update = function(dt)

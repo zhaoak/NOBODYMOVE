@@ -64,8 +64,7 @@ Shares many properties with `uiWindow`s, listed below.
 To create a new piece of UI onscreen (for example, a health bar), you should:
 
 Write a "creation" and "draw" function for the new piece of UI in `gameUi.lua`.
-The creation function should only create a new uiWindow if it doesn't already exist.
-It should also create any subwindows of the newly created window, if there are any,
+The creation function should also create any subwindows of the newly created window, if there are any,
 and add the subwindows as children using the `addItem` function.
 The draw function should draw the window and its contents, including any elements contained
 within the uiWindow's data.

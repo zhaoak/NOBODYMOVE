@@ -142,7 +142,7 @@ M.resizeAll = function(newResX, newResY)
     for uid, window in ipairs(M.uiWindowList) do
       if window.parentWindowUid == parentExaminationQueue[1] then
         M.resizeWindow(uid)
-        table.remove(windowsToResize, uid)
+        table.remove(windowsToResize, 1)
         table.insert(parentExaminationQueue, uid)
       end
     end
