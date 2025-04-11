@@ -182,13 +182,15 @@ local function createGunEditMenu()
   uiWindow.addItem(newWindowUid, uiWindow.uiWindowList[rightSubWindowUid])
   M.uiWindowUidCache["gunEditMenu-RightSplit"] = rightSubWindowUid
 
+  -- 
+
   -- test code
-  -- local testText = {textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}}
-  -- local testText2 = {textTable={{1,1,0,1},"[",{0,1,1,1},"print function test",{1,1,0,1},"]"}}
-  -- local testLabel = elements.createLabel("testLabel", 5, 5, 500, 20, testText)
-  -- uiWindow.addItem(newWindowUid, testLabel)
-  -- local testLabel2 = elements.createLabel("testLabel2", 300, 100, 500, 20, testText2)
-  -- uiWindow.addItem(newWindowUid, testLabel2)
+  local testText = {textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}}
+  local testText2 = {textTable={{1,1,0,1},"[",{0,1,1,1},"print function test",{1,1,0,1},"]"}}
+  local testLabelUid = elements.createTextBox(0.01, 0.01, 0.9, 0.1, "testLabel", testText, true, false)
+  uiWindow.addItem(rightSubWindowUid, elements.uiElementList[testLabelUid])
+  local testLabel2Uid = elements.createTextBox(0.01, 0.05, 0.9, 0.1, "testLabel2", testText2, true, false)
+  uiWindow.addItem(rightSubWindowUid, elements.uiElementList[testLabel2Uid])
 end
 
 M.toggleGunEditMenuOpen = function()
@@ -200,7 +202,7 @@ M.toggleGunEditMenuOpen = function()
 end
 -- }}}
 
--- player's per-run mod collection {{{
+-- player's per-run mod stash {{{
 
 -- }}}
 
@@ -212,9 +214,16 @@ M.draw = function(player, gunList)
   -- uiWindow.uiWindowList["hudHealthBar"]:draw(player)
   -- uiWindow.uiWindowList["gunEditMenu"]:draw(player, gunList)
 
+  -- draw all uiWindows
   for _,v in pairs(M.uiWindowUidCache) do
-    util.shallowTPrint(uiWindow.uiWindowList[v])
+    -- util.shallowTPrint(uiWindow.uiWindowList[v])
     uiWindow.uiWindowList[v]:draw(player, gunList)
+  end
+
+  -- draw all uiElements
+  for _, v in ipairs(elements.uiElementList) do
+    util.shallowTPrint(v)
+    v:draw()
   end
 end
 

@@ -1,15 +1,11 @@
 -- Module for creating UI elements (buttons, sliders, etc.)
 -- Elements must live inside a uiWindow.
--- Note that all elements' positioning is stored as an offset from the position values
--- (originX and originY) of the element's containing uiWindow.
--- That is, when rendered, the element's position is calculated by treating its' parent uiWindow's
--- position values as (0, 0).
 
 local M = {}
 
 local util = require'util'
 
-M.uiElementList = {} -- List containing every uiElement created, keyed by name
+M.uiElementList = {} -- List containing every uiElement created, keyed by UID
 
 -- utility rendering functions {{{
 
@@ -25,15 +21,15 @@ M.uiElementList = {} -- List containing every uiElement created, keyed by name
   --    So, a textTable value of `{{1,0,0,1}, "horse", {0,1,0,1}, "crime"}` would print:
   --    "horsecrime" with "horse" in red and "crime" in green.
   -- font(Font): Love font object to use when drawing text. Defaults to currently set font.
-  -- x(number): text position on x-axis
-  -- y(number): text position on y-axis
-  -- lineLimit(number): wrap the line after this many horizontal pixels
   -- align(string): alignment mode of text, one of: "center", "left", "right", "justify"
   -- angle(number): rotation of text in radians; 0 is normal, un-rotated text
   -- sx,sy(numbers): x/y scale factors for text
   -- ox,oy(numbers): x/y origin offsets for text
   -- kx, ky(numbers): x/y shearing factors
-M.drawText = function(values)
+-- x(number): text position on x-axis
+-- y(number): text position on y-axis
+-- lineLimit(number): wrap the line after this many horizontal pixels
+M.drawText = function(values, x, y, lineLimit)
   local textTable
   if values.textTable then
     textTable = values.textTable
@@ -41,9 +37,7 @@ M.drawText = function(values)
     textTable = {values.color or {1,0,0,1}, values.text or "HEY YOU DIDNT PUT TEXT TO DRAW IN THE FUNCTIONG THAT DRQWS IT"}
   end
   local font = values.font or love.graphics.getFont() -- come back once there is a custom font implemented at all
-  local x = values.x or 0
-  local y = values.y or 0
-  local lineLimit = values.lineLimit or 500
+  local widthLimit = lineLimit
   local align = values.align or "left"
   local angle = values.angle or 0
   local sx = values.sx or 1
@@ -54,52 +48,69 @@ M.drawText = function(values)
   local ky = values.ky or 0
   local colorCacheR,colorCacheG,colorCacheB,colorCacheA = love.graphics.getColor()
   love.graphics.setColor(1,1,1,1)
-  love.graphics.printf(textTable, font, x, y, lineLimit, align, angle, sx, sy, ox, oy, kx, ky)
+  love.graphics.printf(textTable, font, x, y, widthLimit, align, angle, sx, sy, ox, oy, kx, ky)
   love.graphics.setColor(colorCacheR, colorCacheG, colorCacheB, colorCacheA)
 end
 --- }}}
 
--- extra is for any custom data needed by specific elements (slider values, checkbox status, etc)
-M.newElement = function(name, originX, originY, width, height, shouldRender, interactable, selectable, extra)
+-- Create a new uiElement and add it to the tracked list of uiElements
+-- 
+-- args:
+-- 
+-- originXTarget(num): accepts values of 0-1, representing at what point along parent's width to place origin
+-- originYTarget(num): same as above, but for height value of parent
+-- widthTarget(num): percentage of parent's width this element should take up
+-- heightTarget(num): percentege of parent's height this element should take up
+-- name(string): non-player visible name for the element, for programmer use
+-- drawFunc(func): rendering function for element, passed in by an element's more specific constructor 
+-- shouldRender(bool): whether element should render this frame: may be changed anytime
+-- interactable(bool): whether player can click on, navigate with gamepad or otherwise interact with the element
+-- extra(tbl): Holds any state data needed by specific elements (slider values, checkbox status, etc)
+--
+-- returns: UID for newly created element
+M.newElement = function(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, extra)
   local newUiElement = {}
-  newUiElement.name = name
   newUiElement.elementUid = util.gen_uid("uiElements")
-  newUiElement.originX = originX
-  newUiElement.originY = originY
-  newUiElement.width = width
-  newUiElement.height = height
+  newUiElement.originXTarget = originXTarget
+  newUiElement.originYTarget = originYTarget
+  newUiElement.widthTarget = widthTarget
+  newUiElement.heightTarget = heightTarget
   newUiElement.shouldRender = shouldRender or false
   newUiElement.interactable = interactable or false
-  newUiElement.selectable = selectable or false
-  M.uiElementList[name] = newUiElement
-  return newUiElement
+  -- newUiElement.selectable = selectable or false
+  newUiElement.draw = function() drawFunc(newUiElement.elementUid) end
+  newUiElement.name = name
+  newUiElement.extra = extra
+  M.uiElementList[newUiElement.elementUid] = newUiElement
+  return newUiElement.elementUid
 end
 
 -- List of element creation functions {{{
 
+M.drawTextBox = function(textBoxUid)
+  local thisTextBox = M.uiElementList[textBoxUid]
+  M.drawText(thisTextBox.extra.textContent, thisTextBox.originX, thisTextBox.originY, thisTextBox.width)
+end
+
 -- Text display of arbitrary size and length.
 --
 -- args:
--- name(string): internal name of element, used for human identification of item.
--- x,y(numbers): screen coords of top-right corner of label, offset from originX/originY of containing uiWindow
--- width,height(nums): in pixels, height/width of label
+-- originXTarget(num): accepts values of 0-1, representing at what point along parent's width to place origin
+-- originYTarget(num): same as above, but for height value of parent
+-- widthTarget(num): percentage of parent's width this element should take up
+-- heightTarget(num): percentege of parent's height this element should take up
+-- name(string): non-player visible name for the element, for programmer use
 -- values(table): a table that gets directly passed to `drawText` as its argument.
 --                See the `drawText` function in this file for table format.
+-- shouldRender(bool): whether element should render this frame: may be changed anytime
+-- interactable(bool): whether player can click on, navigate with gamepad or otherwise interact with the element
 --
--- returns: table containing data for new label
-M.createLabel = function(name, x, y, width, height, values)
-  local newLabel = {}
-  newLabel.name = name
-  newLabel.x = x or 0
-  newLabel.y = y or 0
-  newLabel.width = width or 100
-  newLabel.height = height or 20
-  newLabel.values = values
-  newLabel.values.x = newLabel.x
-  newLabel.values.y = newLabel.y
-  newLabel.values.lineLimit = newLabel.width
-  newLabel.drawFunc = function() M.drawText(newLabel.values) end
-  return newLabel
+-- returns: UID for newly created element
+M.createTextBox = function(originXTarget, originYTarget, widthTarget, heightTarget, name, values, shouldRender, interactable)
+  local drawFunc = M.drawTextBox
+  local extra = {textContent = values}
+  local newElementUid = M.newElement(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, extra)
+  return newElementUid
 end
 
 -- Button that does a thing once when pressed. Can be activated by mouse click or controller input.
@@ -140,6 +151,16 @@ M.namedElementExists = function(elementName)
     if v.name == elementName then return true end
   end
   return false
+end
+
+-- Toggles a element's `shouldRender` property, given its UID.
+M.toggleRendering = function(elementUid)
+  M.uiElementList[elementUid].shouldRender = not M.uiElementList[elementUid].shouldRender
+end
+
+-- Toggles a element's `interactable` property, given its UID.
+M.toggleInteractable = function(elementUid)
+  M.uiElementList[elementUid].interactable = not M.uiElementList[elementUid].interactable
 end
 
 return M

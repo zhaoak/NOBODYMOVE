@@ -42,10 +42,6 @@ M.new = function(originXTarget, originYTarget, widthTarget, heightTarget, name, 
   newUiWindow.originYTarget = originYTarget
   newUiWindow.widthTarget = widthTarget
   newUiWindow.heightTarget = heightTarget
-  -- newUiWindow.originX = originX
-  -- newUiWindow.originY = originY
-  -- newUiWindow.width = width
-  -- newUiWindow.height = height
   newUiWindow.parentWindowUid = -1 -- default to no parent; use addItem() to change this
   newUiWindow.name = name
   newUiWindow.draw = drawFunc
@@ -65,7 +61,9 @@ M.addItem = function(uiWindowUid, item)
     M.uiWindowList[item.windowUid].parentWindowUid = uiWindowUid
   end
   -- if adding an element as a child...
-  --
+  if item.elementUid ~= nil then
+    elements.uiElementList[item.elementUid].parentWindowUid = uiWindowUid
+  end
 end
 
 -- Call the draw functions of each element or window in the window's `contains` table.
