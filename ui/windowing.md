@@ -43,6 +43,7 @@ Shares many properties with `uiWindow`s, listed below.
 - `extra`(table): Table containing any additional data needed to render the element or track its state.
                   Contents will vary based on the type of element and its data storage needs.
                   See the "uiElement Types" section for specifics.
+- `textContent`(table): Table containing data for the text drawn onto the item. See `textbox` section for details.
 - many properties may be used to store data for specific elements, such as sliders, buttons, or checkboxes
 
 ### properties shared between `uiWindow` and `uiElement`
@@ -70,9 +71,11 @@ Shares many properties with `uiWindow`s, listed below.
 ### Textbox
 
 Rectangular section of the screen to display text in.
+Cannot be interacted with.
 To change the text's font, rotation, size, or other properties,
-specify what you want in the `values` table using the following list of keys.
-The `values` table is then passed to the `createTextBox` function as an argument.
+specify what you want in the `textContent` table using the following list of keys.
+The `textContent` table is then passed to the `createTextBox` function as an argument.
+The `textContent` table can contain the following key-value pairs:
 
 - textTable(table): Table containing string-color pairs to print in the following format: `{color1, string1, color2, string2, ...}`
     - color1(table): Table containing red, green, blue, and optional alpha values in format: `{r, g, b, a}`
@@ -86,6 +89,14 @@ The `values` table is then passed to the `createTextBox` function as an argument
 - sx,sy(numbers): x/y scale factors for text, 1 is normal scale
 - ox,oy(numbers): x/y origin offsets for text, 0 is no offset
 - kx, ky(numbers): x/y shearing factors
+
+### Button
+
+Button that can be activated using one of four inputs; `primary`, `secondary`, `tertiary`, and `cancel`.
+When the player presses the mouse/keyboard/gamepad button bound to one of these input types,
+the corresponding custom callback is triggered.
+(Note that if the button is on the keyboard or mouse, the player must also be hovering over the button.)
+The `textContent` table is formatted in the same way as it is for a textbox element.
 
 # How to use
 
