@@ -66,9 +66,10 @@ end
 -- shouldRender(bool): whether element should render this frame: may be changed anytime
 -- interactable(bool): whether player can click on, navigate with gamepad or otherwise interact with the element
 -- extra(tbl): Holds any state data needed by specific elements (slider values, checkbox status, etc)
+-- onInput(tbl): List of callback functions for different types of player input on element
 --
 -- returns: UID for newly created element
-M.newElement = function(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, extra)
+M.newElement = function(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, extra, onInput)
   local newUiElement = {}
   newUiElement.elementUid = util.gen_uid("uiElements")
   newUiElement.originXTarget = originXTarget
@@ -81,17 +82,12 @@ M.newElement = function(originXTarget, originYTarget, widthTarget, heightTarget,
   newUiElement.draw = function() drawFunc(newUiElement.elementUid) end
   newUiElement.name = name
   newUiElement.extra = extra
+  newUiElement.onInput = onInput
   M.uiElementList[newUiElement.elementUid] = newUiElement
   return newUiElement.elementUid
 end
 
 -- Create/draw functions for individual element types  {{{
-
-M.drawTextBox = function(textBoxUid)
-  local thisTextBox = M.uiElementList[textBoxUid]
-  if thisTextBox.shouldRender == false then return end
-  M.drawText(thisTextBox.extra.textContent, thisTextBox.originX, thisTextBox.originY, thisTextBox.width)
-end
 
 -- Text display of arbitrary size and length.
 --
@@ -101,42 +97,63 @@ end
 -- widthTarget(num): percentage of parent's width this element should take up
 -- heightTarget(num): percentege of parent's height this element should take up
 -- name(string): non-player visible name for the element, for programmer use
--- values(table): a table that gets directly passed to `drawText` as its argument.
+-- textContent(table): a table that gets directly passed to `drawText` as its argument.
 --                Specifies what text to draw, as well as how to format it.
 --                See the `drawText` function in this file for table format.
 -- shouldRender(bool): whether element should render this frame: may be changed anytime
 -- interactable(bool): whether player can click on, navigate with gamepad or otherwise interact with the element
 --
 -- returns: UID for newly created element
-M.createTextBox = function(originXTarget, originYTarget, widthTarget, heightTarget, name, values, shouldRender, interactable)
+M.createTextBox = function(originXTarget, originYTarget, widthTarget, heightTarget, name, textContent, shouldRender, interactable)
   local drawFunc = M.drawTextBox
-  local extra = {textContent = values}
-  local newElementUid = M.newElement(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, extra)
+  local extra = {textContent = textContent}
+  local newElementUid = M.newElement(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, extra, nil)
   return newElementUid
 end
+
+M.drawTextBox = function(textBoxUid)
+  local thisTextBox = M.uiElementList[textBoxUid]
+  if thisTextBox.shouldRender == false then return end
+  M.drawText(thisTextBox.extra.textContent, thisTextBox.originX, thisTextBox.originY, thisTextBox.width)
+end
+
 
 -- Button that does a thing once when pressed. Can be activated by mouse click or controller input.
 --
 -- args:
--- name(string): internal name of button. Used as key and identifier by the uiwindow containing the button.
--- x,y(numbers): screen coordinates of the top-right corner of the button,
---               *relative to `originX` and `originY` values of the containing `uiWindow`*
--- width,height(nums): in pixels, width/height of button
--- drawFunc(func): callback function for rendering this specific button
--- onActivation(func): callback function to run once when button is pressed
+-- originXTarget(num): accepts values of 0-1, representing at what point along parent's width to place origin
+-- originYTarget(num): same as above, but for height value of parent
+-- widthTarget(num): percentage of parent's width this element should take up
+-- heightTarget(num): percentege of parent's height this element should take up
+-- name(string): non-player visible name for the element, for programmer use
+-- textContent(table): a table that gets directly passed to `drawText` as its argument.
+--                Specifies what text to draw, as well as how to format it.
+--                See the `drawText` function in this file for table format.
+-- shouldRender(bool): whether element should render this frame: may be changed anytime
+-- interactable(bool): whether player can click on, navigate with gamepad or otherwise interact with the element
+-- onInput(tbl): table of callback functions to be triggered when element recieves specific inputs
+--               see `windowing.lua` for how to format this table
 --
--- returns: table containing data for new button
--- M.createButton = function (name, x, y, width, height, drawFunc, onActivation)
---   local newButton = {}
---   newButton.x = x
---   newButton.y = y
---   newButton.name = name
---   newButton.width = width or 100
---   newButton.height = height or 30
---   newButton.drawFunc = drawFunc
---   newButton.onActivation = onActivation
---   return newButton
--- end
+-- returns: uid for new button element
+M.createButton = function (originXTarget, originYTarget, widthTarget, heightTarget, name, textContent, shouldRender, interactable, onInput)
+  local drawFunc = M.drawButton
+  local extra = {uiState = "normal", textContent = textContent}
+  local newButtonUid = M.newElement(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, extra, onInput)
+  return newButtonUid
+end
+
+M.drawButton = function(buttonUid)
+  local thisButton = M.uiElementList[buttonUid]
+  if thisButton.shouldRender == false then return end
+  love.graphics.push()
+  love.graphics.translate(thisButton.originX, thisButton.originY)
+  love.graphics.setColor(1, 1, 1, 0.5)
+  if thisButton.extra.uiState == "normal" then
+    love.graphics.rectangle("line", 0, 0, thisButton.width, thisButton.height, 5, 5, 5)
+  end
+  love.graphics.pop()
+  M.drawText(thisButton.extra.textContent, thisButton.originX, thisButton.originY, thisButton.width)
+end
 
 -- }}}
 

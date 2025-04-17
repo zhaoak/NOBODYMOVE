@@ -6,6 +6,7 @@ local M = {}
 
 local util = require'util'
 local elements = require'ui.uiElements'
+local input = require'input'
 
 -- defines {{{
 M.thisFrameGameResolutionX = 800
@@ -121,9 +122,77 @@ M.toggleRendering = function(windowUid)
   renderToggleRecurse(thisWindow, newValue)
 end
 
--- Toggles a window's `interactable` property, given its UID.
+-- Recursive function used to toggle `interactable` property, 
+-- but only for direct+indirect children of a window
+-- local function interactableElementToggleRecurse(item, newValue)
+--   -- if item is an element, toggle its `interactable` property 
+--   if item.elementUid ~= nil then
+--     item.interactable = newValue
+--   end
+--   if item.windowUid ~= nil then
+--     for _, child in ipairs(item.contains) do
+--       interactableElementToggleRecurse(child, newValue)
+--     end
+--   end
+--   -- otherwise, it's an element, and elements can't have children
+--   -- thus the recursion ends here
+-- end
+--
+-- -- Toggles all direct and indirect child elements of a window's `interactable` property recursively, given its UID.
+-- -- This allows the child elements to respond to player input directed at them.
+-- M.toggleChildElementsInteractable = function(windowUid)
+--   local thisWindow = M.uiWindowList[windowUid]
+--   local newValue = not thisWindow.interactable
+--   interactableElementToggleRecurse(thisWindow, newValue)
+-- end
+
+-- Recursive function used to toggle a window and all its children,
+-- both direct and indirect, as interactable
+local function interactableToggleRecurse(item, newValue)
+  item.interactable = newValue
+  -- if item is a window, it could have children to toggle, so do so 
+  if item.windowUid ~= nil then
+    for _, child in ipairs(item.contains) do
+      interactableToggleRecurse(child, newValue)
+    end
+  end
+  -- otherwise, it's an element, and elements can't have children
+  -- thus the recursion ends here
+end
+
+-- Toggles a window's `interactable` property, given its UID,
+-- plus the same property for all the window's children,
+-- both direct and indirect
 M.toggleInteractable = function(windowUid)
-  M.uiWindowList[windowUid].interactable = not M.uiWindowList[windowUid].interactable
+  local thisWindow = M.uiWindowList[windowUid]
+  local newValue = not thisWindow.interactable
+  interactableToggleRecurse(thisWindow, newValue)
+end
+
+-- Given the location of the mouse and the input pressed, calls the clicked-on thing's appropriate callback.
+M.handleKBMUiInput = function(mouseX, mouseY, button)
+  -- check through elements, see if any are set to interactable
+  for k, element in ipairs(elements.uiElementList) do
+    if element.interactable == true and element.onInput ~= nil then
+      -- check if input was on the currently-interactable element
+      if mouseX >= element.originX and mouseX <= (element.originX + element.width) and
+         mouseY >= element.originY and mouseY <= (element.originY + element.height) then
+        -- then, call the callback function associated with the input pressed
+        if button == input.kbMouseBinds.uiActionPrimary then
+          if element.onInput.primary ~= nil then element.onInput.primary() end
+        end
+        if button == input.kbMouseBinds.uiActionSecondary then
+          if element.onInput.secondary ~= nil then element.onInput.secondary() end
+        end
+        if button == input.kbMouseBinds.uiActionTertiary then
+          if element.onInput.tertiary ~= nil then element.onInput.tertiary() end
+        end
+        if button == input.kbMouseBinds.uiActionCancel then
+          if element.onInput.cancel ~= nil then element.onInput.cancel() end
+        end
+      end
+    end
+  end
 end
 
 M.destroy = function(uiWindowUid)
@@ -203,7 +272,18 @@ M.update = function (dt)
       M.resizeAll()
   end
 
-  -- 
+  -- listen for player input on windows or elements
+  -- keyboard+mouse
+  if input.keyDown("uiActionPrimary") then
+    M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionPrimary)
+  elseif input.keyDown("uiActionSecondary") then
+    M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionSecondary)
+  elseif input.keyDown("uiActionTertiary") then
+    M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionTertiary)
+  elseif input.keyDown("uiActionCancel") then
+    M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionCancel)
+  end
+  -- gamepad TODO
 end
 
 return M

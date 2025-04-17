@@ -191,6 +191,13 @@ local function createGunEditMenu()
   uiWindow.addItem(rightSubWindowUid, elements.uiElementList[testLabelUid])
   local testLabel2Uid = elements.createTextBox(0.01, 0.05, 0.9, 0.1, "testLabel2", testText2, false, false)
   uiWindow.addItem(rightSubWindowUid, elements.uiElementList[testLabel2Uid])
+  local testButtonText = {textTable={{1,0,0,1},"[",{0,1,0,1},"button test",{1,0,0,1},"]"}, align = "center"}
+  local testButtonCallbackTest = {primary = function() print("button pressed using primary!") end,
+                                  secondary = function() print("button pressed using secondary!") end,
+                                  tertiary = function() print("button pressed using tertiary!") end,
+                                  cancel = function() print("button pressed using cancel!") end}
+  local testButtonUid = elements.createButton(0.01, 0.1, 0.2, 0.05, "testButton", testButtonText, false, false, testButtonCallbackTest)
+  uiWindow.addItem(rightSubWindowUid, elements.uiElementList[testButtonUid])
 end
 
 M.toggleGunEditMenuOpen = function()
@@ -220,7 +227,7 @@ M.draw = function(player, gunList)
 
   -- draw all uiElements
   for _, v in ipairs(elements.uiElementList) do
-    util.shallowTPrint(v)
+    -- util.shallowTPrint(v)
     v:draw()
   end
 end

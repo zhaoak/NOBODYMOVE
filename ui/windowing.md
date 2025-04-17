@@ -57,10 +57,14 @@ Shares many properties with `uiWindow`s, listed below.
                                       If the item has no parent window, uses the game window's dimensions for comparisons.
 - `parentWindowUid`(num): UID of parent window. If item has no parent, this is set to -1.
 - `shouldRender`(bool): Whether item should be rendered this frame
-- `interactable`(bool): Whether item can be interacted with/manipulated via mouse/controller inputs
+- `interactable`(bool): Whether item is permitted to run callbacks based on player input
 - `selectable`(bool): Whether item can be "selected" by scrolling through parent window's `contains` list using controller inputs
 - `draw`(func): rendering function for item
-
+- `onInput`(table): callback functions run in response to player game inputs, keyed with the following strings:
+                    - "primary": confirm/trigger action/select from children (default bind: leftclick/A button on gamepad)
+                    - "secondary": perform secondary action (default bind: rightclick/X button on gamepad)
+                    - "tertiary": perform tertiary action (default bind: rightshift/Y button on gamepad)
+                    - "cancel": cancel action/return to parent window (default bind: ESC/B button on gamepad)
 ## uiElement types
 
 ### Textbox
