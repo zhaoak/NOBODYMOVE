@@ -81,6 +81,7 @@ M.newElement = function(originXTarget, originYTarget, widthTarget, heightTarget,
   newUiElement.interactable = interactable or false
   newUiElement.selectable = selectable or false
   newUiElement.draw = function() drawFunc(newUiElement.elementUid) end
+  newUiElement.parentWindowUid = -1
   newUiElement.name = name
   newUiElement.extra = extra
   newUiElement.onInput = onInput

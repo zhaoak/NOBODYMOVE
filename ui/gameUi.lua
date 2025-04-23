@@ -167,7 +167,7 @@ local function drawTestWindow()
   -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
   love.graphics.translate(thisWindow.originX, thisWindow.originY)
   -- draw the window shape
-  love.graphics.setColor(1, 1, 1, 1)
+  love.graphics.setColor(1, 1, 1, 0.2)
   love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
   love.graphics.pop()
 end
@@ -214,9 +214,12 @@ local function createGunEditMenu()
   local testButtonUid3 = elements.createButton(0.01, 0.3, 0.2, 0.05, "testButton3", testButtonText, false, false, testButtonCallbackTest)
   uiWindow.addItem(rightSubWindowUid, elements.uiElementList[testButtonUid3])
 
-  -- local testSubWin1 = uiWindow.new(0.1, 0.5, 1, 0.5, "testSubWin1", drawTestWindow, false, false, true)
-  -- uiWindow.addItem(rightSubWindowUid, uiWindow.uiWindowList[testSubWin1])
-  -- M.uiWindowUidCache["testSubWin1"] = testSubWin1
+  local testSubWin1 = uiWindow.new(0.1, 0.5, 1, 0.5, "testSubWin1", drawTestWindow, false, false, true)
+  uiWindow.addItem(rightSubWindowUid, uiWindow.uiWindowList[testSubWin1])
+  M.uiWindowUidCache["testSubWin1"] = testSubWin1
+
+  local testSubButton1 = elements.createButton (0.01, 0.1, 0.2, 0.05, "testSubButton1", testButtonText, false, false, testButtonCallbackTest)
+  uiWindow.addItem(testSubWin1, elements.uiElementList[testSubButton1])
 end
 
 M.toggleGunEditMenuOpen = function()

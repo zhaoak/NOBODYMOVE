@@ -50,18 +50,18 @@ M.new = function(originXTarget, originYTarget, widthTarget, heightTarget, name, 
   newUiWindow.heightTarget = heightTarget
   newUiWindow.parentWindowUid = -1 -- default to no parent; use addItem() to change this
   newUiWindow.selectable = selectable or false
-  newUiWindow.selected = false
+  newUiWindow.selected = nil
   newUiWindow.navigating = false
   newUiWindow.onInput = {}
   newUiWindow.onInput.primary = function()
     M.setNavigating(newUiWindow.windowUid)
   end
   newUiWindow.onInput.cancel = function()
-    if newUiWindow.parentWindowUid == -1 then M.setNavigating(-1) end
+    if newUiWindow.parentWindowUid == -1 then return end
     if M.uiWindowList[newUiWindow.parentWindowUid].interactable == true then
       M.setNavigating(newUiWindow.parentWindowUid)
     else
-      M.setNavigating(-1)
+      return
     end
   end
   newUiWindow.name = name
@@ -92,16 +92,45 @@ M.setNavigating = function(windowUid)
   for _, window in ipairs(M.uiWindowList) do
     window.navigating = false
   end
-  if windowUid == -1 then return end
+  if windowUid == -1 then return end -- if arg is -1, we're done here
+  -- set specified window as currently navigated window
   local thisWindow = M.uiWindowList[windowUid]
   thisWindow.navigating = true
-  -- select first selectable child from list of children
-  if #thisWindow.contains == 0 then return end
-  local childToSelect
+  -- select first selectable child from list of children as a default,
+  -- but only if a previous value isn't already present
+  if #thisWindow.contains == 0 or thisWindow.selected ~= nil then return end
   for childIndex, child in ipairs(thisWindow.contains) do
     if child.selectable == true then 
       thisWindow.selected = childIndex
       return
+    end
+  end
+end
+
+-- Given the UID of a window or element,
+-- moves UI navigation "up" one level (to the item's parent)
+-- If both args are given, uses the windowUid and not elementUid.
+M.navToParent = function(windowUid, elementUid)
+  -- if item is window
+  if windowUid then
+    local currentWindow = M.uiWindowList[windowUid]
+    -- if currentWindow is parentless, do nothing
+    if currentWindow.parentWindowUid == -1 then return end
+    local parentWindow = M.uiWindowList[currentWindow.parentWindowUid]
+    -- ensure the window you want to select is selectable
+    if parentWindow.interactable == true and parentWindow.selectable == true then
+      -- if grandparent of currentWindow is parentless, do nothing
+      if parentWindow.parentWindowUid == -1 then return end
+      M.setNavigating(parentWindow.parentWindowUid)
+    end
+  else
+    -- if item is element
+    local currentElement = elements.uiElementList[elementUid]
+    if currentElement.parentWindowUid == -1 then M.setNavigating(-1) end
+    local parentWindow = M.uiWindowList[currentElement.parentWindowUid]
+    if parentWindow.interactable == true and parentWindow.selectable == true then
+      if parentWindow.parentWindowUid == -1 then M.setNavigating(-1); return end
+      M.setNavigating(parentWindow.parentWindowUid)
     end
   end
 end
@@ -130,7 +159,6 @@ M.selectNextChild = function(parentUid)
     return
   end
   -- ...and if there aren't any selectable children in the list at all, do nothing
-  return
 end
 
 -- Given a parent window's UID,
@@ -165,7 +193,6 @@ M.selectPrevChild = function(parentUid)
     return
   end
   -- if neither exist, do nothing
-  return
 end
 
 -- Add an element or window to a window's `contains` list. The window will render the element each frame,
@@ -175,10 +202,16 @@ M.addItem = function(uiWindowUid, item)
   -- if adding a window as a child...
   if item.windowUid ~= nil then
     M.uiWindowList[item.windowUid].parentWindowUid = uiWindowUid
+    -- add "back" callback for UI navigation
+    if item.onInput == nil then item.onInput = {} end
+    item.onInput.cancel = function() M.navToParent(item.windowUid, nil) end
   end
   -- if adding an element as a child...
   if item.elementUid ~= nil then
     elements.uiElementList[item.elementUid].parentWindowUid = uiWindowUid
+    -- add "back" callback for UI navigation
+    if item.onInput == nil then item.onInput = {} end
+    item.onInput.cancel = function() M.navToParent(nil, item.elementUid) end
   end
 end
 
@@ -269,7 +302,7 @@ end
 -- Given the location of the mouse and the input pressed, calls the clicked-on thing's appropriate callback.
 M.handleKBMUiInput = function(mouseX, mouseY, button)
   -- check through elements, see if any are set to interactable
-  for k, element in ipairs(elements.uiElementList) do
+  for _, element in ipairs(elements.uiElementList) do
     if element.interactable == true and element.onInput ~= nil then
       -- check if input was on the currently-interactable element
       if mouseX >= element.originX and mouseX <= (element.originX + element.width) and
