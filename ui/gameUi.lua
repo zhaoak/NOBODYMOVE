@@ -6,6 +6,7 @@
 local uiWindow = require'ui.uiWindow'
 local elements = require'ui.uiElements'
 local util = require'util'
+local state = require'gamestate'
 local M = { }
 
 -- defines {{{
@@ -15,7 +16,6 @@ M.gunHudListItemHeight = 110
 M.gunHudListItemWidth = 150
 M.healthDisplayWidth = 250
 M.healthDisplayHeight = 50
-M.gunEditMenuOpen = false
 -- }}}
 
 -- UI event callbacks {{{
@@ -203,7 +203,7 @@ end
 M.toggleGunEditMenuOpen = function()
   uiWindow.toggleRendering(M.uiWindowUidCache["gunEditMenu"])
   uiWindow.toggleInteractable(M.uiWindowUidCache["gunEditMenu"])
-  M.gunEditMenuOpen = not M.gunEditMenuOpen
+  state.gunEditMenuOpen = not state.gunEditMenuOpen
 end
 -- }}}
 

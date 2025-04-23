@@ -193,6 +193,9 @@ M.handleKBMUiInput = function(mouseX, mouseY, button)
       end
     end
   end
+  -- Note that we don't bother checking windows--
+  -- uiWindows are for navigation via controller and holding elements,
+  -- not being UI elements in their own right
 end
 
 M.destroy = function(uiWindowUid)
