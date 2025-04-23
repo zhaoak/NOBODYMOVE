@@ -277,6 +277,10 @@ M.handleKBMUiInput = function(mouseX, mouseY, button)
       end
     end
   end
+
+  -- reset input cooldown timer
+  M.uiInputCooldownTimer = M.uiInputCooldownPeriod
+
   -- Note that we don't bother checking windows--
   -- uiWindows are for navigation via controller and holding elements,
   -- not being UI elements in their own right
@@ -387,20 +391,21 @@ M.update = function (dt)
   -- get currently-navigating uiWindow's UID
   local navigatingWindowUid = M.getNavigating()
 
-  -- listen for player input on windows or elements
+  -- listen for player input on windows or elements,
+  -- but only if it's been a short period since the last ui input
   -- keyboard+mouse
-  if input.keyDown("uiActionPrimary") then
-    M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionPrimary)
-  elseif input.keyDown("uiActionSecondary") then
-    M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionSecondary)
-  elseif input.keyDown("uiActionTertiary") then
-    M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionTertiary)
-  elseif input.keyDown("uiActionCancel") then
-    M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionCancel)
-  end
-
-  -- gamepad
   if M.uiInputCooldownTimer < 0 then
+    if input.keyDown("uiActionPrimary") then
+      M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionPrimary)
+    elseif input.keyDown("uiActionSecondary") then
+      M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionSecondary)
+    elseif input.keyDown("uiActionTertiary") then
+      M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionTertiary)
+    elseif input.keyDown("uiActionCancel") then
+      M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionCancel)
+    end
+
+    -- gamepad
     if input.gamepadButtonDown("uiNavUp", 1) then
       M.handleGamepadUiInput(navigatingWindowUid, input.gamepadButtonBinds.uiNavUp)
     elseif input.gamepadButtonDown("uiNavDown", 1) then
