@@ -29,10 +29,12 @@ M.uiWindowList = {} -- list with data for every uiWindow created, keyed by UID
 -- drawFunc(func): rendering function for uiWindow from `gameUi.lua` 
 -- onClick(func): a callback function triggered when player clicks on the UiWindow
 -- shouldRender(bool): whether window should render this frame: may be changed anytime
--- interactable(bool): whether player can click on, navigate with gamepad or otherwise interact with the window
+-- interactable(bool): whether window will run activation callbacks on click/controller activation input
+-- selectable(bool): whether window can be highlighted and navigated to via controller inputs from parent window
+
 --
 -- returns: UID for newly created window
-M.new = function(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable)
+M.new = function(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, selectable)
   local newUiWindow = {}
   newUiWindow.shouldRender = shouldRender or false -- whether the window should render this frame
   newUiWindow.interactable = interactable or false -- whether the window should listen and respond to kb/mouse/controller inputs
@@ -44,6 +46,9 @@ M.new = function(originXTarget, originYTarget, widthTarget, heightTarget, name, 
   newUiWindow.widthTarget = widthTarget
   newUiWindow.heightTarget = heightTarget
   newUiWindow.parentWindowUid = -1 -- default to no parent; use addItem() to change this
+  newUiWindow.selectable = false
+  newUiWindow.selected = false
+  newUiWindow.navigating = false
   newUiWindow.name = name
   newUiWindow.draw = drawFunc
   -- `contains` contains all ui elements (defined in `uiElements.lua`) within the window
@@ -51,6 +56,42 @@ M.new = function(originXTarget, originYTarget, widthTarget, heightTarget, name, 
   newUiWindow.windowUid = util.gen_uid("uiWindows")
   M.uiWindowList[newUiWindow.windowUid] = newUiWindow
   return newUiWindow.windowUid
+end
+
+-- Sets a specific window as the currently-navigated window, specified by UID,
+-- then selects the first selectable child from its `contains` list.
+-- Also sets all windows to navigating=false beforehand, so only one window is navigable at once.
+-- If given -1 as the UID arg, unsets `navigating` for all windows.
+M.setNavigating = function(windowUid)
+  -- unset focus on all other windows
+  for _, window in ipairs(M.uiWindowList) do
+    window.navigating = false
+  end
+  if windowUid == -1 then return end
+  local thisWindow = M.uiWindowList[windowUid]
+  thisWindow.navigating = true
+  -- select first selectable child from list of children
+  if #thisWindow.contains == 0 then return end
+  local childToSelect
+  for childIndex, child in ipairs(thisWindow.contains) do
+    if child.selectable == true then 
+      thisWindow.selected = childIndex
+      return
+    end
+  end
+end
+
+-- Returns a reference to the next selectable child in the window's `contains` list of child items.
+-- If last child in list is currently selected, returns the first selectable child, and vice versa.
+-- If no selectable children exist, returns nil.
+M.findNextSelectableChild = function(self)
+  -- find which child is selected
+  local selectedChildIndex
+  for i, child in ipairs(self.contains) do
+    if child.selected == true then
+      selectedChildIndex = i
+    end
+  end
 end
 
 -- Add an element or window to a window's `contains` list. The window will render the element each frame,
@@ -67,13 +108,19 @@ M.addItem = function(uiWindowUid, item)
   end
 end
 
--- Call the draw functions of each element or window in the window's `contains` table.
-M.drawChildren = function(uiWindowUid)
-  for i,child in pairs(M.uiWindowList[uiWindowUid].contains) do
-    child.drawFunc()
+-- Given the UID of a currently-navigable uiWindow,
+-- draw the border indicating a selected item around the currently-selected child.
+M.drawSelectionBorder = function(parentWindowUid)
+  local thisParent = M.uiWindowList[parentWindowUid]
+  for i, child in ipairs(thisParent.contains) do
+    if i == thisParent.selected and thisParent.navigating == true then
+      local colorCacheR,colorCacheG,colorCacheB,colorCacheA = love.graphics.getColor()
+      love.graphics.setColor(1, 0, 0, 0.8)
+      love.graphics.rectangle("line", child.originX, child.originY, child.width, child.height, 5, 5, 5)
+      love.graphics.setColor(colorCacheR, colorCacheG, colorCacheB, colorCacheA)
+    end
   end
 end
-
 
 -- Gets a window's UID by its programmer-visible name.
 M.getWindowUid = function(windowName)
@@ -196,6 +243,10 @@ M.handleKBMUiInput = function(mouseX, mouseY, button)
   -- Note that we don't bother checking windows--
   -- uiWindows are for navigation via controller and holding elements,
   -- not being UI elements in their own right
+end
+
+M.handleGamepadUiInput = function()
+
 end
 
 M.destroy = function(uiWindowUid)

@@ -29,6 +29,8 @@ This means that child elements will always visually render on top of their paren
 
 - `windowUid`(num): UID value for this `uiWindow`
 - `contains`(tbl, int-keyed): An ordered list of a `uiWindow`s children. **Do not put the same child in multiple parents!**
+- `navigating`(bool): Indicates whether controller directional inputs should select from window's selectable children.
+- `selected`(int): Index of which element in `contains` is currently highlighted. Only applicable if `navigating` is true.
 - `scrollable`(bool, default false): Whether the window's contents can be scrolled
 - `currentScrollOffset`(num): How many pixels down the window is currently scrolled
 
@@ -44,7 +46,6 @@ Shares many properties with `uiWindow`s, listed below.
                   Contents will vary based on the type of element and its data storage needs.
                   See the "uiElement Types" section for specifics.
 - `textContent`(table): Table containing data for the text drawn onto the item. See `textbox` section for details.
-- many properties may be used to store data for specific elements, such as sliders, buttons, or checkboxes
 
 ### properties shared between `uiWindow` and `uiElement`
 
@@ -58,8 +59,8 @@ Shares many properties with `uiWindow`s, listed below.
                                       If the item has no parent window, uses the game window's dimensions for comparisons.
 - `parentWindowUid`(num): UID of parent window. If item has no parent, this is set to -1.
 - `shouldRender`(bool): Whether item should be rendered this frame
-- `interactable`(bool): Whether item is permitted to run callbacks based on player input
-- `selectable`(bool): Whether item can be "selected" by scrolling through parent window's `contains` list using controller inputs
+- `interactable`(bool): Whether item is currently permitted to run callbacks based on player input via mouse/KB/controller
+- `selectable`(bool): Whether item can be highlighted and navigated to via controller inputs from parent window
 - `draw`(func): rendering function for item
 - `onInput`(table): callback functions run in response to player game inputs, keyed with the following strings:
                     - "primary": confirm/trigger action/select from children (default bind: leftclick/A button on gamepad)

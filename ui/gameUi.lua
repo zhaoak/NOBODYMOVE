@@ -166,7 +166,7 @@ local function createGunEditMenu()
   local targetWidth, targetHeight = 0.8, 0.8
 
   -- if editing window hasn't been created yet, create it
-  local newWindowUid = uiWindow.new(targetX, targetY, targetWidth, targetHeight, "gunEditMenu", drawGunEditMenu, false, false)
+  local newWindowUid = uiWindow.new(targetX, targetY, targetWidth, targetHeight, "gunEditMenu", drawGunEditMenu, false, false, false)
   M.uiWindowUidCache["gunEditMenu"] = newWindowUid
 
   -- create left and right subwindows of edit window
@@ -178,7 +178,7 @@ local function createGunEditMenu()
 
   local rSubTargetX, rSubTargetY = 0.2, 0
   local rSubTargetWidth, rSubTargetHeight = 0.8, 1
-  local rightSubWindowUid = uiWindow.new(rSubTargetX, rSubTargetY, rSubTargetWidth, rSubTargetHeight, "gunEditMenu-RightSplit", drawGunEditRSplit, false, false)
+  local rightSubWindowUid = uiWindow.new(rSubTargetX, rSubTargetY, rSubTargetWidth, rSubTargetHeight, "gunEditMenu-RightSplit", drawGunEditRSplit, false, true)
   uiWindow.addItem(newWindowUid, uiWindow.uiWindowList[rightSubWindowUid])
   M.uiWindowUidCache["gunEditMenu-RightSplit"] = rightSubWindowUid
 
@@ -204,6 +204,11 @@ M.toggleGunEditMenuOpen = function()
   uiWindow.toggleRendering(M.uiWindowUidCache["gunEditMenu"])
   uiWindow.toggleInteractable(M.uiWindowUidCache["gunEditMenu"])
   state.gunEditMenuOpen = not state.gunEditMenuOpen
+  if state.gunEditMenuOpen == true then
+    uiWindow.setNavigating(M.uiWindowUidCache["gunEditMenu-RightSplit"])
+  else
+    uiWindow.setNavigating(-1)
+  end
 end
 -- }}}
 
@@ -219,12 +224,15 @@ M.draw = function(player, gunList)
   -- uiWindow.uiWindowList["hudHealthBar"]:draw(player)
   -- uiWindow.uiWindowList["gunEditMenu"]:draw(player, gunList)
 
-  -- draw all uiWindows
+  -- draw all uiWindows, as well as the selection border for any selected items
   for _,v in pairs(M.uiWindowUidCache) do
-    -- util.shallowTPrint(uiWindow.uiWindowList[v])
     uiWindow.uiWindowList[v]:draw(player, gunList)
+    if uiWindow.uiWindowList[v].navigating == true then
+      uiWindow.drawSelectionBorder(v)
+    end
+    util.shallowTPrint(uiWindow.uiWindowList[v])
   end
-
+  
   -- draw all uiElements
   for _, v in ipairs(elements.uiElementList) do
     -- util.shallowTPrint(v)

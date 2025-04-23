@@ -65,11 +65,12 @@ end
 -- drawFunc(func): rendering function for element, passed in by an element's more specific constructor 
 -- shouldRender(bool): whether element should render this frame: may be changed anytime
 -- interactable(bool): whether player can click on, navigate with gamepad or otherwise interact with the element
+-- selectable(bool): whether element can be highlighted and navigated to via controller inputs from parent window
 -- extra(tbl): Holds any state data needed by specific elements (slider values, checkbox status, etc)
 -- onInput(tbl): List of callback functions for different types of player input on element
 --
 -- returns: UID for newly created element
-M.newElement = function(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, extra, onInput)
+M.newElement = function(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, selectable, extra, onInput)
   local newUiElement = {}
   newUiElement.elementUid = util.gen_uid("uiElements")
   newUiElement.originXTarget = originXTarget
@@ -78,7 +79,7 @@ M.newElement = function(originXTarget, originYTarget, widthTarget, heightTarget,
   newUiElement.heightTarget = heightTarget
   newUiElement.shouldRender = shouldRender or false
   newUiElement.interactable = interactable or false
-  -- newUiElement.selectable = selectable or false
+  newUiElement.selectable = selectable or false
   newUiElement.draw = function() drawFunc(newUiElement.elementUid) end
   newUiElement.name = name
   newUiElement.extra = extra
@@ -107,7 +108,7 @@ end
 M.createTextBox = function(originXTarget, originYTarget, widthTarget, heightTarget, name, textContent, shouldRender, interactable)
   local drawFunc = M.drawTextBox
   local extra = {textContent = textContent}
-  local newElementUid = M.newElement(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, extra, nil)
+  local newElementUid = M.newElement(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, false, extra, nil)
   return newElementUid
 end
 
@@ -138,7 +139,7 @@ end
 M.createButton = function (originXTarget, originYTarget, widthTarget, heightTarget, name, textContent, shouldRender, interactable, onInput)
   local drawFunc = M.drawButton
   local extra = {uiState = "normal", textContent = textContent}
-  local newButtonUid = M.newElement(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, extra, onInput)
+  local newButtonUid = M.newElement(originXTarget, originYTarget, widthTarget, heightTarget, name, drawFunc, shouldRender, interactable, true, extra, onInput)
   return newButtonUid
 end
 
