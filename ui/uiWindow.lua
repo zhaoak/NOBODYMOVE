@@ -16,7 +16,7 @@ M.lastFrameGameResolutionY = 600
 M.uiScale = 1 -- scaling factor to use for all uiWindows; 1 is normal size
 -- }}}
 
-M.uiInputCooldownPeriod = 0.15
+M.uiInputCooldownPeriod = 0.20
 M.uiInputCooldownTimer = 0
 
 M.uiWindowList = {} -- list with data for every uiWindow created, keyed by UID
@@ -49,9 +49,21 @@ M.new = function(originXTarget, originYTarget, widthTarget, heightTarget, name, 
   newUiWindow.widthTarget = widthTarget
   newUiWindow.heightTarget = heightTarget
   newUiWindow.parentWindowUid = -1 -- default to no parent; use addItem() to change this
-  newUiWindow.selectable = false
+  newUiWindow.selectable = selectable or false
   newUiWindow.selected = false
   newUiWindow.navigating = false
+  newUiWindow.onInput = {}
+  newUiWindow.onInput.primary = function()
+    M.setNavigating(newUiWindow.windowUid)
+  end
+  newUiWindow.onInput.cancel = function()
+    if newUiWindow.parentWindowUid == -1 then M.setNavigating(-1) end
+    if M.uiWindowList[newUiWindow.parentWindowUid].interactable == true then
+      M.setNavigating(newUiWindow.parentWindowUid)
+    else
+      M.setNavigating(-1)
+    end
+  end
   newUiWindow.name = name
   newUiWindow.draw = drawFunc
   -- `contains` contains all ui elements (defined in `uiElements.lua`) within the window
@@ -68,6 +80,7 @@ M.getNavigating = function()
   for i, window in ipairs(M.uiWindowList) do
     if window.navigating == true then return i end
   end
+  return -1
 end
 
 -- Sets a specific window as the currently-navigated window, specified by UID,
@@ -289,6 +302,7 @@ end
 M.handleGamepadUiInput = function(navigatingWindowUid, button)
   local navigatedWindow = M.uiWindowList[navigatingWindowUid]
   local selectedElement = navigatedWindow.contains[navigatedWindow.selected]
+  if selectedElement == nil then return end
   if button == input.gamepadButtonBinds.uiNavUp then
     M.selectPrevChild(navigatingWindowUid)
   elseif button == input.gamepadButtonBinds.uiNavDown then
@@ -394,7 +408,7 @@ M.update = function (dt)
   -- listen for player input on windows or elements,
   -- but only if it's been a short period since the last ui input
   -- keyboard+mouse
-  if M.uiInputCooldownTimer < 0 then
+  if M.uiInputCooldownTimer < 0 and navigatingWindowUid ~= -1 then
     if input.keyDown("uiActionPrimary") then
       M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionPrimary)
     elseif input.keyDown("uiActionSecondary") then

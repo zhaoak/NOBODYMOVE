@@ -159,6 +159,18 @@ local function drawGunEditRSplit()
   love.graphics.pop()
 end
 
+local function drawTestWindow()
+  local thisWindowUid = uiWindow.getWindowUid("testSubWin1")
+  local thisWindow = uiWindow.uiWindowList[thisWindowUid]
+  if thisWindow.shouldRender == false then return end
+  love.graphics.push() -- save previous transformation state
+  -- then set 0,0 point for graphics calls to the top left corner of the uiWindow
+  love.graphics.translate(thisWindow.originX, thisWindow.originY)
+  -- draw the window shape
+  love.graphics.setColor(1, 1, 1, 1)
+  love.graphics.rectangle("fill", 0, 0, thisWindow.width, thisWindow.height, 20, 20, 20)
+  love.graphics.pop()
+end
 
 local function createGunEditMenu()
   -- set correct origin point/width/height
@@ -172,19 +184,18 @@ local function createGunEditMenu()
   -- create left and right subwindows of edit window
   local lSubTargetX, lSubTargetY = 0, 0
   local lSubTargetWidth, lSubTargetHeight = 0.19, 1 
-  local leftSubWindowUid = uiWindow.new(lSubTargetX, lSubTargetY, lSubTargetWidth, lSubTargetHeight, "gunEditMenu-LeftSplit", drawGunEditLSplit, false, false)
+  local leftSubWindowUid = uiWindow.new(lSubTargetX, lSubTargetY, lSubTargetWidth, lSubTargetHeight, "gunEditMenu-LeftSplit", drawGunEditLSplit, false, false, false)
   uiWindow.addItem(newWindowUid, uiWindow.uiWindowList[leftSubWindowUid])
   M.uiWindowUidCache["gunEditMenu-LeftSplit"] = leftSubWindowUid
 
   local rSubTargetX, rSubTargetY = 0.2, 0
   local rSubTargetWidth, rSubTargetHeight = 0.8, 1
-  local rightSubWindowUid = uiWindow.new(rSubTargetX, rSubTargetY, rSubTargetWidth, rSubTargetHeight, "gunEditMenu-RightSplit", drawGunEditRSplit, false, true)
+  local rightSubWindowUid = uiWindow.new(rSubTargetX, rSubTargetY, rSubTargetWidth, rSubTargetHeight, "gunEditMenu-RightSplit", drawGunEditRSplit, false, false, false)
   uiWindow.addItem(newWindowUid, uiWindow.uiWindowList[rightSubWindowUid])
   M.uiWindowUidCache["gunEditMenu-RightSplit"] = rightSubWindowUid
 
-  -- 
-
   -- test code
+
   local testText = {textTable={{1,0,0,1},"[",{0,1,0,1},"print function test",{1,0,0,1},"]"}}
   local testText2 = {textTable={{1,1,0,1},"[",{0,1,1,1},"print function test",{1,1,0,1},"]"}}
   local testLabelUid = elements.createTextBox(0.01, 0.01, 0.9, 0.1, "testLabel", testText, false, false)
@@ -203,11 +214,14 @@ local function createGunEditMenu()
   local testButtonUid3 = elements.createButton(0.01, 0.3, 0.2, 0.05, "testButton3", testButtonText, false, false, testButtonCallbackTest)
   uiWindow.addItem(rightSubWindowUid, elements.uiElementList[testButtonUid3])
 
+  -- local testSubWin1 = uiWindow.new(0.1, 0.5, 1, 0.5, "testSubWin1", drawTestWindow, false, false, true)
+  -- uiWindow.addItem(rightSubWindowUid, uiWindow.uiWindowList[testSubWin1])
+  -- M.uiWindowUidCache["testSubWin1"] = testSubWin1
 end
 
 M.toggleGunEditMenuOpen = function()
   uiWindow.toggleRendering(M.uiWindowUidCache["gunEditMenu"])
-  uiWindow.toggleInteractable(M.uiWindowUidCache["gunEditMenu"])
+  uiWindow.toggleInteractable(M.uiWindowUidCache["gunEditMenu-RightSplit"])
   state.gunEditMenuOpen = not state.gunEditMenuOpen
   if state.gunEditMenuOpen == true then
     uiWindow.setNavigating(M.uiWindowUidCache["gunEditMenu-RightSplit"])

@@ -25,6 +25,10 @@ A `uiWindow` and `uiElement` only render if its parent's `shouldRender` property
 A window's rendering function is always called before its children's rendering functions.
 This means that child elements will always visually render on top of their parent window.
 
+A `uiWindow`'s `primary` and `cancel` calls in its `onInput` property always do the following:
+- `primary`: Sets window whose `primary` function was called as the currently-navigated window
+- `cancel`: Sets parent of window whose `cancel` function was called as the currently-navigated window
+
 ### `uiWindow` exclusive properties
 
 - `windowUid`(num): UID value for this `uiWindow`
