@@ -27,7 +27,8 @@ This means that child elements will always visually render on top of their paren
 
 A `uiWindow`'s `primary` and `cancel` calls in its `onInput` property always do the following:
 - `primary`: Sets window whose `primary` function was called as the currently-navigated window
-- `cancel`: Sets parent of window whose `cancel` function was called as the currently-navigated window
+- `cancel`: Sets parent of window whose `cancel` function was called as the currently-navigated window,
+            but only if that parent exists.
 
 ### `uiWindow` exclusive properties
 
@@ -70,7 +71,7 @@ Shares many properties with `uiWindow`s, listed below.
                     - "primary": confirm/trigger action/select from children (default bind: leftclick/A button on gamepad)
                     - "secondary": perform secondary action (default bind: rightclick/X button on gamepad)
                     - "tertiary": perform tertiary action (default bind: rightshift/Y button on gamepad)
-                    - "cancel": cancel action/return to parent window (default bind: ESC/B button on gamepad)
+                    - "cancel": cancel action/return to parent window (default bind: middlemouse/B button on gamepad)
 ## uiElement types
 
 ### Textbox

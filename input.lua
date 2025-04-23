@@ -46,9 +46,9 @@ M.kbMouseBinds = {
   shootFG8 = nil,
   toggleGunEditMenu = "tab",
   uiActionPrimary = 1,
-  uiActionSecondary = 3,
+  uiActionSecondary = 2,
   uiActionTertiary = "lshift",
-  uiActionCancel = 2,
+  uiActionCancel = 3,
   incSpread = 'wheelup',
   decSpread = 'wheeldown',
 }

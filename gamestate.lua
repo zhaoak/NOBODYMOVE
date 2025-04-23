@@ -10,6 +10,7 @@ M.pauseMenuOpen = false
 
 -- {{{ Whether the game is currently paused. 
 M.gamePaused = false
+-- }}}
 
 -- {{{ Whether the gun edit menu is open and interactive.
 M.gunEditMenuOpen = false
