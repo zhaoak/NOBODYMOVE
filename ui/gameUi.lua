@@ -198,6 +198,11 @@ local function createGunEditMenu()
                                   cancel = function() print("button pressed using cancel!") end}
   local testButtonUid = elements.createButton(0.01, 0.1, 0.2, 0.05, "testButton", testButtonText, false, false, testButtonCallbackTest)
   uiWindow.addItem(rightSubWindowUid, elements.uiElementList[testButtonUid])
+  local testButtonUid2 = elements.createButton(0.01, 0.2, 0.2, 0.05, "testButton2", testButtonText, false, false, testButtonCallbackTest)
+  uiWindow.addItem(rightSubWindowUid, elements.uiElementList[testButtonUid2])
+  local testButtonUid3 = elements.createButton(0.01, 0.3, 0.2, 0.05, "testButton3", testButtonText, false, false, testButtonCallbackTest)
+  uiWindow.addItem(rightSubWindowUid, elements.uiElementList[testButtonUid3])
+
 end
 
 M.toggleGunEditMenuOpen = function()
@@ -230,7 +235,7 @@ M.draw = function(player, gunList)
     if uiWindow.uiWindowList[v].navigating == true then
       uiWindow.drawSelectionBorder(v)
     end
-    util.shallowTPrint(uiWindow.uiWindowList[v])
+    -- util.shallowTPrint(uiWindow.uiWindowList[v])
   end
   
   -- draw all uiElements

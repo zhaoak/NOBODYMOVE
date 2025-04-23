@@ -16,6 +16,9 @@ M.lastFrameGameResolutionY = 600
 M.uiScale = 1 -- scaling factor to use for all uiWindows; 1 is normal size
 -- }}}
 
+M.uiInputCooldownPeriod = 0.15
+M.uiInputCooldownTimer = 0
+
 M.uiWindowList = {} -- list with data for every uiWindow created, keyed by UID
 
 -- create a new uiWindow and add it to the tracked list of uiWindows
@@ -58,6 +61,15 @@ M.new = function(originXTarget, originYTarget, widthTarget, heightTarget, name, 
   return newUiWindow.windowUid
 end
 
+-- Returns the UID of the window that currently has `navigating` set to true.
+-- There should only be one window with that property set to true at a time.
+-- If no window is currently navigable, return -1.
+M.getNavigating = function()
+  for i, window in ipairs(M.uiWindowList) do
+    if window.navigating == true then return i end
+  end
+end
+
 -- Sets a specific window as the currently-navigated window, specified by UID,
 -- then selects the first selectable child from its `contains` list.
 -- Also sets all windows to navigating=false beforehand, so only one window is navigable at once.
@@ -81,17 +93,66 @@ M.setNavigating = function(windowUid)
   end
 end
 
--- Returns a reference to the next selectable child in the window's `contains` list of child items.
--- If last child in list is currently selected, returns the first selectable child, and vice versa.
--- If no selectable children exist, returns nil.
-M.findNextSelectableChild = function(self)
-  -- find which child is selected
-  local selectedChildIndex
-  for i, child in ipairs(self.contains) do
-    if child.selected == true then
-      selectedChildIndex = i
+-- Given a parent window's UID,
+-- selects the next selectable child in the window's `contains` list of child items.
+-- If last selectable child in list is selected, selects the first selectable child.
+-- If no selectable children can be found, does nothing.
+M.selectNextChild = function(parentUid)
+  local thisWindow = M.uiWindowList[parentUid]
+  local firstSelectableChildIndex = nil
+  for i, child in ipairs(thisWindow.contains) do
+    -- find first selectable child, cache its index
+    if firstSelectableChildIndex == nil and child.selectable == true then
+      firstSelectableChildIndex = i
+    end
+    -- find the next selectable child item farther down the list, set it as selected if found
+    if thisWindow.selected < i and child.selectable == true then
+      thisWindow.selected = i
+      return
     end
   end
+  -- if we couldn't find a selectable child farther down the list, select the first child in list instead
+  if firstSelectableChildIndex ~= nil then
+    thisWindow.selected = firstSelectableChildIndex
+    return
+  end
+  -- ...and if there aren't any selectable children in the list at all, do nothing
+  return
+end
+
+-- Given a parent window's UID,
+-- selects the previous selectable child in the window's `contains` list of child items.
+-- If first selectable child in list is selected, selects the last selectable child.
+-- If no selectable children can be found, does nothing.
+M.selectPrevChild = function(parentUid)
+  local thisWindow = M.uiWindowList[parentUid]
+  local lastSelectableChildIndex, prevSelectableChildIndex = nil, nil
+
+  -- iterate through children, find the last selectable child,
+  -- and first selectable child before currently selected child, if it exists
+  for i, child in ipairs(thisWindow.contains) do
+    -- find last selectable child, if it exists
+    if child.selectable == true then
+      lastSelectableChildIndex = i
+    end
+    -- find previous selectable child, if it exists
+    if child.selectable == true and i < thisWindow.selected then
+      prevSelectableChildIndex = i
+    end
+  end
+
+  -- if a previous selectable child exists, select it and return
+  if prevSelectableChildIndex ~= nil then
+    thisWindow.selected = prevSelectableChildIndex
+    return
+  end
+  -- if no previous selectable child exists, select the last child in the list
+  if prevSelectableChildIndex == nil and lastSelectableChildIndex ~= nil then
+    thisWindow.selected = lastSelectableChildIndex
+    return
+  end
+  -- if neither exist, do nothing
+  return
 end
 
 -- Add an element or window to a window's `contains` list. The window will render the element each frame,
@@ -169,30 +230,6 @@ M.toggleRendering = function(windowUid)
   renderToggleRecurse(thisWindow, newValue)
 end
 
--- Recursive function used to toggle `interactable` property, 
--- but only for direct+indirect children of a window
--- local function interactableElementToggleRecurse(item, newValue)
---   -- if item is an element, toggle its `interactable` property 
---   if item.elementUid ~= nil then
---     item.interactable = newValue
---   end
---   if item.windowUid ~= nil then
---     for _, child in ipairs(item.contains) do
---       interactableElementToggleRecurse(child, newValue)
---     end
---   end
---   -- otherwise, it's an element, and elements can't have children
---   -- thus the recursion ends here
--- end
---
--- -- Toggles all direct and indirect child elements of a window's `interactable` property recursively, given its UID.
--- -- This allows the child elements to respond to player input directed at them.
--- M.toggleChildElementsInteractable = function(windowUid)
---   local thisWindow = M.uiWindowList[windowUid]
---   local newValue = not thisWindow.interactable
---   interactableElementToggleRecurse(thisWindow, newValue)
--- end
-
 -- Recursive function used to toggle a window and all its children,
 -- both direct and indirect, as interactable
 local function interactableToggleRecurse(item, newValue)
@@ -245,8 +282,29 @@ M.handleKBMUiInput = function(mouseX, mouseY, button)
   -- not being UI elements in their own right
 end
 
-M.handleGamepadUiInput = function()
+M.handleGamepadUiInput = function(navigatingWindowUid, button)
+  local navigatedWindow = M.uiWindowList[navigatingWindowUid]
+  local selectedElement = navigatedWindow.contains[navigatedWindow.selected]
+  if button == input.gamepadButtonBinds.uiNavUp then
+    M.selectPrevChild(navigatingWindowUid)
+  elseif button == input.gamepadButtonBinds.uiNavDown then
+    M.selectNextChild(navigatingWindowUid)
+  elseif button == input.gamepadButtonBinds.uiNavLeft then
+    -- nav left action
+  elseif button == input.gamepadButtonBinds.uiNavRight then
+    -- nav right action
+  elseif button == input.gamepadButtonBinds.uiActionPrimary then
+    if selectedElement.onInput.primary ~= nil then selectedElement.onInput.primary() end
+  elseif button == input.gamepadButtonBinds.uiActionSecondary then
+    if selectedElement.onInput.secondary ~= nil then selectedElement.onInput.secondary() end
+  elseif button == input.gamepadButtonBinds.uiActionTertiary then
+    if selectedElement.onInput.tertiary ~= nil then selectedElement.onInput.tertiary() end
+  elseif button == input.gamepadButtonBinds.uiActionCancel then
+    if selectedElement.onInput.cancel ~= nil then selectedElement.onInput.cancel() end
+  end
 
+  -- reset input cooldown timer
+  M.uiInputCooldownTimer = M.uiInputCooldownPeriod
 end
 
 M.destroy = function(uiWindowUid)
@@ -326,6 +384,9 @@ M.update = function (dt)
       M.resizeAll()
   end
 
+  -- get currently-navigating uiWindow's UID
+  local navigatingWindowUid = M.getNavigating()
+
   -- listen for player input on windows or elements
   -- keyboard+mouse
   if input.keyDown("uiActionPrimary") then
@@ -337,7 +398,30 @@ M.update = function (dt)
   elseif input.keyDown("uiActionCancel") then
     M.handleKBMUiInput(love.mouse.getX(), love.mouse.getY(), input.kbMouseBinds.uiActionCancel)
   end
-  -- gamepad TODO
+
+  -- gamepad
+  if M.uiInputCooldownTimer < 0 then
+    if input.gamepadButtonDown("uiNavUp", 1) then
+      M.handleGamepadUiInput(navigatingWindowUid, input.gamepadButtonBinds.uiNavUp)
+    elseif input.gamepadButtonDown("uiNavDown", 1) then
+      M.handleGamepadUiInput(navigatingWindowUid, input.gamepadButtonBinds.uiNavDown)
+    elseif input.gamepadButtonDown("uiNavLeft", 1) then
+      M.handleGamepadUiInput(navigatingWindowUid, input.gamepadButtonBinds.uiNavLeft)
+    elseif input.gamepadButtonDown("uiNavRight", 1) then
+      M.handleGamepadUiInput(navigatingWindowUid, input.gamepadButtonBinds.uiNavRight)
+    elseif input.gamepadButtonDown("uiActionPrimary", 1) then
+      M.handleGamepadUiInput(navigatingWindowUid, input.gamepadButtonBinds.uiActionPrimary)
+    elseif input.gamepadButtonDown("uiActionSecondary", 1) then
+      M.handleGamepadUiInput(navigatingWindowUid, input.gamepadButtonBinds.uiActionSecondary)
+    elseif input.gamepadButtonDown("uiActionTertiary", 1) then
+      M.handleGamepadUiInput(navigatingWindowUid, input.gamepadButtonBinds.uiActionTertiary)
+    elseif input.gamepadButtonDown("uiActionCancel", 1) then
+      M.handleGamepadUiInput(navigatingWindowUid, input.gamepadButtonBinds.uiActionCancel)
+    end
+  end
+
+  -- decrement ui input anti-spam timer
+  M.uiInputCooldownTimer = M.uiInputCooldownTimer - dt
 end
 
 return M
